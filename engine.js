@@ -1,6 +1,6 @@
 /* オリキャラ対戦：データとバトルの仕組み（画面に依存しない） */
 (function(G){
-const DICE=3,MAXD=6,PLAYER_HP=40,TOP=10,FATIGUE=9;
+const DICE=3,MAXD=6,PLAYER_HP=40,TOP=10,TOP2=20,FATIGUE=9;
 
 /* 条件 c:{t,n} / ダメージ dmg:{b:固定,m:出目倍率} / 効果 fx / t:必要な★ */
 const CHARS=[
@@ -130,12 +130,26 @@ const FLOORS=[
  {n:'情報処理室',rule:{k:'six',d:'出目6を使った攻撃ダメージ+3'}},
  {n:'嵐の屋上',rule:{k:'storm',d:'ターン開始時、そのターンの人が1ダメージ'}},
  {n:'塔の主の間',rule:{k:'boss',d:'相手チームの攻撃ダメージ+1'}},
+ /* 上層（10F突破で解放）：奇数階は敵がレベルアップ、偶数階は敵が1人増える */
+ {n:'試作室',rule:{k:'dice',d:'お互いサイコロ+1個'}},
+ {n:'鍛造場',rule:{k:'even',d:'偶数の出目で使った攻撃ダメージ+2'}},
+ {n:'制御室',rule:{k:'six',d:'出目6を使った攻撃ダメージ+3'}},
+ {n:'研究所',rule:{k:'heal',d:'回復量が2倍'}},
+ {n:'精密測定室',rule:{k:'guardHalf',d:'得るガードが半分'}},
+ {n:'発電所',rule:{k:'pair',d:'ゾロ目技のダメージ+4'}},
+ {n:'設計局',rule:{k:'odd',d:'奇数の出目で使った攻撃ダメージ+2'}},
+ {n:'嵐の展望台',rule:{k:'storm',d:'ターン開始時、そのターンの人が1ダメージ'}},
+ {n:'星見の回廊',rule:{k:'dice',d:'お互いサイコロ+1個'}},
+ {n:'天空の工房',rule:{k:'boss',d:'相手チームの攻撃ダメージ+1'}},
 ];
 const floorStar=f=>f<=3?1:f<=6?2:3;
-const floorCount=f=>f<=3?1:f<=7?2:3;
-const floorHP=(f,lap)=>(f<=7?24+f*2:20+f*2)+(lap-1)*5;
-const bossHP=lap=>40+(lap-1)*8;
-const floorCoins=f=>2+Math.ceil(f/2)+(f===TOP?10:0);
+/* 上層の敵レベル：11-12F=Lv1、13-14F=Lv2 … 19-20F=Lv5（周回ごとに+2） */
+const enemyLv=(f,lap=1)=>f>TOP?Math.ceil((f-TOP)/2)+(lap-1)*2:0;
+const lvBonus=lv=>Math.floor(lv/2);
+const floorCount=f=>f>TOP?(f%2===0?4:3):f<=3?1:f<=7?2:3;
+const floorHP=(f,lap)=>f>TOP?Math.round((30+enemyLv(f,lap)*2)*(f%2===0?.8:1)):(f<=7?24+f*2:20+f*2);
+const bossHP=(f,lap)=>f===TOP2?50+(lap-1)*10:40;
+const floorCoins=f=>2+Math.ceil(f/2)+(f===TOP?10:f===TOP2?15:0);
 
 /* ---- 表示用ラベル ---- */
 function condLabel(c){return{any:'なんでも',even:'偶数',odd:'奇数',pair:'ゾロ目'}[c.t]||(c.t==='min'?c.n+'以上':c.t==='max'?c.n+'以下':c.n+'のみ')}
@@ -164,17 +178,18 @@ function autoPick(ch,star,jitter=0,R=Math.random,lvMap={}){
   return sel.map(x=>x.k).sort((a,b)=>a-b)}
 
 /* ---- バトル ---- */
-function mkFighter(id,star,mv,lvMap,hp){const ch=byId(id);
-  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0}}
-function enemiesFor(f,lap,R=Math.random,avoid=[]){const n=floorCount(f),st=Math.min(3,floorStar(f)+(lap>2?1:0)),out=[],pool=CHARS.map(c=>c.id);
-  for(let i=0;i<n;i++){if(f===TOP&&i===n-1){out.push({id:'takumi',star:3,hp:bossHP(lap)});break}
+function mkFighter(id,star,mv,lvMap,hp,elv=0,bonus=0){const ch=byId(id);
+  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0,lv:elv,bonus}}
+function enemiesFor(f,lap,R=Math.random,avoid=[]){const n=floorCount(f),st=f>TOP?3:floorStar(f),lv=enemyLv(f,lap),out=[],pool=CHARS.map(c=>c.id);
+  for(let i=0;i<n;i++){
+    if((f===TOP||f===TOP2)&&i===n-1){out.push({id:'takumi',star:3,hp:bossHP(f,lap),lv:f===TOP2?lv+1:0,bonus:f===TOP2?lvBonus(lv):0,boss:true});break}
     let id;let tries=0;do{id=pool[Math.floor(R()*pool.length)];tries++}while(tries<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));
-    out.push({id,star:st,hp:floorHP(f,lap)})}
+    out.push({id,star:st,hp:floorHP(f,lap),lv,bonus:lvBonus(lv)})}
   return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
 function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,mv,hp}]} */
   const S={floor:o.floor,lap:o.lap||1,rule:(FLOORS[o.floor-1]||{}).rule,turn:0,over:-1,ev:[],
     sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
-           {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp)),idx:0,dice:[],used:new Set(),first:false}]};
+           {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0)),idx:0,dice:[],used:new Set(),first:false}]};
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
 const rk=S=>S.rule&&S.rule.k;
@@ -239,6 +254,7 @@ function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=
   if(pk==='six'&&v===6)add(3,'パワー全開');
   if(pk==='smallHit'&&d<=5)add(2,'ちょこちょこ');
   if(pk==='master')add(1,'マイスター');
+  if(f.bonus)add(f.bonus,'Lv'+f.lv);
   if(f.pow)add(f.pow,'溜め');
   if(f.weak)add(-f.weak,'弱体');
   if(o.ch.passive.k==='armor')add(-1,'鬼面');
@@ -280,7 +296,7 @@ function simulate(o,R=Math.random){const S=newBattle(o);let i=0,guard=0;
   while(S.over<0&&guard++<200){startTurn(S,i,R);let c;while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R)))useMove(S,i,c.mi,c.ks);endTurn(S,i);take(S);i=1-i}
   return S.over}
 
-const API={FATIGUE,DICE,MAXD,PLAYER_HP,TOP,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+const API={FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
