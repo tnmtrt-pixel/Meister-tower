@@ -58,7 +58,7 @@ button{font-family:var(--f-body)}
 .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
 .btn.small{font-size:12px;padding:4px 10px}
 .seg{display:flex;border:2px solid var(--ink);border-radius:8px;overflow:hidden}
-.seg button{flex:1;border:0;background:var(--panel);color:var(--ink);font:700 14px var(--f-body);padding:7px 6px;cursor:pointer;white-space:nowrap}
+.seg button{flex:1;min-width:0;border:0;background:var(--panel);color:var(--ink);font:700 14px var(--f-body);padding:7px 6px;cursor:pointer;white-space:nowrap}
 .seg button+button{border-left:2px solid var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .coins{font-family:var(--f-display);font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -207,6 +207,7 @@ details p{margin:6px 0 0}
 .lines{font-size:13px;margin:0;padding-left:1.2em}
 
 /* 結果 */
+.oncode{font:400 48px var(--f-display);letter-spacing:.25em;text-align:center;color:var(--gold-hi,#FFE08A);text-shadow:0 0 14px rgba(242,193,78,.6);padding:8px 0}
 .raid-ov{background:rgba(40,0,8,.78);animation:redpulse 1s ease-in-out 3}
 @keyframes redpulse{50%{background:rgba(120,0,20,.85)}}
 .raid-card{border-color:#FF5D6C!important;box-shadow:0 0 0 1px #3B0008,0 0 40px rgba(255,93,108,.5)!important}
@@ -401,7 +402,7 @@ hr{border-color:var(--line)!important}
         <button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button><button data-v="online" aria-pressed="false" data-zh="联机">通信</button></nav>
   </header>
 
   <section class="view" id="v-tower">
@@ -464,6 +465,15 @@ hr{border-color:var(--line)!important}
     </div>
   </section>
 
+  <section class="view" id="v-online" hidden>
+    <div class="panel">
+      <h2 data-zh="联机对战">通信対戦</h2>
+      <p class="hint" data-zh="和朋友用各自的手机对战。一人创建房间，把显示的暗号告诉对方，对方输入暗号即可开始。使用你当前的队伍出战。">友だちと、それぞれのスマホで対戦できます。片方が部屋を作り、表示された合言葉を相手に伝えて、相手が合言葉を入力すると始まります。今のパーティで戦います。</p>
+      <div class="label" data-zh="出战队伍">出場するパーティ</div>
+      <div class="party-strip" id="on-party"></div>
+      <div id="on-body"></div>
+    </div>
+  </section>
   <section class="view" id="arena" hidden>
     <div class="floor-tag" id="floor-tag"></div>
     <div class="fighter foe" id="f1"></div>
@@ -585,8 +595,9 @@ function updCoins(){$('#coin').textContent=save.coins}
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
-  ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
-  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex})[v]();window.scrollTo(0,0)}
+  if(v!=='online')onlineClose();
+  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
+  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[v]();window.scrollTo(0,0)}
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
 /* ================= タワー ================= */
@@ -708,7 +719,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
   B={raid,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   if(raid)B.S.rule=null;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:FLOORS[BF-1];
-  ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
   (async()=>{const e=G.act(B.S,1);
@@ -764,6 +775,7 @@ async function play(evs){for(const e of evs){if(!B)return;const prevIdx=B.view.m
 async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;
   await play(G.startTurn(B.S,i));if(!B)return;if(B.S.over>=0)return finish();
   if(i===0){B.busy=false;renderControl();if(TUT.on)tutTurn();return}
+  if(B.online){B.busy=true;renderControl();return}/* 相手の行動は通信で届く */
   await W(450);let c,guard=0;
   while(B&&B.S.over<0&&B.S.turn===1&&guard++<12&&(c=G.cpuChoose(B.S,1))){await play(G.useMove(B.S,1,c.mi,c.ks));await W(200)}
   if(!B)return;if(B.S.over>=0)return finish();
@@ -785,10 +797,10 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
     if(sd.used.has(mi)){toast(L('この技はこのターンもう使いました','这个技能本回合已经用过了'));return}
     const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
     if(B.sel!=null&&!ks.includes(B.sel))toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`));
-    B.busy=true;B.sel=null;renderControl();await play(G.useMove(B.S,0,mi,ks));
+    B.busy=true;B.sel=null;renderControl();if(B.online)onlineSend({t:'act',mi,ks});await play(G.useMove(B.S,0,mi,ks));
     if(!B)return;if(B.S.over>=0)return finish();
     B.busy=false;renderControl();if(TUT.on&&TUT.wait==='move')tutAdvance()});
-  const E=$('#end');if(E)E.onclick=async()=>{if(B.busy)return;if(tutBlock('end'))return;if(TUT.on&&TUT.wait==='end')tutAdvance();B.busy=true;sfx('tap');renderControl();await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();runTurn(1)}}
+  const E=$('#end');if(E)E.onclick=async()=>{if(B.busy)return;if(tutBlock('end'))return;if(TUT.on&&TUT.wait==='end')tutAdvance();B.busy=true;sfx('tap');renderControl();if(B.online){onlineSend({t:'end'});return onlineQueue(async()=>{await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();await runTurn(1)})}await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();runTurn(1)}}
 
 /* ================= 対戦中の情報 ================= */
 function openSheet(html){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
@@ -839,6 +851,7 @@ async function tutTurn(){
 /* ================= 決着 ================= */
 async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=true}document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
   const win=B.S.over===0,f=B.floor,RP=B.replay,me=G.act(B.S,0),foe=G.act(B.S,1);
+  if(B.online)return finishOnline(win,me,foe);
   if(B.raid)return finishRaid(win,me,foe);
   const coins=RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
   let opened=false,master=false;
@@ -858,6 +871,59 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
   showOverlay({word:master?'MEISTER!':clear?'CLEAR!':win?'WINNER':'LOSE…',ch:win?me.ch:foe.ch,win,coins,
     sub:master?L('真・塔の主をたおした！<br>マイスターの称号を手に入れた','打倒了真·塔之主！<br>获得了「大师」称号'):opened?L('塔の主をたおした！<br>上層（11〜20F）への道が開いた','打倒了塔之主！<br>通往上层（11〜20F）的道路开启了'):win?L(`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`,`${me.ch.name}获胜！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑战通关':'通关'}`):L(`${foe.ch.name}に敗れた…`,`败给了${foe.ch.name}……`),
     hint:RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${save.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${save.floor}F`)):(unlock?unlock+'　':'')+(master?L(`上層は${save.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${save.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${save.floor}F ${FLOORS[save.floor-1].n}`,`下一层：${save.floor}F ${FLOORS[save.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`))})}
+/* ================= 通信対戦 ================= */
+/* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
+const ONLINE_URL=window.MT_ONLINE_URL||'';
+const ON={ws:null,code:'',state:'idle',err:''};
+function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
+function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
+function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
+function onlineQueue(fn){B.chain=(B.chain||Promise.resolve()).then(()=>B&&!B.done?fn():null).catch(e=>console.error(e));return B.chain}
+function renderOnline(){
+  $('#on-party').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
+  const el=$('#on-body');
+  if(!ONLINE_URL){el.innerHTML=`<p class="hint">${L('通信対戦のサーバーを準備中です。もう少しお待ちください。','联机服务器正在准备中，请稍候。')}</p>`;return}
+  if(ON.state==='waiting'){el.innerHTML=`<div class="oncode">${ON.code}</div><p class="hint" style="text-align:center">${L('この合言葉を相手に伝えてね。相手が入ると対戦が始まります。','把这个暗号告诉对方。对方加入后对战就会开始。')}</p><div class="row" style="justify-content:center"><button class="btn" id="on-cancel">${L('やめる','取消')}</button></div>`;
+    $('#on-cancel').onclick=()=>{onlineClose();renderOnline()};return}
+  if(ON.state==='connecting'){el.innerHTML=`<p class="hint">${L('接続しています…','正在连接……')}</p>`;return}
+  el.innerHTML=`${ON.err?`<p class="hint" style="color:var(--low)">${ON.err}</p>`:''}
+    <div class="row" style="justify-content:center"><button class="btn primary" id="on-create">${L('部屋を作る','创建房间')}</button></div>
+    <div class="label">${L('合言葉で部屋に入る','用暗号加入房间')}</div>
+    <div class="row"><input id="on-code" class="code-out" style="height:auto;flex:1;min-width:0;font:700 20px var(--f-body);letter-spacing:.2em;text-transform:uppercase" maxlength="8" autocomplete="off" inputmode="text" aria-label="${L('合言葉','暗号')}" placeholder="ABCD"><button class="btn" id="on-join">${L('入る','加入')}</button></div>`;
+  $('#on-create').onclick=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';const r=crypto.getRandomValues(new Uint8Array(4));r.forEach(x=>c+=A[x%A.length]);onlineConnect(c,true)};
+  $('#on-join').onclick=()=>{const c=($('#on-code').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length<4){ON.err=L('合言葉は4文字以上です','暗号至少4个字符');renderOnline();return}onlineConnect(c,false)}}
+function onlineConnect(code,host){ac();ON.err='';fixParty();
+  if(!save.party.length){ON.err=L('先にパーティを組んでください','请先组建队伍');renderOnline();return}
+  const short=save.party.find(id=>loadout(id).length!==4);if(short){ON.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderOnline();return}
+  onlineClose();ON.code=code;ON.state='connecting';renderOnline();
+  let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/ws?room='+encodeURIComponent(code))}catch(e){ON.state='idle';ON.err=L('接続できませんでした','无法连接');renderOnline();return}
+  ON.ws=ws;
+  ws.onopen=()=>{onlineSend({t:'hello',party:onlineParty(),name:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}onlineMsg(m)};
+  ws.onerror=()=>{if(ON.state!=='battle'){ON.state='idle';ON.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');renderOnline()}};
+  ws.onclose=()=>{if(ON.ws!==ws)return;ON.ws=null;if(ON.state==='battle'&&B&&B.online&&!B.done){toast(L('通信が切れました','连接已断开'));onlineQueue(async()=>{B.S.over=1;B.cut=true;await finish()})}else if(ON.state!=='battle'){ON.state='idle';renderOnline()}}}
+function onlineMsg(m){
+  if(m.t==='full'){ON.state='idle';ON.err=L('その部屋は満員か、対戦中です','该房间已满或正在对战');onlineClose();renderOnline();return}
+  if(m.t==='start'){ON.state='battle';beginOnline(m);return}
+  if(!B||!B.online)return;
+  if(m.t==='act')onlineQueue(()=>play(G.useMove(B.S,1,m.mi,m.ks)).then(()=>{if(B.S.over>=0)return finish()}));
+  else if(m.t==='end')onlineQueue(async()=>{await play(G.endTurn(B.S,1));if(B.S.over>=0)return finish();await runTurn(0)});
+  else if(m.t==='left'&&!B.done){toast(L('相手が退出しました','对方已退出'));onlineQueue(async()=>{B.S.over=0;B.left=true;await finish()})}}
+function beginOnline(m){
+  TUT.on=false;
+  B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
+  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  const on=byId(m.oppName);$('#floor-tag').textContent=L('通信対戦','联机对战')+(on?' vs '+on.name:'');
+  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
+  onlineQueue(async()=>{await say(L('通信対戦スタート！','联机对战开始！'),700);await say(m.youFirst?L('あなたが先攻です','你是先攻'):L('相手が先攻です','对方是先攻'),700);
+    bubble(1,G.act(B.S,1).ch.lines[0]);await runTurn(m.youFirst?0:1)})}
+async function finishOnline(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
+  if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{sfx('lose')}
+  await W(900);
+  showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,
+    sub:B.cut?L('通信が切れました','连接已断开'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('通信対戦に勝利！','赢得联机对战！'):L('通信対戦に敗れた…','联机对战失败……'),
+    hint:L('通信対戦ではコインは増えません。また遊ぼう！','联机对战不会获得金币。下次再来玩吧！')})}
+
 /* ================= 乱入：匠空 ================= */
 const RAID={pending:false,rate:.08};
 function alarm(){for(let i=0;i<6;i++)tone(i%2?660:880,.16,'square',.07,0,i*.18)}
@@ -981,8 +1047,8 @@ function applyLang(l){l=l==='zh'?'zh':'ja';G.setLang(l);save.lang=l;persist();co
   document.querySelectorAll('[data-zh-aria]').forEach(e=>{if(e.dataset.jaAria==null)e.dataset.jaAria=e.getAttribute('aria-label');e.setAttribute('aria-label',zh?e.dataset.zhAria:e.dataset.jaAria)});
   document.querySelectorAll('[data-zh-ph]').forEach(e=>{if(e.dataset.jaPh==null)e.dataset.jaPh=e.placeholder;e.placeholder=zh?e.dataset.zhPh:e.dataset.jaPh});
   updCoins();
-  const vis=['tower','party','gacha','dex'].find(x=>!$('#v-'+x).hidden);
-  if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex})[vis]()}
+  const vis=['tower','party','gacha','dex','online'].find(x=>!$('#v-'+x).hidden);
+  if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[vis]()}
 
 /* ================= 起動 ================= */
 fixParty();applyLang(save.lang||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'ja'));updCoins();setSnd();persist();

@@ -242,6 +242,14 @@ function enemiesFor(f,lap,R=Math.random,avoid=[]){const n=floorCount(f),st=f>TOP
   return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
 /* 乱入バトルの敵：チート性能の匠空 */
 function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,raid:true,mv:[2,4,5,6]}}
+/* 通信対戦：同じシードの乱数で、両方の端末が同じ結果を計算する（自分は常に side 0） */
+function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function newPvP(o){/* o:{me:[{id,star,mv,lv}],opp:[...],seed,firstSide} */
+  const fs=o.firstSide?1:0;
+  const S={floor:0,lap:1,rule:null,turn:0,over:-1,ev:[],pvp:true,firstSide:fs,R:rng(o.seed),
+    sides:[{team:o.me.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===0},
+           {team:o.opp.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===1}]};
+  return S}
 function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,mv,hp}]} */
   const S={floor:o.floor,lap:o.lap||1,rule:(FLOORS[o.floor-1]||{}).rule,turn:0,over:-1,ev:[],
     sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
@@ -265,10 +273,10 @@ function checkKO(S){let selfDown=false;
     E(S,'switch',i===1?L(`${n.ch.name}が 現れた！「${n.ch.lines[0]}」`,`${n.ch.name} 出现了！「${n.ch.lines[0]}」`):L(`${n.ch.name}、たのんだ！`,`${n.ch.name}，拜托了！`),{side:i})}
   return selfDown}
 
-function startTurn(S,i,R=Math.random){if(S.over>=0)return take(S);
+function startTurn(S,i,R=S.R||Math.random){if(S.over>=0)return take(S);
   S.turn=i;const sd=S.sides[i],f=act(S,i),pk=f.ch.passive.k;f.guard=0;sd.used=new Set();sd.dice=[];
   E(S,'turn',i===0?L('あなたのターン！','你的回合！'):L('相手のターン！','对方的回合！'),{side:i});
-  if(i===0)S.round=(S.round||0)+1;
+  if(i===(S.firstSide||0))S.round=(S.round||0)+1;
   if(S.round>=FATIGUE){const d=S.round-FATIGUE+1;f.hp=Math.max(0,f.hp-d);E(S,'hit',L(`長期戦の疲れ！ ${f.ch.name}に ${d} ダメージ`,`持久战的疲劳！ ${f.ch.name} 受到 ${d} 点伤害`),{side:i,amt:d,src:-1})}
   if(rk(S)==='storm'){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`嵐で ${f.ch.name}に 1ダメージ`,`风暴使 ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
   if(pk==='gamble'&&f.hp>0){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`ロックンロール！ ${f.ch.name}は 1ダメージ`,`摇滚！ ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
@@ -330,7 +338,7 @@ function useMove(S,i,mi,ks){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=f.move
   if(fx.heal){const h=Math.min(f.max-f.hp,fx.heal*(rk(S)==='heal'?2:1));f.hp+=h;E(S,'heal',h?L(`${f.ch.name}は 体力を ${h} 回復した！`,`${f.ch.name} 恢复了 ${h} 点体力！`):L('しかし 体力は満タンだ！','但体力已经是满的！'),{side:i,amt:h})}
   if(fx.dUp){f.dMod+=fx.dUp;E(S,'buff',L(`${f.ch.name}の 次のターンのサイコロが +${fx.dUp}！`,`${f.ch.name} 的下回合骰子 +${fx.dUp}！`),{side:i})}
   if(fx.dDown){o.dMod-=fx.dDown;E(S,'debuff',L(`${o.ch.name}の 次のターンのサイコロが −${fx.dDown}！`,`${o.ch.name} 的下回合骰子 −${fx.dDown}！`),{side:1-i})}
-  if(fx.reroll){const nv=r6(Math.random);sd.dice.push({v:nv,used:false});E(S,'roll',L('サイコロを振り直した → ','重掷了骰子 → ')+nv,{side:i})}
+  if(fx.reroll){const nv=r6(S.R||Math.random);sd.dice.push({v:nv,used:false});E(S,'roll',L('サイコロを振り直した → ','重掷了骰子 → ')+nv,{side:i})}
   checkKO(S);return take(S)}
 
 function endTurn(S,i){if(S.over>=0)return take(S);const f=act(S,i);
@@ -353,7 +361,7 @@ function simulate(o,R=Math.random){const S=newBattle(o);let i=0,guard=0;
   while(S.over<0&&guard++<200){startTurn(S,i,R);let c;while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R)))useMove(S,i,c.mi,c.ks);endTurn(S,i);take(S);i=1-i}
   return S.over}
 
-const API={raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+const API={rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
