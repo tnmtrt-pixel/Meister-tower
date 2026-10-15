@@ -15,7 +15,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+1p:wght@400;700;800&family=Yuji+Syuku&text=%E5%8C%A0&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Syuku&text=%E5%8C%A0&display=swap">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -32,7 +32,7 @@ img{max-width:100%}
   --gold:#D9AE45; --gold-hi:#FFE08A; --steel:#2A3550; --steel-hi:#4A5A7C; --blue:#2F7BFF; --blue-hi:#8FD3FF; --navy:#0D1838;
   --f-display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
   --f-crest:"Yuji Syuku","Hiragino Mincho ProN","Yu Mincho",serif;
-  --f-body:"M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Meiryo","Noto Sans JP",system-ui,sans-serif;/* 本文は端末の標準フォント（Webフォントの分割読み込みで対戦中に文字がちらつくのを防ぐ） */
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -252,8 +252,8 @@ details p{margin:6px 0 0}
 .gx.open .gx-door.l{transform:translateX(-101%)}.gx.open .gx-door.r{transform:translateX(101%)}
 .gx.open .gx-seam{opacity:0;transition:opacity .4s}
 .gx-flash{position:absolute;inset:0;background:var(--g);opacity:0;pointer-events:none;z-index:3}
-.gx.open .gx-flash{animation:flash .7s ease-out}
-@keyframes flash{0%{opacity:.95}100%{opacity:0}}
+.gx.open .gx-flash{animation:gxflash .7s ease-out}
+@keyframes gxflash{0%{opacity:.95}100%{opacity:0}}
 .gx-res{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#fff;padding:24px;z-index:4}
 .gx-res .rays{--rc:var(--g);opacity:.22}.gx-res>*:not(.rays){position:relative;z-index:1}
 .gx-res .crest{width:min(56vw,230px);border-width:4px;box-shadow:0 0 30px var(--g);animation:pop .55s}
@@ -361,8 +361,8 @@ html:lang(zh){--f-display:"ZCOOL QingKe HuangYou","Noto Sans SC","PingFang SC","
 html:lang(zh) h1,html:lang(zh) h2,html:lang(zh) .fname,html:lang(zh) .big-word{letter-spacing:.04em}
 /* ================= 鋼と金の工房スキン ================= */
 body{background:var(--paper)}
-.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:var(--navy)}
-.bgfx::before{content:"";position:absolute;inset:-30px;background:url(img/title-v.webp) center 20%/cover;filter:blur(10px) saturate(1.15) brightness(.5)}
+.bgfx{position:fixed;inset:0;z-index:-1;transform:translateZ(0);contain:strict;pointer-events:none;overflow:hidden;background:var(--navy)}
+.bgfx::before{content:"";position:absolute;inset:0;background:url(img/bg.webp) center 20%/cover}/* ぼかし済みの画像を使う（CSSのblurはスマホで重い） */
 .bgfx::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,20,48,.35),rgba(10,20,48,.82) 45%,rgba(6,12,30,.94))}
 h1{font-size:26px;letter-spacing:.02em;line-height:1.1}
 h1 span{background:linear-gradient(180deg,#9BE0FF,#3E8BFF 55%,#1C49B5);-webkit-background-clip:text;background-clip:text;color:transparent;padding:0;-webkit-text-stroke:1px #0B1A44;filter:drop-shadow(2px 2px 0 #071030)}
@@ -414,8 +414,7 @@ h2{font-weight:400;letter-spacing:.02em;color:#fff;text-shadow:0 2px 0 rgba(0,0,
 .mv .tier,.mv .lv{color:var(--gold-hi)}
 .mv[aria-pressed="true"]{border-color:var(--gold-hi);background:linear-gradient(180deg,rgba(242,193,78,.24),rgba(30,52,108,.9));box-shadow:0 0 0 1px var(--gold),0 0 12px rgba(242,193,78,.3)}
 .mv.ready{border-color:var(--blue-hi);box-shadow:0 0 0 1px var(--blue-hi),0 0 16px rgba(143,211,255,.45)}
-.mv.ready .cond{animation:readyglow 1.4s ease-in-out infinite}
-@keyframes readyglow{50%{box-shadow:0 0 10px var(--blue-hi)}}
+.mv.ready .cond{box-shadow:0 0 6px var(--blue-hi)}
 .mv.locked{border-style:dashed}
 .est{color:#FFB199}
 .up{background:rgba(10,20,48,.8);border:1px solid var(--gold);color:var(--gold-hi);border-radius:4px}
@@ -432,7 +431,7 @@ h2{font-weight:400;letter-spacing:.02em;color:#fff;text-shadow:0 2px 0 rgba(0,0,
 .floor-tag{font-family:var(--f-display);font-size:13px;background:linear-gradient(180deg,#5EA6FF,#1F55C8);color:#fff;border:2px solid var(--gold);border-radius:4px;
   clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%);padding:4px 22px;text-shadow:0 1px 0 rgba(0,0,0,.4)}
 .fighter{background:linear-gradient(180deg,rgba(26,46,98,.92),rgba(12,22,52,.92));border:1px solid rgba(217,174,69,.5);border-radius:6px}
-.fighter.turn{border:2px solid var(--gold-hi);box-shadow:0 0 18px rgba(242,193,78,.35)}
+.fighter{border-width:2px!important}#control{min-height:380px;overflow-anchor:none;contain:layout style}.fighter,.log{contain:layout style}.fighter.turn{border-color:var(--gold-hi);box-shadow:0 0 18px rgba(242,193,78,.35)}
 .fname{color:#fff}
 .side{color:#B9CBEE}
 .pips i{border-color:var(--gold);background:var(--gold-hi)}
@@ -595,7 +594,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.8.0';
+const VERSION='1.8.1';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -1063,14 +1062,18 @@ async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;
 
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function renderControl(rolled){if(!B)return;const el=$('#control');
-  if(B.done){el.innerHTML='';return}
+  if(B.done){el.innerHTML='';el.style.minHeight='';B.ctlHTML='';return}
   const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],f=sd.team[v.idx],human=i===0;
-  el.innerHTML=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''}</div>
+  const html=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''}</div>
   <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
   ${human?`<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
     let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),after=Math.max(0,r.d-o.guard);
       const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}</span>${r.notes.length?'（'+r.notes.join('、')+(o.guard?'、'+GD+Math.min(o.guard,r.d):'')+'）':o.guard?'（'+GD+Math.min(o.guard,r.d)+'）':''}</span>`}
     return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>`:''}`;
+  if(html===B.ctlHTML&&!rolled)return;/* 中身が同じなら描き直さない（ちらつき防止） */
+  B.ctlHTML=html;el.innerHTML=html;
+  /* 高さを最大に保って、ターンごとに画面がガタつかないようにする */
+  const h=el.offsetHeight;if(h>(B.ctlMax||0)){B.ctlMax=h;el.style.minHeight=h+'px'}
   hl();if(!human)return;
   el.querySelectorAll('.die').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;if(B.busy||!sd.dice[k]||sd.dice[k].used)return;sfx('tap');B.sel=B.sel===k?null:k;renderControl()});
   el.querySelectorAll('.mv').forEach(b=>b.onclick=async()=>{if(B.busy)return;if(tutBlock('move'))return;const mi=+b.dataset.mi,m=f.moves[mi];
