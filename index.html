@@ -504,7 +504,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.4.0';
+const VERSION='1.5.0';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -873,7 +873,7 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
     hint:RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${save.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${save.floor}F`)):(unlock?unlock+'　':'')+(master?L(`上層は${save.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${save.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${save.floor}F ${FLOORS[save.floor-1].n}`,`下一层：${save.floor}F ${FLOORS[save.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`))})}
 /* ================= 通信対戦 ================= */
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
-const ONLINE_URL=window.MT_ONLINE_URL||'';
+const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
 const ON={ws:null,code:'',state:'idle',err:''};
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
