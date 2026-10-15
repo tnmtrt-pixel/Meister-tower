@@ -715,7 +715,7 @@ $('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsW
 
 /* ================= プレゼントコード ================= */
 /* コードそのものは書かず、ハッシュだけを置く（make_gift.py で作る） */
-const GIFTS=[{h:'76cd5b4208f0afb03592f2b4d66409dcaf2944d3767469d7e7ab4d49c58fe76b',coins:100}];
+const GIFTS=[{h:'c1fc58e3d71787f06ad526ef5e4b30785993c147847a3753f074742f62b9337c',coins:100}];
 const GKEY='okc-gifts';/* セーブを消しても残る＝同じ端末で1回だけ */
 function giftUsed(){let a=[];try{a=JSON.parse(localStorage.getItem(GKEY)||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 async function giftHash(c){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('meister-tower:'+c));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
