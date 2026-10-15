@@ -209,6 +209,18 @@ details p{margin:6px 0 0}
 .rk .v{font:800 15px var(--f-body);color:#FFE08A}
 .rk.me{background:rgba(255,224,138,.1);border-radius:8px}
 .rlist{max-height:420px;overflow-y:auto}
+/* お知らせ */
+.news-btn{position:relative}
+.news-btn i{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#E5484D;color:#fff;font:800 11px/18px var(--f-body);font-style:normal;border:2px solid #0B1730}
+.news{border-top:1px solid var(--line);padding:10px 0}
+.news:first-of-type{border-top:0}
+.news .nh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.news .nt{padding:1px 8px;border-radius:4px;font:800 11px var(--f-body);color:#0B1730}
+.nt.update{background:#8FD3FF}.nt.event{background:#FFE08A}.nt.info{background:#C9D2E6}.nt.fix{background:#FFB199}
+.news .nd{font-size:12px;color:var(--muted)}
+.news .new{color:#E5484D;font:800 11px var(--f-body)}
+.news b{display:block;margin:4px 0 2px;font-size:16px}
+.news p{margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -477,7 +489,7 @@ hr{border-color:var(--line)!important}
   <header>
     <div class="hrow"><h1><span data-zh="迈斯特">マイスター</span><span class="h1-to" data-zh="之塔">の塔</span></h1>
       <div class="row"><span class="coins"><span data-zh="金币">コイン</span> <b id="coin">0</b></span>
-        <button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
+        <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
       <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button><button data-v="online" aria-pressed="false" data-zh="联机">通信</button></nav>
@@ -594,7 +606,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.8.2';
+const VERSION='1.9.0';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -608,7 +620,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -619,6 +631,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   {const t=v.st||{};s.st={wins:Math.max(0,+t.wins|0),pvp:Math.max(0,+t.pvp|0),days:Math.max(0,+t.days|0),ms:Math.max(0,+t.ms|0)}}
   if(v.login&&typeof v.login.d==='string')s.login={d:v.login.d.slice(0,10),n:Math.min(7,Math.max(0,+v.login.n|0))};
   if(v.daily&&typeof v.daily.d==='string'&&Array.isArray(v.daily.ids))s.daily={d:v.daily.d.slice(0,10),ids:v.daily.ids.filter(x=>/^[a-z0-9]{2,12}$/.test(x)).slice(0,3),p:Object.fromEntries(Object.entries(v.daily.p||{}).map(([k,n])=>[k,Math.max(0,+n|0)])),c:(Array.isArray(v.daily.c)?v.daily.c:[]).filter(x=>typeof x==='string'),all:!!v.daily.all};
+  s.newsRead=(Array.isArray(v.newsRead)?v.newsRead:[]).filter(x=>typeof x==='string').slice(-100);
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
@@ -947,6 +960,7 @@ async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:
 
 /* ================= ログインボーナス・デイリーミッション ================= */
 /* 日付は日本時間の朝5時で切り替え */
+let loginPending=false;
 const today=()=>new Date(Date.now()+(9-5)*3600e3).toISOString().slice(0,10);
 const LB=[3,3,4,4,5,5,15];
 const MS=[
@@ -966,11 +980,11 @@ function newDaily(d){const R=G.rng(seedOf(d)),pool=MS.filter(m=>!m.can||m.can())
 function dailyCheck(){if(!hasAny())return;const d=today();
   if(save.daily.d!==d)save.daily=newDaily(d);
   if(save.login.d!==d){save.login.d=d;save.login.n=(save.login.n%7)+1;save.st.days=(save.st.days||0)+1;const c=LB[save.login.n-1];save.coins+=c;persist();updCoins();
-    const later=fn=>document.getElementById('title')?setTimeout(()=>later(fn),300):setTimeout(fn,400);
+    loginPending=true;const later=fn=>document.getElementById('title')?setTimeout(()=>later(fn),300):setTimeout(fn,400);
     later(()=>{sfx('reveal',save.login.n===7?3:2);openSheet(`<h2 style="text-align:center">${L('ログインボーナス','登录奖励')}</h2>
       <div class="lb7">${LB.map((v,i)=>`<div class="${i+1<save.login.n?'done':i+1===save.login.n?'today':''}">${L(`${i+1}日目`,`第${i+1}天`)}<b>${i+1<save.login.n?'✓':'+'+v}</b></div>`).join('')}</div>
       <p style="text-align:center;font-weight:800">${L(`${save.login.n}日目：コイン +${c}`,`第${save.login.n}天：金币 +${c}`)}</p>
-      <p class="hint" style="text-align:center">${L('毎日ログインすると7日目に15コイン！ 今日のミッションはタワー画面にあります。','每天登录，第7天可得15金币！今天的任务在塔的画面里。')}</p>`,L('受け取る','领取'));checkTitles()})}
+      <p class="hint" style="text-align:center">${L('毎日ログインすると7日目に15コイン！ 今日のミッションはタワー画面にあります。','每天登录，第7天可得15金币！今天的任务在塔的画面里。')}</p>`,L('受け取る','领取'));loginPending=false;checkTitles()})}
   else persist()}
 function mission(k,n=1){const D=save.daily;if(!D||D.d!==today())return;let up=false;
   D.ids.forEach(id=>{const m=MS.find(x=>x.id===id);if(m&&m.k===k&&!D.c.includes(id)){const was=D.p[id]||0;D.p[id]=Math.min(m.n,was+n);if(D.p[id]>=m.n&&was<m.n){up=true;setTimeout(()=>toast(L(`ミッション達成！「${m.ja}」 タワー画面で受け取ろう`,`任务完成！「${m.zh}」 去塔的画面领取吧`)),1200)}}});
@@ -987,6 +1001,30 @@ function renderMission(){const el=$('#mission'),D=save.daily;if(!hasAny()||!D||D
     D.c.push(id);let c=MS_COIN;save.st.ms=(save.st.ms||0)+1;
     if(!D.all&&D.ids.every(x=>D.c.includes(x))){D.all=true;c+=MS_ALL}
     save.coins+=c;persist();updCoins();sfx('buff');toast(L(`コイン +${c}${D.all&&c>MS_COIN?'（全部達成ボーナス込み）':''}`,`金币 +${c}${D.all&&c>MS_COIN?'（含全部完成奖励）':''}`));renderMission();checkTitles()})}
+
+/* ================= お知らせ ================= */
+/* 中身は news.json（GitHubのファイルを書きかえると全員に届く）。読めないときは下の内蔵版を出す */
+const NEWS_BUILTIN=[{"id": "2026-10-16-ranking", "date": "2026-10-16", "tag": "update", "pop": true, "title": {"ja": "ランキング・ミッションが登場！", "zh": "排行榜和任务登场！"}, "body": {"ja": "Ver 1.8 でたくさんの機能が増えました。\n・「通信」タブにランキング（到達階／総踏破／通信勝利）\n・単語を組み合わせて作るプロフィール名と称号\n・毎日のログインボーナスとデイリーミッション（タワー画面）\nランキング上位をめざそう！", "zh": "Ver 1.8 新增了许多功能。\n・「联机」页新增排行榜（到达层／总踏破／联机胜利）\n・用词语组合而成的个人名字和称号\n・每日登录奖励和每日任务（塔的画面）\n向排行榜前列进发吧！"}}, {"id": "2026-10-16-gacha", "date": "2026-10-16", "tag": "update", "title": {"ja": "ガチャがリニューアル", "zh": "扭蛋全新改版"}, "body": {"ja": "ガチャが「キャラクター vol.1」になりました。絵をタップすると扉が開く演出つき！ 扉のすき間が金色に光れば★3。\nvol.2・vol.3 もおたのしみに。", "zh": "扭蛋变成了「角色 vol.1」。点击图片会有开门演出！门缝透出金光就是★3。\nvol.2・vol.3 也敬请期待。"}}, {"id": "2026-10-15-online", "date": "2026-10-15", "tag": "info", "title": {"ja": "通信対戦がスタート", "zh": "联机对战开始"}, "body": {"ja": "友だちとスマホどうしで対戦できるようになりました。「通信」タブで部屋を作り、合言葉を相手に伝えてね。", "zh": "现在可以和朋友用手机对战了。在「联机」页创建房间，把暗号告诉对方吧。"}}];
+let NEWS=NEWS_BUILTIN;
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nTxt=o=>o&&typeof o==='object'?(L(o.ja||'',o.zh||o.ja||'')):String(o||'');
+const NTAG={update:['更新','更新'],event:['イベント','活动'],info:['お知らせ','公告'],fix:['不具合','问题修复']};
+const unread=()=>NEWS.filter(n=>!save.newsRead.includes(n.id));
+function newsBadge(){const n=unread().length,b=$('#news-badge');b.hidden=!n;b.textContent=n>9?'9+':n}
+async function loadNews(){try{const r=await fetch('news.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();
+  if(Array.isArray(j.items))NEWS=j.items.filter(n=>n&&typeof n.id==='string').slice(0,30)}catch(e){}
+  newsBadge();newsPop()}
+function showNews(){sfx('tap');const un=unread().map(n=>n.id);
+  openSheet(`<h2>${L('お知らせ','公告')}</h2>${NEWS.map(n=>{const t=NTAG[n.tag]||NTAG.info;
+    return`<div class="news"><div class="nh"><span class="nt ${NTAG[n.tag]?n.tag:'info'}">${L(t[0],t[1])}</span><span class="nd">${esc(n.date)}</span>${un.includes(n.id)?'<span class="new">NEW</span>':''}</div>
+    <b>${esc(nTxt(n.title))}</b><p>${esc(nTxt(n.body))}</p></div>`}).join('')||`<p class="hint">${L('お知らせはありません','暂无公告')}</p>`}`,L('閉じる','关闭'));
+  save.newsRead=[...new Set([...save.newsRead,...NEWS.map(n=>n.id)])].slice(-100);persist();newsBadge()}
+/* pop:true のお知らせは、タイトル画面・ログインボーナスのあとで自動表示 */
+let newsPopped=false;
+function newsPop(){if(newsPopped||!hasAny()||!unread().some(n=>n.pop))return;
+  if(loginPending||document.getElementById('title')||document.querySelector('.sheet-bg,.overlay,.gx')||(B&&!B.done)){setTimeout(newsPop,800);return}
+  newsPopped=true;showNews()}
+$('#news-btn').onclick=showNews;
 
 /* ================= バトル ================= */
 let B=null;
@@ -1089,7 +1127,7 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
 /* ================= 対戦中の情報 ================= */
 function openSheet(html,close){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
   bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}<button class="btn primary" data-close style="align-self:center">${close||L('バトルに戻る','返回对战')}</button></div>`;
-  bg.onclick=e=>{if(e.target===bg||e.target.dataset.close!==undefined){bg.remove()}};document.body.append(bg);bg.querySelector('[data-close]').focus()}
+  bg.onclick=e=>{if(e.target===bg||e.target.dataset.close!==undefined){bg.remove()}};document.body.append(bg);bg.querySelector('[data-close]').focus({preventScroll:true})}
 function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].team[v.idx],t=v.team[v.idx],fl=FLOORS[B.S.floor-1];
   const st=[];if(t.guard)st.push(`${L('ガード','护盾')} ${t.guard}`);if(t.pow)st.push(`${L('次の攻撃','下次攻击')} +${t.pow}`);if(t.weak)st.push(`${L('次の攻撃','下次攻击')} −${t.weak}`);if(t.dMod)st.push(`${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}`);
   openSheet(`<div class="label">${i?L('相手のキャラ','对手的角色'):L('あなたのキャラ','你的角色')}</div>
@@ -1336,7 +1374,7 @@ function applyLang(l){l=l==='zh'?'zh':'ja';G.setLang(l);save.lang=l;persist();co
   if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[vis]()}
 
 /* ================= 起動 ================= */
-fixParty();applyLang(save.lang||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'ja'));updCoins();setSnd();persist();
+fixParty();applyLang(save.lang||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'ja'));updCoins();setSnd();persist();loadNews();
 nav(hasAny()?'tower':'gacha');
 </script>
 </body>
