@@ -267,6 +267,9 @@ details p{margin:6px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-weight:700;font-size:14px;max-width:calc(100% - 32px);z-index:30}
 @media (prefers-reduced-motion:reduce){.shake,.die.roll,.float,.burst,.rays,.reveal .crest,.ov-card .crest,.ov-card .big-word,.capsule.shaking{animation:none}.hp i,.capsule .top,.capsule .bot{transition:none}}
 
+/* 中国語表示では中国語フォントを使う */
+html:lang(zh){--f-display:"ZCOOL QingKe HuangYou","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;--f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+html:lang(zh) h1,html:lang(zh) h2,html:lang(zh) .fname,html:lang(zh) .big-word{letter-spacing:.04em}
 /* ================= 鋼と金の工房スキン ================= */
 body{background:var(--paper)}
 .bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:var(--navy)}
@@ -384,12 +387,12 @@ hr{border-color:var(--line)!important}
 <div class="bgfx" aria-hidden="true"></div>
 <div class="wrap">
   <header>
-    <div class="hrow"><h1><span>マイスター</span><span class="h1-to">の塔</span></h1>
-      <div class="row"><span class="coins">コイン <b id="coin">0</b></span>
-        <button class="snd" id="snd-se" aria-pressed="true">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
+    <div class="hrow"><h1><span data-zh="迈斯特">マイスター</span><span class="h1-to" data-zh="之塔">の塔</span></h1>
+      <div class="row"><span class="coins"><span data-zh="金币">コイン</span> <b id="coin">0</b></span>
+        <button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
     <nav class="seg" id="nav">
-      <button data-v="tower" aria-pressed="true">タワー</button><button data-v="party" aria-pressed="false">編成</button>
-      <button data-v="gacha" aria-pressed="false">ガチャ</button><button data-v="dex" aria-pressed="false">図鑑</button></nav>
+      <button data-v="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
   </header>
 
   <section class="view" id="v-tower">
@@ -400,26 +403,26 @@ hr{border-color:var(--line)!important}
         <h2 id="floor-title">1F 見習いの間</h2>
         <div><span class="rule" id="floor-rule">特別ルールなし</span></div>
         <p class="hint" id="floor-info"></p>
-        <div class="label">あなたのパーティ</div>
+        <div class="label" data-zh="你的队伍">あなたのパーティ</div>
         <div class="party-strip" id="party-strip"></div>
-        <button class="btn small" id="go-party" style="align-self:flex-start">編成を変える</button>
+        <button class="btn small" id="go-party" style="align-self:flex-start" data-zh="更改编队">編成を変える</button>
       </div>
     </div>
-    <details class="panel"><summary class="label">ストーリーとあそびかた</summary>
-      <p class="hint">工業の街にそびえる「マイスターの塔」。全10階の各部屋には腕自慢たちが待ちかまえ、10階には伝説の職人「塔の主」がいるという。その先には、選ばれた者だけが進める上層（11〜20階）が続いている。ガチャで仲間を集め、3人のパーティで最上階を目指そう。</p>
-      <p class="hint">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。先頭のキャラがたおれたら次の仲間に交代し、相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
-      <p class="hint">キャラには★1〜★3があり、★が多いほど強い技を覚えます。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
-      <button class="btn small" id="tut-again" style="margin-top:8px">次のバトルでチュートリアルをもう一度</button></details>
+    <details class="panel"><summary class="label" data-zh="故事与玩法">ストーリーとあそびかた</summary>
+      <p class="hint" data-zh="耸立在工业之城的「迈斯特之塔」。下层10层的每个房间都有高手等待，10楼有传说中的工匠「塔之主」。再往上，是只有被选中的人才能前往的上层（11〜20层）。用扭蛋收集伙伴，组成3人队伍向塔顶前进吧。">工業の街にそびえる「マイスターの塔」。全10階の各部屋には腕自慢たちが待ちかまえ、10階には伝説の職人「塔の主」がいるという。その先には、選ばれた者だけが進める上層（11〜20階）が続いている。ガチャで仲間を集め、3人のパーティで最上階を目指そう。</p>
+      <p class="hint" data-zh="轮到自己时掷骰子，把符合条件的点数用在技能上就能发动技能。技能每回合各1次。首位角色倒下后换下一位伙伴，打倒对方全员即获胜。每层都有特殊规则。">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。先頭のキャラがたおれたら次の仲間に交代し、相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
+      <p class="hint" data-zh="角色分为★1〜★3，★越多能学会越强的技能。扭蛋抽到同一角色更高的★时★提升；★相同或更低则获得「碎片」，可用来强化技能。">キャラには★1〜★3があり、★が多いほど強い技を覚えます。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
+      <button class="btn small" id="tut-again" style="margin-top:8px" data-zh="下次对战时再看一次教学">次のバトルでチュートリアルをもう一度</button></details>
     <div class="row startbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
   </section>
 
   <section class="view" id="v-party" hidden>
     <div class="panel">
-      <div class="row between"><h2>パーティ</h2><span class="hint">最大3人。先頭から順に戦います</span></div>
+      <div class="row between"><h2 data-zh="队伍">パーティ</h2><span class="hint" data-zh="最多3人，从首位开始依次出战">最大3人。先頭から順に戦います</span></div>
       <div class="party-strip" id="slots"></div>
     </div>
     <div class="panel">
-      <div class="label">仲間（タップで詳細）</div>
+      <div class="label" data-zh="伙伴（点击查看详情）">仲間（タップで詳細）</div>
       <div class="grid5" id="owned"></div>
     </div>
     <div class="panel" id="detail"></div>
@@ -427,28 +430,28 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-gacha" hidden>
     <div class="panel">
-      <div class="row between"><h2>キャラガチャ</h2><span class="hint">1回 3コイン</span></div>
+      <div class="row between"><h2 data-zh="角色扭蛋">キャラガチャ</h2><span class="hint" data-zh="每次3金币">1回 3コイン</span></div>
       <div class="stage" id="stage"><div class="capsule"><div class="top"></div><div class="bot"></div></div></div>
-      <p class="hint" id="gacha-msg" style="text-align:center">カプセルの光が金色なら★3！</p>
-      <div class="row" style="justify-content:center"><button class="btn primary" id="pull">ガチャを引く（3コイン）</button><button class="btn" id="to-tower">タワーへ</button></div>
-      <p class="hint">★3は10%、★2は30%、★1は60%。持っているキャラが今より多い★で出たら★アップ。同じ★以下ならそのキャラの「かけら」が1つ（★3なら2つ）手に入ります。</p>
+      <p class="hint" id="gacha-msg" style="text-align:center" data-zh="扭蛋发出金光就是★3！">カプセルの光が金色なら★3！</p>
+      <div class="row" style="justify-content:center"><button class="btn primary" id="pull">ガチャを引く（3コイン）</button><button class="btn" id="to-tower" data-zh="前往塔">タワーへ</button></div>
+      <p class="hint" data-zh="★3为10%，★2为30%，★1为60%。抽到已有角色更高的★时★提升；★相同或更低则获得该角色的「碎片」1个（★3为2个）。">★3は10%、★2は30%、★1は60%。持っているキャラが今より多い★で出たら★アップ。同じ★以下ならそのキャラの「かけら」が1つ（★3なら2つ）手に入ります。</p>
     </div>
   </section>
 
   <section class="view" id="v-dex" hidden>
     <div class="panel">
-      <div class="row between"><h2>キャラ図鑑</h2><span class="label" id="dex-count"></span></div>
+      <div class="row between"><h2 data-zh="角色图鉴">キャラ図鑑</h2><span class="label" id="dex-count"></span></div>
       <div class="dexbar"><i id="dex-bar"></i></div>
       <p class="hint" id="dex-reward"></p>
       <div class="grid5" id="dex"></div>
     </div>
-    <div class="panel" id="dex-detail"><p class="hint">キャラをタップすると、能力やセリフが見られます。</p></div>
+    <div class="panel" id="dex-detail"><p class="hint" data-zh="点击角色可以查看特性和台词。">キャラをタップすると、能力やセリフが見られます。</p></div>
     <div class="panel">
-      <h2>セーブデータの引っ越し</h2>
-      <p class="hint">別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込んでください。</p>
-      <div class="row"><button class="btn small" id="exp">コードを書き出す</button><button class="btn small" id="copy" hidden>コピー</button></div>
-      <textarea class="code-out" id="code" placeholder="OKS2. で始まるコードを貼り付けて「読み込む」" aria-label="セーブコード"></textarea>
-      <div class="row" style="justify-content:flex-end"><button class="btn small" id="imp">読み込む</button></div>
+      <h2 data-zh="转移存档">セーブデータの引っ越し</h2>
+      <p class="hint" data-zh="可以把进度转移到其他设备。导出代码后，在目标设备上读取即可。">別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込んでください。</p>
+      <div class="row"><button class="btn small" id="exp" data-zh="导出代码">コードを書き出す</button><button class="btn small" id="copy" hidden data-zh="复制">コピー</button></div>
+      <textarea class="code-out" id="code" placeholder="OKS2. で始まるコードを貼り付けて「読み込む」" aria-label="セーブコード" data-zh-ph="粘贴以 OKS2. 开头的代码后点「读取」" data-zh-aria="存档代码"></textarea>
+      <div class="row" style="justify-content:flex-end"><button class="btn small" id="imp" data-zh="读取">読み込む</button></div>
     </div>
   </section>
 
@@ -462,18 +465,18 @@ hr{border-color:var(--line)!important}
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
-<div class="title" id="title" aria-label="タイトル画面">
+<div class="title" id="title" aria-label="タイトル画面" data-zh-aria="标题画面">
   <div class="t-bg" aria-hidden="true"></div>
   <div class="t-stage" id="t-stage">
     <img src="img/title-v.webp" alt="マイスターの塔　仲間と挑む、ものづくりの頂上へ！" draggable="false">
     <div class="t-sweep" aria-hidden="true"></div>
     <div class="t-tapglow" aria-hidden="true"></div>
-    <button class="t-hot" id="t-start" style="left:26%;top:81.6%;width:48%;height:6%" aria-label="はじめる"></button>
-    <button class="t-hot" data-ts="story" style="left:17%;top:88%;width:31.6%;height:4.6%" aria-label="ストーリー"></button>
-    <button class="t-hot" data-ts="chars" style="left:51%;top:88%;width:31.8%;height:4.6%" aria-label="キャラクター"></button>
-    <button class="t-hot" data-ts="settings" style="left:16%;top:93.6%;width:16%;height:4.6%" aria-label="設定"></button>
-    <button class="t-hot" data-ts="rank" style="left:36.5%;top:93.6%;width:22%;height:4.6%" aria-label="ランキング"></button>
-    <button class="t-hot" data-ts="howto" style="left:64%;top:93.6%;width:22%;height:4.6%" aria-label="あそびかた"></button>
+    <button class="t-hot" id="t-start" style="left:26%;top:81.6%;width:48%;height:6%" aria-label="はじめる" data-zh-aria="开始"></button>
+    <button class="t-hot" data-ts="story" style="left:17%;top:88%;width:31.6%;height:4.6%" aria-label="ストーリー" data-zh-aria="故事"></button>
+    <button class="t-hot" data-ts="chars" style="left:51%;top:88%;width:31.8%;height:4.6%" aria-label="キャラクター" data-zh-aria="角色"></button>
+    <button class="t-hot" data-ts="settings" style="left:16%;top:93.6%;width:16%;height:4.6%" aria-label="設定" data-zh-aria="设置"></button>
+    <button class="t-hot" data-ts="rank" style="left:36.5%;top:93.6%;width:22%;height:4.6%" aria-label="ランキング" data-zh-aria="排行榜"></button>
+    <button class="t-hot" data-ts="howto" style="left:64%;top:93.6%;width:22%;height:4.6%" aria-label="あそびかた" data-zh-aria="玩法"></button>
   </div>
   <div class="t-confirm" id="t-sheet" hidden><div class="t-card" id="t-card"></div></div>
   <div class="t-flash"></div>
@@ -482,6 +485,7 @@ hr{border-color:var(--line)!important}
 <script src="engine.js"></script>
 <script>
 const G=window.ENGINE;
+const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
 const $=s=>document.querySelector(s);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -499,7 +503,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
   if(!v.v3&&(s.lap>1||(+v.clears||0)>0)){s.floor=Math.max(s.floor,TOP+1);s.best=Math.max(s.best,s.floor);s.lap=1}/* 旧版で10Fを制覇済みなら上層へ */
   s.v3=true;s.clears=Math.max(0,Math.floor(+v.clears||0));
-  s.dexReward=!!v.dexReward;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
+  s.dexReward=!!v.dexReward;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
   for(const k in o)if(byId(k))s.owned[k]=Math.min(3,Math.max(1,Math.floor(+o[k]||1)));
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
@@ -565,10 +569,10 @@ $('#snd-bgm').onclick=()=>{save.bgm=!save.bgm;persist();setSnd();if(!save.bgm){B
 
 /* ================= 共通表示 ================= */
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
-  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?'<br>2個':''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?'ダメージ':''}</small></span><span class="fx">${fx.join('・')||'ダメージのみ'}</span>`}
+  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
 function updCoins(){$('#coin').textContent=save.coins}
-function nav(v){if(B&&!B.done){toast('バトル中です。決着がついてから移動できます');return}
-  if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast('まずはガチャで最初の仲間を手に入れよう');v='gacha'}
+function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
+  if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
   ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
   ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex})[v]();window.scrollTo(0,0)}
@@ -583,138 +587,138 @@ const isReplay=n=>n!==save.floor;
 const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 function renderTower(){fixParty();if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
   if(tview==null)tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
-  const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>上層 11-20F${upperOpen()?'':'<br><small>10F突破で解放</small>'}</button><button type="button" data-tv="lo" aria-pressed="${lo}">下層 1-10F</button></div>`;
-  $('#tower').innerHTML=tabs+`<div class="roof">${lo?'▲ 上層へ':'▲ 頂上'}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==save.floor&&ok?' done':n===save.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
-    const lab=`<span>${n}F ${FLOORS[n-1].n}</span>${n===save.floor?'<span class="rp">挑戦中</span>':ok?'<span class="rp">✓</span>':''}`;
+  const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
+  $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==save.floor&&ok?' done':n===save.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
+    const lab=`<span>${n}F ${FLOORS[n-1].n}</span>${n===save.floor?`<span class="rp">${L('挑戦中','挑战中')}</span>`:ok?'<span class="rp">✓</span>':''}`;
     return ok?`<button type="button" class="${cls}" data-fl="${n}" aria-pressed="${n===f}" style="text-align:left;width:100%">${lab}</button>`:`<div class="${cls}">${lab}</div>`}).join('');
   document.querySelectorAll('#tower [data-fl]').forEach(b=>b.onclick=()=>{sfx('tap');tsel=+b.dataset.fl;renderTower()});
   document.querySelectorAll('#tower [data-tv]').forEach(b=>b.onclick=()=>{sfx('tap');tview=b.dataset.tv;renderTower()});
-  $('#lap-label').textContent=`マイスターの塔${f>TOP?'・上層':''}${save.lap>1?'（'+save.lap+'周目）':''}${save.clears?'　制覇 '+save.clears+'回':''}`;
-  $('#floor-title').textContent=`${f}F ${fl.n}${rp?'（再挑戦）':''}`;
-  $('#floor-rule').textContent=fl.rule?'特別ルール：'+fl.rule.d:'特別ルールなし';
+  $('#lap-label').textContent=L('マイスターの塔','迈斯特之塔')+(f>TOP?L('・上層','·上层'):'')+(save.lap>1?L('（'+save.lap+'周目）','（第'+save.lap+'轮）'):'')+(save.clears?L('　制覇 '+save.clears+'回','　制霸 '+save.clears+'次'):'');
+  $('#floor-title').textContent=`${f}F ${fl.n}${rp?L('（再挑戦）','（再挑战）'):''}`;
+  $('#floor-rule').textContent=fl.rule?L('特別ルール：','特殊规则：')+fl.rule.d:L('特別ルールなし','无特殊规则');
   const n=G.floorCount(f),st=f>TOP?3:G.floorStar(f),elv=G.enemyLv(f,save.lap),eb=G.lvBonus(elv);
-  const lvTxt=f>TOP?`・Lv${elv}${eb?'・攻撃+'+eb:''}`:'';
-  const kind=f>TOP&&f<TOP2?(f%2===0?'【増員の階】敵が4人':'【レベルアップの階】敵がLv'+elv+'に強化'):'';
-  const enemyTxt=(kind?kind+'<br>':'')+(f===TOP?`相手：ランダム${n-1}人（★${st}）＋ 塔の主`:f===TOP2?`相手：ランダム${n-1}人（★3${lvTxt}）＋ 真・塔の主`:`相手：ランダム${n}人（★${st}${lvTxt}）`);
-  $('#floor-info').innerHTML=rp?`${enemyTxt}<br>再挑戦の報酬：勝利で <b style="color:var(--gold-hi)">${replayCoins(f)}</b> コイン（初回クリアは${G.floorCoins(f)}）。負けたときのコインはなし。塔の進み具合は変わりません。<br><button type="button" class="btn small" id="back-now" style="margin-top:6px">挑戦中の${save.floor}Fに戻る</button>`
-    :`${enemyTxt}　勝利で ${G.floorCoins(f)} コイン${save.floor>1||save.clears?'<br><span style="font-size:12px">クリアした階をタップすると再挑戦できます</span>':''}`;
+  const D=L('・','·'),lvTxt=f>TOP?`${D}Lv${elv}${eb?D+L('攻撃+','攻击+')+eb:''}`:'';
+  const kind=f>TOP&&f<TOP2?(f%2===0?L('【増員の階】敵が4人','【增员层】敌人增至4人'):L('【レベルアップの階】敵がLv'+elv+'に強化','【升级层】敌人强化至Lv'+elv)):'';
+  const enemyTxt=(kind?kind+'<br>':'')+(f===TOP?L(`相手：ランダム${n-1}人（★${st}）＋ 塔の主`,`对手：随机${n-1}人（★${st}）＋ 塔之主`):f===TOP2?L(`相手：ランダム${n-1}人（★3${lvTxt}）＋ 真・塔の主`,`对手：随机${n-1}人（★3${lvTxt}）＋ 真·塔之主`):L(`相手：ランダム${n}人（★${st}${lvTxt}）`,`对手：随机${n}人（★${st}${lvTxt}）`));
+  $('#floor-info').innerHTML=rp?`${enemyTxt}<br>${L('再挑戦の報酬：勝利で','再挑战奖励：胜利获得')} <b style="color:var(--gold-hi)">${replayCoins(f)}</b> ${L(`コイン（初回クリアは${G.floorCoins(f)}）。負けたときのコインはなし。塔の進み具合は変わりません。`,`金币（首次通关为${G.floorCoins(f)}）。失败不获得金币，塔的进度不变。`)}<br><button type="button" class="btn small" id="back-now" style="margin-top:6px">${L(`挑戦中の${save.floor}Fに戻る`,`返回挑战中的${save.floor}F`)}</button>`
+    :`${enemyTxt}　${L(`勝利で ${G.floorCoins(f)} コイン`,`胜利获得 ${G.floorCoins(f)} 金币`)}${save.floor>1||save.clears?`<br><span style="font-size:12px">${L('クリアした階をタップすると再挑戦できます','点击已通关的楼层可以再挑战')}</span>`:''}`;
   const bn=$('#back-now');if(bn)bn.onclick=()=>{tsel=save.floor;renderTower()};
-  $('#party-strip').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||'<span class="hint">パーティが空です</span>';
-  $('#start').textContent=rp?`${f}F に再挑戦`:f===TOP?'塔の主に挑む':f===TOP2?'真・塔の主に挑む':`${f}F に挑戦`;$('#start').disabled=!save.party.length;
-  $('#start-hint').textContent=save.party.length<3&&Object.keys(save.owned).length>save.party.length?'パーティに空きがあります':''}
+  $('#party-strip').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
+  $('#start').textContent=rp?L(`${f}F に再挑戦`,`再挑战 ${f}F`):f===TOP?L('塔の主に挑む','挑战塔之主'):f===TOP2?L('真・塔の主に挑む','挑战真·塔之主'):L(`${f}F に挑戦`,`挑战 ${f}F`);$('#start').disabled=!save.party.length;
+  $('#start-hint').textContent=save.party.length<3&&Object.keys(save.owned).length>save.party.length?L('パーティに空きがあります','队伍还有空位'):''}
 $('#go-party').onclick=()=>nav('party');
-$('#tut-again').onclick=()=>{save.tutDone=false;persist();toast('次のバトルでチュートリアルが始まります')};
+$('#tut-again').onclick=()=>{save.tutDone=false;persist();toast(L('次のバトルでチュートリアルが始まります','下次对战时将开始教学'))};
 $('#start').onclick=()=>{ac();sfx('tap');beginBattle()};
 
 /* ================= 編成 ================= */
 let sel=null;
 function renderParty(){fixParty();if(!sel||!owns(sel))sel=save.party[0]||Object.keys(save.owned)[0];
-  $('#slots').innerHTML=[0,1,2].map(k=>{const id=save.party[k];return id?`<button class="cbtn" data-id="${id}" aria-pressed="${id===sel}" style="width:76px">${crest(byId(id))}<span class="nm">${k+1}番手</span></button>`:`<div class="cbtn" style="width:76px;opacity:.5;cursor:default"><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">空き</span></div>`}).join('');
+  $('#slots').innerHTML=[0,1,2].map(k=>{const id=save.party[k];return id?`<button class="cbtn" data-id="${id}" aria-pressed="${id===sel}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`:`<div class="cbtn" style="width:76px;opacity:.5;cursor:default"><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></div>`}).join('');
   $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="nm">${c.name}</span></button>`}).join('');
   document.querySelectorAll('#slots .cbtn[data-id],#owned .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');sel=b.dataset.id;renderParty()});
   renderDetail()}
 function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.innerHTML='';return}
   const st=starOf(id),l=loadout(id),pi=save.party.indexOf(id),sh=save.shards[id]||0;
   el.innerHTML=`<div class="who">${crest(ch,'big')}<div><b>${ch.name}</b><span class="rar" style="font-size:16px">${stars(st)}</span><br><small>${ch.role}</small></div></div>
-  <div class="passive"><b>能力「${ch.passive.n}」</b><br>${ch.passive.d}</div>
-  <div class="row">${pi<0?`<button class="btn small" id="p-add" ${save.party.length>=3?'disabled':''}>パーティに入れる</button>`:`<button class="btn small" id="p-rem" ${save.party.length<=1?'disabled':''}>パーティから外す</button>${pi>0?'<button class="btn small" id="p-first">先頭にする</button>':''}`}
-    <span class="hint">${pi<0&&save.party.length>=3?'パーティは3人まで。誰かを外してください':''}</span></div>
-  <div class="row between"><span class="label">技を4つ選ぶ（${l.length} / 4）</span><span class="label">かけら ${sh}</span></div>
+  <div class="passive"><b>${L('能力','特性')}「${ch.passive.n}」</b><br>${ch.passive.d}</div>
+  <div class="row">${pi<0?`<button class="btn small" id="p-add" ${save.party.length>=3?'disabled':''}>${L('パーティに入れる','加入队伍')}</button>`:`<button class="btn small" id="p-rem" ${save.party.length<=1?'disabled':''}>${L('パーティから外す','移出队伍')}</button>${pi>0?`<button class="btn small" id="p-first">${L('先頭にする','设为首位')}</button>`:''}`}
+    <span class="hint">${pi<0&&save.party.length>=3?L('パーティは3人まで。誰かを外してください','队伍最多3人，请先移出一人'):''}</span></div>
+  <div class="row between"><span class="label">${L('技を4つ選ぶ','选择4个技能')}（${l.length} / 4）</span><span class="label">${L('かけら','碎片')} ${sh}</span></div>
   <div class="moves">${ch.moves.map((m0,k)=>{const m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
-    return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?'で解放':''}</span>`:'')}</button>
-    <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?'強化<br>MAX':`強化+${lv+1}<br>かけら${cost}`}</button></div>`}).join('')}</div>
-  <p class="hint">強化すると、ダメージ（ダメージがない技はガードなどの効果）が+2ずつ上がります（最大+2）。かけらはガチャで同じキャラが出ると手に入ります。</p>`;
+    return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?L('で解放','解锁'):''}</span>`:'')}</button>
+    <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?L('強化<br>MAX','强化<br>MAX'):L(`強化+${lv+1}<br>かけら${cost}`,`强化+${lv+1}<br>碎片${cost}`)}</button></div>`}).join('')}</div>
+  <p class="hint">${L('強化すると、ダメージ（ダメージがない技はガードなどの効果）が+2ずつ上がります（最大+2）。かけらはガチャで同じキャラが出ると手に入ります。','强化后伤害（无伤害的技能则为护盾等效果）每级+2（最多+2）。在扭蛋中抽到重复角色可获得碎片。')}</p>`;
   const A=$('#p-add'),Rm=$('#p-rem'),F=$('#p-first');
   if(A)A.onclick=()=>{save.party.push(id);persist();renderParty()};
   if(Rm)Rm.onclick=()=>{save.party=save.party.filter(x=>x!==id);persist();renderParty()};
   if(F)F.onclick=()=>{save.party=[id,...save.party.filter(x=>x!==id)];persist();renderParty()};
   el.querySelectorAll('.mv').forEach(b=>b.onclick=()=>{const k=+b.dataset.m;
-    if(ch.moves[k].t>st){toast(`${ch.name}が★${ch.moves[k].t}になると使えます`);return}
+    if(ch.moves[k].t>st){toast(L(`${ch.name}が★${ch.moves[k].t}になると使えます`,`${ch.name}达到★${ch.moves[k].t}后可使用`));return}
     const j=l.indexOf(k);
     if(j>=0){if(l.length<=1)return;l.splice(j,1)}
     else if(l.length<4)l.push(k);
-    else{toast('技は4つまでです。外したい技をタップしてください');return}
+    else{toast(L('技は4つまでです。外したい技をタップしてください','技能最多4个，请点击要移除的技能'));return}
     l.sort((a,b)=>a-b);sfx('tap');save.load[id]=l;persist();
     renderDetail()});
   el.querySelectorAll('.up').forEach(b=>b.onclick=()=>{const k=+b.dataset.u,lv=lvOf(id,k),cost=lv===0?2:4;if((save.shards[id]||0)<cost||lv>=2)return;
-    save.shards[id]-=cost;(save.lv[id]=save.lv[id]||{})[k]=lv+1;persist();sfx('buff');toast(`${ch.moves[k].n} を +${lv+1} に強化しました`);renderDetail()})}
+    save.shards[id]-=cost;(save.lv[id]=save.lv[id]||{})[k]=lv+1;persist();sfx('buff');toast(L(`${ch.moves[k].n} を +${lv+1} に強化しました`,`已将 ${ch.moves[k].n} 强化到 +${lv+1}`));renderDetail()})}
 
 /* ================= ガチャ ================= */
 let pulling=false;
-function renderGacha(){updCoins();const first=!hasAny();$('#pull').textContent=first?'最初の1体を引く（無料）':'ガチャを引く（3コイン）';
+function renderGacha(){updCoins();const first=!hasAny();$('#pull').textContent=first?L('最初の1体を引く（無料）','抽取第一个伙伴（免费）'):L('ガチャを引く（3コイン）','扭蛋（3金币）');
   $('#pull').disabled=pulling||(!first&&save.coins<3);$('#to-tower').hidden=first;
-  if(first&&!pulling)$('#gacha-msg').textContent='ようこそ！ まずは無料のガチャで、最初の相棒を仲間にしよう。'}
+  if(first&&!pulling)$('#gacha-msg').textContent=L('ようこそ！ まずは無料のガチャで、最初の相棒を仲間にしよう。','欢迎！先用免费扭蛋，获得你的第一个搭档吧。')}
 $('#to-tower').onclick=()=>nav('tower');
 $('#pull').onclick=async()=>{ac();if(pulling)return;const first=!hasAny();if(!first&&save.coins<3)return;pulling=true;if(!first)save.coins-=3;
   const r=Math.random(),st=r<.1?3:r<.4?2:1,c=CHARS[Math.floor(Math.random()*CHARS.length)],before=starOf(c.id),res=grant(c.id,st);persist();renderGacha();
   const stage=$('#stage');stage.innerHTML='<div class="capsule" id="capsule"><div class="top"></div><div class="bot"></div></div>';const cap=$('#capsule');
   cap.style.setProperty('--glow',st===3?'#F4BA1C':st===2?'#5B8CFF':'#FFFFFF');
-  $('#gacha-msg').textContent='カプセルがゆれている…';
+  $('#gacha-msg').textContent=L('カプセルがゆれている…','扭蛋在摇晃…');
   if(!RM){cap.classList.add('shaking');sfx('rattle');await sleep(1000);cap.classList.remove('shaking');cap.classList.add('glow');
-    $('#gacha-msg').textContent=st===3?'金色に光った！':st===2?'青く光った！':'白く光った';await sleep(700);cap.classList.add('open');await sleep(350)}
+    $('#gacha-msg').textContent=st===3?L('金色に光った！','发出金光！'):st===2?L('青く光った！','发出蓝光！'):L('白く光った','发出白光');await sleep(700);cap.classList.add('open');await sleep(350)}
   sfx('reveal',st);
-  const msg=res==='new'?'NEW！ 仲間になった':res==='up'?`★アップ！ ★${before} → ★${st}`:`もう★${before}で持っています。かけら+${st===3?2:1}`;
+  const msg=res==='new'?L('NEW！ 仲間になった','NEW！ 成为伙伴'):res==='up'?L(`★アップ！ ★${before} → ★${st}`,`★提升！ ★${before} → ★${st}`):L(`もう★${before}で持っています。かけら+${st===3?2:1}`,`已拥有★${before}。碎片+${st===3?2:1}`);
   stage.innerHTML=`${st>=2?`<div class="rays" style="--rc:${st===3?'var(--accent-soft)':'var(--line)'}"></div>`:''}<div class="reveal">${crest(c)}<span class="rar">${stars(st)}</span><b>${c.name}</b><span class="label">${msg}</span></div>`;
-  $('#gacha-msg').textContent=`${c.role}　能力「${c.passive.n}」`;
+  $('#gacha-msg').textContent=`${c.role}　${L('能力','特性')}「${c.passive.n}」`;
   pulling=false;renderGacha();checkDexReward()};
 
 /* ================= 図鑑 ================= */
 function renderDex(){const got=CHARS.filter(c=>owns(c.id)).length;
-  $('#dex-count').textContent=`${got} / ${CHARS.length}人`;$('#dex-bar').style.width=got/CHARS.length*100+'%';
-  $('#dex-reward').textContent=save.dexReward?'コンプリート報酬を受け取りました！':`ガチャキャラ${CHARS.length}人を全員集めると、コンプリート報酬（コイン10枚と特別な仲間）がもらえます。`;
-  $('#dex').innerHTML=ALL.map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.hidden?'？':'')}</span><span class="nm">${o?c.name:'？？？'}</span></button>`}).join('');
+  $('#dex-count').textContent=`${got} / ${CHARS.length}`+L('人','人');$('#dex-bar').style.width=got/CHARS.length*100+'%';
+  $('#dex-reward').textContent=save.dexReward?L('コンプリート報酬を受け取りました！','已领取全收集奖励！'):L(`ガチャキャラ${CHARS.length}人を全員集めると、コンプリート報酬（コイン10枚と特別な仲間）がもらえます。`,`集齐全部${CHARS.length}名扭蛋角色，即可获得全收集奖励（10金币和特别的伙伴）。`);
+  $('#dex').innerHTML=ALL.map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.hidden?'？':'')}</span><span class="nm">${o?c.name:L('？？？','？？？')}</span></button>`}).join('');
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
-  if(!o){el.innerHTML=`<p class="hint">${c.hidden?'隠しキャラ。10Fの塔の主をたおすか、図鑑をコンプリートすると…？':'まだ出会っていないキャラ。ガチャで仲間にしよう。'}</p>`;return}
+  if(!o){el.innerHTML=`<p class="hint">${c.hidden?L('隠しキャラ。10Fの塔の主をたおすか、図鑑をコンプリートすると…？','隐藏角色。打倒10F的塔之主，或集齐图鉴的话……？'):L('まだ出会っていないキャラ。ガチャで仲間にしよう。','尚未遇见的角色。用扭蛋让它成为伙伴吧。')}</p>`;return}
   el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br><small>${c.role}</small></div></div>
-  <div class="passive"><b>能力「${c.passive.n}」</b><br>${c.passive.d}</div>
-  ${c.hidden?'<p class="hint">★アップの条件：10Fの塔の主を初めてたおす／20Fの真・塔の主をたおす（周回ごと）／図鑑コンプリート。どれも★が1つ上がります。</p>':''}
-  <div><div class="label">セリフ</div><ul class="lines"><li>登場：「${c.lines[0]}」</li><li>勝利：「${c.lines[1]}」</li><li>敗北：「${c.lines[2]}」</li></ul></div>
-  <div class="label">覚える技</div><div class="moves">${c.moves.map((m,k)=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
+  <div class="passive"><b>${L('能力','特性')}「${c.passive.n}」</b><br>${c.passive.d}</div>
+  ${c.hidden?`<p class="hint">${L('★アップの条件：10Fの塔の主を初めてたおす／20Fの真・塔の主をたおす（周回ごと）／図鑑コンプリート。どれも★が1つ上がります。','★提升条件：首次打倒10F的塔之主／打倒20F的真·塔之主（每轮）／集齐图鉴。每达成一项★提升1。')}</p>`:''}
+  <div><div class="label">${L('セリフ','台词')}</div><ul class="lines"><li>${L('登場','登场')}：「${c.lines[0]}」</li><li>${L('勝利','胜利')}：「${c.lines[1]}」</li><li>${L('敗北','失败')}：「${c.lines[2]}」</li></ul></div>
+  <div class="label">${L('覚える技','可学技能')}</div><div class="moves">${c.moves.map((m,k)=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
 function checkDexReward(){if(save.dexReward||!CHARS.every(c=>owns(c.id)))return;save.dexReward=true;save.coins+=10;
   const res=grant('takumi',owns('takumi')?Math.min(3,starOf('takumi')+1):1);persist();updCoins();
-  showOverlay({word:'COMPLETE!',ch:HIDDEN,sub:`図鑑コンプリート！<br>隠しキャラ「匠」が${res==='new'?'仲間になった':res==='up'?'★アップした':'かけらをくれた'}`,coins:10,hint:'編成画面でパーティに入れられます',win:true})}
+  showOverlay({word:'COMPLETE!',ch:HIDDEN,sub:L(`図鑑コンプリート！<br>隠しキャラ「匠」が${res==='new'?'仲間になった':res==='up'?'★アップした':'かけらをくれた'}`,`图鉴全收集！<br>隐藏角色「匠」${res==='new'?'成为了伙伴':res==='up'?'★提升了':'给了你碎片'}`),coins:10,hint:L('編成画面でパーティに入れられます','可以在编队画面加入队伍'),win:true})}
 
 $('#exp').onclick=()=>{const b=new TextEncoder().encode(JSON.stringify(save));let s='';b.forEach(x=>s+=String.fromCharCode(x));$('#code').value='OKS2.'+btoa(s);$('#copy').hidden=false};
-$('#copy').onclick=async()=>{const t=$('#code');try{await navigator.clipboard.writeText(t.value);toast('コピーしました')}catch(e){t.select();toast('選択しました。長押しでコピーしてください')}};
-$('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsWith('OKS2.')){toast('「OKS2.」で始まるコードを貼り付けてください');return}
-  try{const s=atob(c.slice(5));save=sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))));persist();updCoins();setSnd();toast('セーブデータを読み込みました');nav(hasAny()?'tower':'gacha')}
-  catch(e){toast('コードが途中で切れているようです。全部コピーできているか確認してください')}};
+$('#copy').onclick=async()=>{const t=$('#code');try{await navigator.clipboard.writeText(t.value);toast(L('コピーしました','已复制'))}catch(e){t.select();toast(L('選択しました。長押しでコピーしてください','已选中，请长按复制'))}};
+$('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsWith('OKS2.')){toast(L('「OKS2.」で始まるコードを貼り付けてください','请粘贴以「OKS2.」开头的代码'));return}
+  try{const s=atob(c.slice(5));save=sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))));persist();updCoins();setSnd();toast(L('セーブデータを読み込みました','已读取存档'));nav(hasAny()?'tower':'gacha')}
+  catch(e){toast(L('コードが途中で切れているようです。全部コピーできているか確認してください','代码似乎不完整，请确认是否已全部复制'))}};
 
 /* ================= バトル ================= */
 let B=null;
 function beginBattle(){fixParty();if(!save.party.length)return;
   TUT.on=!save.tutDone;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
-  const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`);return}
+  const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
   const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}));persist();
   const BF=(tsel!=null&&canPlay(tsel))?tsel:save.floor,RP=isReplay(BF);
   const enemies=G.enemiesFor(BF,save.lap,Math.random,save.party);
   B={floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   const fl=FLOORS[BF-1];
   ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
-  $('#floor-tag').textContent=`${BF}F ${fl.n}${RP?'（再挑戦）':''}${fl.rule?'｜'+fl.rule.d:''}`;
+  $('#floor-tag').textContent=`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
   (async()=>{const e=G.act(B.S,1);
-    await say(`${BF}F ${fl.n}${RP?'（再挑戦）':''}。相手は${B.S.sides[1].team.length}人！`);
-    bubble(1,e.ch.lines[0]);await say(`${e.ch.name}（★${e.star}）が 現れた！`,900);
-    if(TUT.on)await coach('バトルの見かた','ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','#f1, #f0');
+    await say(`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}`+L(`。相手は${B.S.sides[1].team.length}人！`,`。对手共${B.S.sides[1].team.length}人！`));
+    bubble(1,e.ch.lines[0]);await say(L(`${e.ch.name}（★${e.star}）が 現れた！`,`${e.ch.name}（★${e.star}）出现了！`),900);
+    if(TUT.on)await coach(L('バトルの見かた','对战画面'),L('ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','欢迎来到第一场对战！<em>上方是对手</em>，<em>下方是你</em>的角色。绿色条是体力，降到0就会倒下。打倒对方全员就获胜！'),'#f1, #f0');
     runTurn(0)})()}
 function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
 function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);
-  el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?'相手':'あなた'}<span class="pips" aria-label="${i?'相手の残り人数':'パーティの残り人数'}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">能力と技</button>${i?'<button class="info-btn" data-hist="1">行動の記録</button>':''}</span>
-  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?' 攻撃+'+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
+  el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?L('相手','对手'):L('あなた','你')}<span class="pips" aria-label="${i?L('相手の残り人数','对手剩余人数'):L('パーティの残り人数','队伍剩余人数')}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">${L('能力と技','特性与技能')}</button>${i?`<button class="info-btn" data-hist="1">${L('行動の記録','行动记录')}</button>`:''}</span>
+  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
   el.querySelector('.crest').onclick=()=>infoSheet(i);el.querySelector('[data-info]').onclick=()=>infoSheet(i);
   const h=el.querySelector('[data-hist]');if(h)h.onclick=histSheet;
-  el.querySelector('.pips').onclick=()=>toast(i?'相手の控えは、出てくるまで分からない':'パーティの残り人数');
+  el.querySelector('.pips').onclick=()=>toast(i?L('相手の控えは、出てくるまで分からない','对手的替补在登场前是未知的'):L('パーティの残り人数','队伍剩余人数'));
   updF(i)}
 function updF(i){const v=B.view[i],t=v.team[v.idx],el=$('#f'+i),f=B.S.sides[i].team[v.idx];if(!el.querySelector('.hp i'))return;
   const r=t.hp/t.max,bar=el.querySelector('.hp i');bar.style.width=r*100+'%';bar.style.backgroundColor=r>.5?'var(--good)':r>.2?'var(--mid)':'var(--low)';
-  el.querySelector('.hpnum').textContent=`体力 ${t.hp} / ${t.max}`;el.classList.toggle('turn',B.S.turn===i&&!B.done);
+  el.querySelector('.hpnum').textContent=`${L('体力','体力')} ${t.hp} / ${t.max}`;el.classList.toggle('turn',B.S.turn===i&&!B.done);
   el.querySelector('.crest').classList.toggle('ko',t.hp<=0);
   el.querySelectorAll('.pips i').forEach((p,k)=>p.classList.toggle('dead',v.team[k].hp<=0));
   const c=[`<span class="chip pas">${f.ch.passive.n}</span>`];
-  if(t.guard)c.push(`<span class="chip guard">ガード ${t.guard}</span>`);if(t.pow)c.push(`<span class="chip up">次の攻撃 +${t.pow}</span>`);
-  if(t.weak)c.push(`<span class="chip down">次の攻撃 −${t.weak}</span>`);if(t.dMod)c.push(`<span class="chip ${t.dMod>0?'up':'down'}">次のサイコロ ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}</span>`);
+  if(t.guard)c.push(`<span class="chip guard">${L('ガード','护盾')} ${t.guard}</span>`);if(t.pow)c.push(`<span class="chip up">${L('次の攻撃','下次攻击')} +${t.pow}</span>`);
+  if(t.weak)c.push(`<span class="chip down">${L('次の攻撃','下次攻击')} −${t.weak}</span>`);if(t.dMod)c.push(`<span class="chip ${t.dMod>0?'up':'down'}">${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}</span>`);
   el.querySelector('.chips').innerHTML=c.join('');el.querySelector('.chip.pas').onclick=()=>infoSheet(i)}
 async function say(t,ms=650){if(!t)return;const p=document.createElement('p');p.textContent=t;const l=$('#log');l.append(p);l.scrollTop=l.scrollHeight;await W(ms)}
 function bubble(i,text){const el=$('#f'+i);el.querySelector('.bubble')?.remove();const b=document.createElement('div');b.className='bubble';b.textContent='「'+text+'」';el.append(b);setTimeout(()=>b.remove(),2600)}
@@ -733,11 +737,11 @@ async function play(evs){for(const e of evs){if(!B)return;const prevIdx=B.view.m
       if(e.amt>0){shake(e.side);burst(e.side,src);sfx('hit',e.amt);if(e.amt>=10){const a=$('#arena');a.classList.remove('flash');void a.offsetWidth;a.classList.add('flash')}}else sfx('guard');
       floatText(e.side,e.amt>0?'-'+e.amt:'0','var(--low)',e.amt>=10);await say(e.msg);break}
     case'heal':if(e.amt){sfx('heal');floatText(e.side,'+'+e.amt,'var(--good)')}await say(e.msg);break;
-    case'guard':sfx('guard');floatText(e.side,'ガード+'+e.amt,'var(--guard)');await say(e.msg);break;
+    case'guard':sfx('guard');floatText(e.side,L('ガード+','护盾+')+e.amt,'var(--guard)');await say(e.msg);break;
     case'buff':sfx('buff');floatText(e.side,'UP','var(--good)');await say(e.msg);break;
     case'debuff':sfx('debuff');floatText(e.side,'DOWN','var(--low)');await say(e.msg);break;
     case'ko':sfx('ko');await say(e.msg,800);break;
-    case'switch':{const f=B.S.sides[e.side].team[B.view[e.side].idx];if(e.side===1)B.hist.push({r:B.round,t:'sw',msg:`${f.ch.name}（★${f.star}）が登場`});bubble(e.side,e.side===1?f.ch.lines[0]:'まかせて！');await say(e.msg,900);break}
+    case'switch':{const f=B.S.sides[e.side].team[B.view[e.side].idx];if(e.side===1)B.hist.push({r:B.round,t:'sw',msg:L(`${f.ch.name}（★${f.star}）が登場`,`${f.ch.name}（★${f.star}）登场`)});bubble(e.side,e.side===1?f.ch.lines[0]:L('まかせて！','交给我吧！'));await say(e.msg,900);break}
     case'over':break;
     default:await say(e.msg)}}
   renderControl()}
@@ -748,24 +752,24 @@ async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;
   await W(450);let c,guard=0;
   while(B&&B.S.over<0&&B.S.turn===1&&guard++<12&&(c=G.cpuChoose(B.S,1))){await play(G.useMove(B.S,1,c.mi,c.ks));await W(200)}
   if(!B)return;if(B.S.over>=0)return finish();
-  await say('相手は ターンを終えた。',350);await play(G.endTurn(B.S,1));runTurn(0)}
+  await say(L('相手は ターンを終えた。','对方结束了回合。'),350);await play(G.endTurn(B.S,1));runTurn(0)}
 
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function renderControl(rolled){if(!B)return;const el=$('#control');
   if(B.done){el.innerHTML='';return}
   const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],f=sd.team[v.idx],human=i===0;
-  el.innerHTML=`<div class="row between"><span class="label">${human?'あなたのサイコロ（タップで選択）':'相手のサイコロ'}</span>${human&&!B.busy?'<button class="btn" id="end">ターン終了</button>':''}</div>
-  <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="出目${d.v}${d.used?'（使用済み）':''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||'<span class="hint">サイコロなし</span>'}</div>
-  ${human?`<div class="label">${f.ch.name}の技</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
+  el.innerHTML=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''}</div>
+  <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
+  ${human?`<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
     let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),after=Math.max(0,r.d-o.guard);
-      est=`<span class="fx" style="grid-column:2/4">出目${ks.map(k=>sd.dice[k].v).join('・')}で <span class="est">${after}ダメージ</span>${r.notes.length?'（'+r.notes.join('、')+(o.guard?'、ガード−'+Math.min(o.guard,r.d):'')+'）':o.guard?'（ガード−'+Math.min(o.guard,r.d)+'）':''}</span>`}
+      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}</span>${r.notes.length?'（'+r.notes.join('、')+(o.guard?'、'+GD+Math.min(o.guard,r.d):'')+'）':o.guard?'（'+GD+Math.min(o.guard,r.d)+'）':''}</span>`}
     return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>`:''}`;
   hl();if(!human)return;
   el.querySelectorAll('.die').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;if(B.busy||!sd.dice[k]||sd.dice[k].used)return;sfx('tap');B.sel=B.sel===k?null:k;renderControl()});
   el.querySelectorAll('.mv').forEach(b=>b.onclick=async()=>{if(B.busy)return;if(tutBlock('move'))return;const mi=+b.dataset.mi,m=f.moves[mi];
-    if(sd.used.has(mi)){toast('この技はこのターンもう使いました');return}
-    const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`);return}
-    if(B.sel!=null&&!ks.includes(B.sel))toast(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`);
+    if(sd.used.has(mi)){toast(L('この技はこのターンもう使いました','这个技能本回合已经用过了'));return}
+    const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
+    if(B.sel!=null&&!ks.includes(B.sel))toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`));
     B.busy=true;B.sel=null;renderControl();await play(G.useMove(B.S,0,mi,ks));
     if(!B)return;if(B.S.over>=0)return finish();
     B.busy=false;renderControl();if(TUT.on&&TUT.wait==='move')tutAdvance()});
@@ -773,48 +777,48 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
 
 /* ================= 対戦中の情報 ================= */
 function openSheet(html){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}<button class="btn primary" data-close style="align-self:center">バトルに戻る</button></div>`;
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}<button class="btn primary" data-close style="align-self:center">${L('バトルに戻る','返回对战')}</button></div>`;
   bg.onclick=e=>{if(e.target===bg||e.target.dataset.close!==undefined){bg.remove()}};document.body.append(bg);bg.querySelector('[data-close]').focus()}
 function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].team[v.idx],t=v.team[v.idx],fl=FLOORS[B.S.floor-1];
-  const st=[];if(t.guard)st.push(`ガード ${t.guard}`);if(t.pow)st.push(`次の攻撃 +${t.pow}`);if(t.weak)st.push(`次の攻撃 −${t.weak}`);if(t.dMod)st.push(`次のサイコロ ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}`);
-  openSheet(`<div class="label">${i?'相手':'あなた'}のキャラ</div>
-  <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br><small>${f.ch.role}　体力 ${t.hp} / ${t.max}</small></div></div>
-  <div class="passive"><b>能力「${f.ch.passive.n}」</b><br>${f.ch.passive.d}</div>
-  ${st.length?`<p class="hint">いまの状態：${st.join('、')}</p>`:''}
-  <div class="label">技（1ターンに1回ずつ）</div><div class="moves">${f.moves.map(m=>`<div class="mv" style="cursor:default">${mvHTML(m)}</div>`).join('')}</div>
-  ${fl.rule?`<p class="hint">この階のルール：${fl.rule.d}</p>`:''}`)}
+  const st=[];if(t.guard)st.push(`${L('ガード','护盾')} ${t.guard}`);if(t.pow)st.push(`${L('次の攻撃','下次攻击')} +${t.pow}`);if(t.weak)st.push(`${L('次の攻撃','下次攻击')} −${t.weak}`);if(t.dMod)st.push(`${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}`);
+  openSheet(`<div class="label">${i?L('相手のキャラ','对手的角色'):L('あなたのキャラ','你的角色')}</div>
+  <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br><small>${f.ch.role}　${L('体力','体力')} ${t.hp} / ${t.max}</small></div></div>
+  <div class="passive"><b>${L('能力','特性')}「${f.ch.passive.n}」</b><br>${f.ch.passive.d}</div>
+  ${st.length?`<p class="hint">${L('いまの状態：','当前状态：')}${st.join('、')}</p>`:''}
+  <div class="label">${L('技（1ターンに1回ずつ）','技能（每回合各1次）')}</div><div class="moves">${f.moves.map(m=>`<div class="mv" style="cursor:default">${mvHTML(m)}</div>`).join('')}</div>
+  ${fl.rule?`<p class="hint">${L('この階のルール：','本层规则：')}${fl.rule.d}</p>`:''}`)}
 function histSheet(){if(!B)return;sfx('tap');
-  const rows=B.hist.slice().reverse().map(h=>h.t==='cast'?`<li><span class="tn">${h.r}ターン</span><span><b>${h.who}</b>の <b>${h.m.n}</b>（出目 ${h.vals.join('・')}）<br><span class="hint">${G.condLabel(h.m.c)}・${G.dmgLabel(h.m.dmg)?G.dmgLabel(h.m.dmg)+'ダメージ':'変化技'}${G.fxLabel(h.m.fx).length?'・'+G.fxLabel(h.m.fx).join('・'):''}</span></span></li>`
-    :`<li><span class="tn">${h.r}ターン</span><span class="hint">${h.msg}</span></li>`).join('');
-  openSheet(`<div class="label">相手の行動の記録（新しい順）</div>${rows?`<ul class="hist">${rows}</ul>`:'<p class="hint">まだ相手は行動していません。</p>'}
-  <p class="hint">控えのメンバーは、出てくるまで分かりません。</p>`)}
+  const rows=B.hist.slice().reverse().map(h=>h.t==='cast'?`<li><span class="tn">${L(h.r+'ターン','第'+h.r+'回合')}</span><span><b>${h.who}</b>${L('の','：')} <b>${h.m.n}</b>（${L('出目','点数')} ${h.vals.join(L('・','·'))}）<br><span class="hint">${G.condLabel(h.m.c)}${L('・','·')}${G.dmgLabel(h.m.dmg)?G.dmgLabel(h.m.dmg)+L('ダメージ','伤害'):L('変化技','变化技能')}${G.fxLabel(h.m.fx).length?L('・','·')+G.fxLabel(h.m.fx).join(L('・','·')):''}</span></span></li>`
+    :`<li><span class="tn">${L(h.r+'ターン','第'+h.r+'回合')}</span><span class="hint">${h.msg}</span></li>`).join('');
+  openSheet(`<div class="label">${L('相手の行動の記録（新しい順）','对手的行动记录（由新到旧）')}</div>${rows?`<ul class="hist">${rows}</ul>`:`<p class="hint">${L('まだ相手は行動していません。','对手还没有行动。')}</p>`}
+  <p class="hint">${L('控えのメンバーは、出てくるまで分かりません。','替补成员在登场前是未知的。')}</p>`)}
 
 /* ================= チュートリアル ================= */
 const TUT={on:false,first:false,second:false,wait:null,resolve:null,target:null};
 function hl(){document.querySelectorAll('.coach-hl').forEach(e=>e.classList.remove('coach-hl'));
   if(TUT.on&&TUT.target)document.querySelectorAll(TUT.target).forEach(e=>e.classList.add('coach-hl'))}
-function coach(title,text,target,btn='次へ'){return new Promise(res=>{TUT.resolve=res;TUT.target=target||null;const c=$('#coach');c.hidden=false;
-  c.innerHTML=`<div class="coach-head"><b>チュートリアル｜${title}</b><button class="btn small" id="tut-skip">スキップ</button></div><div class="coach-txt">${text}</div>${btn?`<div class="row" style="justify-content:flex-end"><button class="btn primary small" id="tut-next">${btn}</button></div>`:''}`;
-  $('#tut-skip').onclick=()=>{tutFinish();toast('チュートリアルを終えました')};
+function coach(title,text,target,btn=L('次へ','下一步')){return new Promise(res=>{TUT.resolve=res;TUT.target=target||null;const c=$('#coach');c.hidden=false;
+  c.innerHTML=`<div class="coach-head"><b>${L('チュートリアル','教学')}｜${title}</b><button class="btn small" id="tut-skip">${L('スキップ','跳过')}</button></div><div class="coach-txt">${text}</div>${btn?`<div class="row" style="justify-content:flex-end"><button class="btn primary small" id="tut-next">${btn}</button></div>`:''}`;
+  $('#tut-skip').onclick=()=>{tutFinish();toast(L('チュートリアルを終えました','教学已结束'))};
   const n=$('#tut-next');if(n)n.onclick=()=>{sfx('tap');tutAdvance()};
   hl();const tg=TUT.target&&document.querySelector(TUT.target);(tg&&tg.closest('#control')?tg:c).scrollIntoView({block:tg&&tg.closest('#control')?'center':'nearest',behavior:RM?'auto':'smooth'})})}
 function tutAdvance(){const r=TUT.resolve;TUT.resolve=null;TUT.target=null;hl();if(r)r()}
 function tutBlock(kind){if(!TUT.on||!TUT.resolve)return false;if(TUT.wait===kind)return false;
-  if(TUT.wait==='move'&&kind==='end'){toast('まずは光っている技をタップしてみよう');return true}
-  if(!TUT.wait){toast('説明を読んだら「次へ」を押してね');return true}return false}
+  if(TUT.wait==='move'&&kind==='end'){toast(L('まずは光っている技をタップしてみよう','先点击发光的技能试试吧'));return true}
+  if(!TUT.wait){toast(L('説明を読んだら「次へ」を押してね','读完说明后请点「下一步」'));return true}return false}
 function tutFinish(){TUT.on=false;TUT.wait=null;TUT.target=null;save.tutDone=true;persist();$('#coach').hidden=true;hl();const r=TUT.resolve;TUT.resolve=null;if(r)r()}
 async function tutTurn(){
   if(!TUT.first){TUT.first=true;
-    await coach('サイコロ','あなたのターンになると、サイコロが自動で振られます。下に並んでいるのが今回の<em>出目</em>です（最初のターンだけ1個少なめ）。','#control .tray');if(!TUT.on)return;
-    await coach('技の条件','技カードの左の黒いラベルが<em>使える条件</em>です。「5以上」「偶数」「ゾロ目」など、条件に合う出目があると技が<em>光ります</em>。右の赤い数字がダメージ、下の行に今の出目で出る<em>予想ダメージ</em>が出ます。','#control .moves');if(!TUT.on)return;
+    await coach(L('サイコロ','骰子'),L('あなたのターンになると、サイコロが自動で振られます。下に並んでいるのが今回の<em>出目</em>です（最初のターンだけ1個少なめ）。','轮到你时会自动掷骰子。下面排列的就是这次的<em>点数</em>（只有第一回合少1个）。'),'#control .tray');if(!TUT.on)return;
+    await coach(L('技の条件','技能条件'),L('技カードの左の黒いラベルが<em>使える条件</em>です。「5以上」「偶数」「ゾロ目」など、条件に合う出目があると技が<em>光ります</em>。右の赤い数字がダメージ、下の行に今の出目で出る<em>予想ダメージ</em>が出ます。','技能卡左边的标签是<em>使用条件</em>。如「5以上」「偶数」「对子」，有符合条件的点数时技能会<em>发光</em>。右边的红色数字是伤害，下一行会显示当前点数的<em>预计伤害</em>。'),'#control .moves');if(!TUT.on)return;
     const ready=document.querySelector('#control .mv.ready');
-    if(ready){TUT.wait='move';await coach('技を使う','光っている技をタップしてみよう！ 合う出目が自動で使われます。（先にサイコロをタップすると、使う出目を選べます）','#control .mv.ready',null);TUT.wait=null;if(!TUT.on)return;
-      TUT.wait='end';await coach('ターン終了','使ったサイコロは薄くなります。技は<em>1ターンに1回ずつ</em>。まだ光っている技があれば使ってOK。もう使えなくなったら<em>ターン終了</em>を押そう。','#end',null);TUT.wait=null}
-    else{TUT.wait='end';await coach('ターン終了','今回は条件に合う出目がなく、使える技がありません。こんなときは<em>ターン終了</em>を押そう。','#end',null);TUT.wait=null}
+    if(ready){TUT.wait='move';await coach(L('技を使う','使用技能'),L('光っている技をタップしてみよう！ 合う出目が自動で使われます。（先にサイコロをタップすると、使う出目を選べます）','点击发光的技能试试吧！会自动使用符合条件的点数。（先点击骰子，可以选择要用的点数）'),'#control .mv.ready',null);TUT.wait=null;if(!TUT.on)return;
+      TUT.wait='end';await coach(L('ターン終了','结束回合'),L('使ったサイコロは薄くなります。技は<em>1ターンに1回ずつ</em>。まだ光っている技があれば使ってOK。もう使えなくなったら<em>ターン終了</em>を押そう。','用过的骰子会变淡。技能<em>每回合各1次</em>。还有发光的技能就可以继续用。没有可用的了就点<em>结束回合</em>。'),'#end',null);TUT.wait=null}
+    else{TUT.wait='end';await coach(L('ターン終了','结束回合'),L('今回は条件に合う出目がなく、使える技がありません。こんなときは<em>ターン終了</em>を押そう。','这次没有符合条件的点数，没有可用的技能。这种时候就点<em>结束回合</em>吧。'),'#end',null);TUT.wait=null}
     if(!TUT.on)return;$('#coach').hidden=true;TUT.target=null;hl();return}
   if(!TUT.second){TUT.second=true;
-    await coach('相手を知る','相手のターンが終わりました。相手の<em>能力と技</em>ボタンで相手の技と能力を、<em>行動の記録</em>で相手が何をしたかを確認できます。キャラの絵をタップしても見られます。','#f1 .info-btn');if(!TUT.on)return;
-    await coach('勝つコツ','「次の攻撃+」で溜めてから大技、ガードで守る、ゾロ目を狙う…と工夫しよう。階ごとの<em>特別ルール</em>（上の帯）にも注目！ チュートリアルはここまで。がんばって！','.floor-tag','はじめる');
+    await coach(L('相手を知る','了解对手'),L('相手のターンが終わりました。相手の<em>能力と技</em>ボタンで相手の技と能力を、<em>行動の記録</em>で相手が何をしたかを確認できます。キャラの絵をタップしても見られます。','对方的回合结束了。用对手的<em>特性与技能</em>按钮可以查看对方的技能和特性，用<em>行动记录</em>可以确认对方做了什么。点击角色图片也能查看。'),'#f1 .info-btn');if(!TUT.on)return;
+    await coach(L('勝つコツ','取胜诀窍'),L('「次の攻撃+」で溜めてから大技、ガードで守る、ゾロ目を狙う…と工夫しよう。階ごとの<em>特別ルール</em>（上の帯）にも注目！ チュートリアルはここまで。がんばって！','用「下次攻击+」蓄力后放大招、用护盾防守、瞄准对子……多动脑筋吧。也要留意每层的<em>特殊规则</em>（上方横条）！教学到此结束，加油！'),'.floor-tag',L('はじめる','开始'));
     tutFinish()}}
 
 /* ================= 決着 ================= */
@@ -825,7 +829,7 @@ async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySel
   if(win&&!RP){
     if(f===TOP||f===TOP2){clear=true;
       const res=grant('takumi',owns('takumi')?Math.min(3,starOf('takumi')+1):1);if(res!=='dup')save.shards.takumi=(save.shards.takumi||0)+1;
-      unlock=res==='new'?'塔の主「匠」が仲間になった！':res==='up'?`「匠」が★${starOf('takumi')}になった！`:'「匠」のかけらを手に入れた'}
+      unlock=res==='new'?L('塔の主「匠」が仲間になった！','塔之主「匠」成为了伙伴！'):res==='up'?L(`「匠」が★${starOf('takumi')}になった！`,`「匠」升到了★${starOf('takumi')}！`):L('「匠」のかけらを手に入れた','获得了「匠」的碎片')}
     if(f===TOP){save.floor=TOP+1;opened=true}
     else if(f===TOP2){master=true;save.clears+=1;save.lap+=1;save.floor=TOP+1}
     else save.floor=f+1;
@@ -835,14 +839,14 @@ async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySel
   else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');bubble(1,foe.ch.lines[1])}
   await W(900);
   showOverlay({word:master?'MEISTER!':clear?'CLEAR!':win?'WINNER':'LOSE…',ch:win?me.ch:foe.ch,win,coins,
-    sub:master?'真・塔の主をたおした！<br>マイスターの称号を手に入れた':opened?'塔の主をたおした！<br>上層（11〜20F）への道が開いた':win?`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`:`${foe.ch.name}に敗れた…`,
-    hint:RP?(win?`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`:`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`):(unlock?unlock+'　':'')+(master?`上層は${save.lap}周目へ。敵のレベルがさらに上がります`:opened?'ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう':win?`次は ${save.floor}F ${FLOORS[save.floor-1].n}`:`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`)})}
+    sub:master?L('真・塔の主をたおした！<br>マイスターの称号を手に入れた','打倒了真·塔之主！<br>获得了「大师」称号'):opened?L('塔の主をたおした！<br>上層（11〜20F）への道が開いた','打倒了塔之主！<br>通往上层（11〜20F）的道路开启了'):win?L(`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`,`${me.ch.name}获胜！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑战通关':'通关'}`):L(`${foe.ch.name}に敗れた…`,`败给了${foe.ch.name}……`),
+    hint:RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${save.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${save.floor}F`)):(unlock?unlock+'　':'')+(master?L(`上層は${save.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${save.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${save.floor}F ${FLOORS[save.floor-1].n}`,`下一层：${save.floor}F ${FLOORS[save.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`))})}
 function showOverlay(o){const ov=document.createElement('div');ov.className='overlay';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
   ov.innerHTML=`<div class="ov-card ${o.win?'win':'lose'}">${o.win?'<div class="rays"></div>':''}
     <div class="big-word">${o.word}</div>${crest(o.ch)}<div class="sub">${o.sub}</div>
-    <div class="label">ゲットしたコイン</div><div class="ov-coin">+<span class="cc">0</span></div>
+    <div class="label">${L('ゲットしたコイン','获得的金币')}</div><div class="ov-coin">+<span class="cc">0</span></div>
     <span class="hint">${o.hint||''}</span>
-    <div class="row" style="justify-content:center"><button class="btn primary" data-go="tower">タワーへ</button><button class="btn" data-go="gacha">ガチャへ</button><button class="btn" data-go="party">編成へ</button></div></div>`;
+    <div class="row" style="justify-content:center"><button class="btn primary" data-go="tower">${L('タワーへ','前往塔')}</button><button class="btn" data-go="gacha">${L('ガチャへ','前往扭蛋')}</button><button class="btn" data-go="party">${L('編成へ','前往编队')}</button></div></div>`;
   document.body.append(ov);const cc=ov.querySelector('.cc');let n=0;
   const tick=o.coins<=0?null:setInterval(()=>{n++;cc.textContent=n;tone(1200+n*25,.04,'square',.04);if(n>=o.coins)clearInterval(tick)},RM?1:Math.max(40,700/o.coins));
   ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}nav(b.dataset.go)});
@@ -875,51 +879,71 @@ const TBGM={timer:null,step:0,next:0,out:null,
     const tm=this.timer;this.timer=null;setTimeout(()=>{clearInterval(tm)},850)},
   stop(){clearInterval(this.timer);this.timer=null;try{this.out&&this.out.disconnect()}catch(e){}}};
 (function(){const t=$('#title');let awake=false,leaving=false;
-  function speak(){try{if(!save.se||!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance('マイスターの、塔！');u.lang='ja-JP';u.rate=.95;u.pitch=1.15;
-    const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+  function speak(){try{if(!save.se||!('speechSynthesis' in window))return;const zh=G.getLang()==='zh';const u=new SpeechSynthesisUtterance(zh?'迈斯特之塔！':'マイスターの、塔！');u.lang=zh?'zh-CN':'ja-JP';u.rate=.95;u.pitch=1.15;
+    const v=speechSynthesis.getVoices().find(v=>(zh?/^zh(-|_)?(CN|Hans)?/i:/^ja/i).test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
   function jingle(){[60,64,67,72].forEach((n,i)=>tone(N(n),.14,'square',.08,0,i*.09));[72,76,79,84].forEach(n=>tone(N(n),.9,'triangle',.06,0,.4));noise(.5,.05,.4,4000)}
   function wake(){if(awake)return false;awake=true;ac();t.classList.remove('called');void t.offsetWidth;t.classList.add('called','awake');jingle();setTimeout(speak,350);setTimeout(()=>TBGM.start(),1100);return true}
   async function go(dest){if(leaving)return;leaving=true;const first=wake();sfx('tap');
     nav(dest==='dex'?'dex':(hasAny()?'tower':'gacha'));
     await sleep(first?(RM?500:2200):250);TBGM.fade();t.classList.add('out');await sleep(600);t.remove()}
   const sheet=$('#t-sheet'),card=$('#t-card');
-  function open(html){card.innerHTML=html+'<div class="row" style="justify-content:center"><button class="btn primary" data-tclose>閉じる</button></div>';sheet.hidden=false;
+  function open(html){card.innerHTML=html+`<div class="row" style="justify-content:center"><button class="btn primary" data-tclose>${L('閉じる','关闭')}</button></div>`;sheet.hidden=false;
     card.querySelector('[data-tclose]').onclick=e=>{e.stopPropagation();sfx('tap');sheet.hidden=true}}
   const P={
-    story(){open(`<h2>ストーリー</h2><p class="hint" style="color:var(--ink)">工業の街にそびえる「マイスターの塔」。全10階の各部屋には、腕自慢の職人たちが待ちかまえている。</p>
-      <p class="hint" style="color:var(--ink)">最上階にいるという伝説の「塔の主」にたどり着き、認められた者だけが「マイスター」の称号を手にできる——。</p>
-      <p class="hint" style="color:var(--ink)">夜に磨いた腕と、仲間との力を合わせて、ものづくりの頂上を目指そう！</p>`)},
+    story(){open(L(`<h2>ストーリー</h2><p class="hint" style="color:var(--ink)">工業の街にそびえる「マイスターの塔」。10階には伝説の職人「塔の主」が、その先の上層には「真・塔の主」が待ちかまえている。</p>
+      <p class="hint" style="color:var(--ink)">各部屋の腕自慢たちを倒し、頂上で認められた者だけが「マイスター」の称号を手にできる——。</p>
+      <p class="hint" style="color:var(--ink)">夜に磨いた腕と、仲間との力を合わせて、ものづくりの頂上を目指そう！</p>`,`<h2>故事</h2><p class="hint" style="color:var(--ink)">耸立在工业之城的「迈斯特之塔」。10楼有传说中的工匠「塔之主」，再往上的上层还有「真·塔之主」在等待着。</p>
+      <p class="hint" style="color:var(--ink)">打倒各个房间的高手，只有在塔顶获得认可的人，才能得到「大师」的称号——。</p>
+      <p class="hint" style="color:var(--ink)">用夜里磨练的手艺，与伙伴同心协力，向制造之巅前进吧！</p>`))},
     chars(){go('dex')},
-    settings(){const draw=()=>{open(`<h2>設定</h2>
-      <div class="row between"><span>効果音・タイトルコール</span><button class="snd" id="ts-se" aria-pressed="${save.se}">${save.se?'ON':'OFF'}</button></div>
+    settings(){const draw=()=>{open(`<h2>${L('設定','设置')}</h2>
+      <div class="row between"><span>${L('言語','语言')} / Language</span><div class="seg" style="flex:none"><button type="button" data-lang="ja" aria-pressed="${G.getLang()==='ja'}">日本語</button><button type="button" data-lang="zh" aria-pressed="${G.getLang()==='zh'}">简体中文</button></div></div>
+      <div class="row between"><span>${L('効果音・タイトルコール','音效·标题语音')}</span><button class="snd" id="ts-se" aria-pressed="${save.se}">${save.se?'ON':'OFF'}</button></div>
       <div class="row between"><span>BGM</span><button class="snd" id="ts-bgm" aria-pressed="${save.bgm}">${save.bgm?'ON':'OFF'}</button></div>
       <hr style="border:0;border-top:1px solid var(--line);width:100%">
-      <div class="label">データ</div><p class="hint">セーブデータを消して、最初からやり直せます。元には戻せません。</p>
-      <div id="ts-reset-box"><button class="btn small" id="ts-reset" style="color:var(--low);border-color:var(--low)">セーブデータを消す</button></div>`);
+      <div class="label">${L('データ','数据')}</div><p class="hint">${L('セーブデータを消して、最初からやり直せます。元には戻せません。','可以删除存档从头开始，删除后无法恢复。')}</p>
+      <div id="ts-reset-box"><button class="btn small" id="ts-reset" style="color:var(--low);border-color:var(--low)">${L('セーブデータを消す','删除存档')}</button></div>`);
+      card.querySelectorAll('[data-lang]').forEach(b=>b.onclick=e=>{e.stopPropagation();sfx('tap');applyLang(b.dataset.lang);draw()});
       $('#ts-se').onclick=e=>{e.stopPropagation();save.se=!save.se;persist();setSnd();sfx('tap');draw()};
       $('#ts-bgm').onclick=e=>{e.stopPropagation();save.bgm=!save.bgm;persist();setSnd();if(save.bgm)TBGM.start();else TBGM.stop();draw()};
-      $('#ts-reset').onclick=e=>{e.stopPropagation();$('#ts-reset-box').innerHTML='<p class="hint" style="color:var(--low)">本当に消しますか？ 仲間・コイン・塔の進み具合がすべて消えます。</p><div class="row"><button class="btn small" id="ts-yes" style="color:var(--low);border-color:var(--low)">消す</button><button class="btn small" id="ts-no">やめる</button></div>';
-        $('#ts-yes').onclick=e=>{e.stopPropagation();const keep={se:save.se,bgm:save.bgm};save=Object.assign(blank(),keep);persist();updCoins();sel=null;toast('セーブデータを消しました');draw()};
+      $('#ts-reset').onclick=e=>{e.stopPropagation();$('#ts-reset-box').innerHTML=`<p class="hint" style="color:var(--low)">${L('本当に消しますか？ 仲間・コイン・塔の進み具合がすべて消えます。','真的要删除吗？伙伴、金币、塔的进度将全部消失。')}</p><div class="row"><button class="btn small" id="ts-yes" style="color:var(--low);border-color:var(--low)">${L('消す','删除')}</button><button class="btn small" id="ts-no">${L('やめる','取消')}</button></div>`;
+        $('#ts-yes').onclick=e=>{e.stopPropagation();const keep={se:save.se,bgm:save.bgm};save=Object.assign(blank(),keep);persist();updCoins();sel=null;toast(L('セーブデータを消しました','已删除存档'));draw()};
         $('#ts-no').onclick=e=>{e.stopPropagation();draw()}}};draw()},
     rank(){const cleared=Math.max(save.best||1,save.floor)-1+(save.lap-1)*TOP,got=CHARS.filter(c=>owns(c.id)).length,st3=Object.values(save.owned).filter(v=>v===3).length;
-      open(`<h2>ランキング｜あなたの記録</h2><div class="t-rec">
-        <span>クリアした階（通算）</span><b>${cleared}階</b><span>いまの挑戦</span><b>${save.lap>1?save.lap+'周目 ':''}${save.floor}F</b>
-        <span>塔の制覇</span><b>${save.clears}回</b><span>集めた仲間</span><b>${got} / ${CHARS.length}</b><span>★3の仲間</span><b>${st3}人</b><span>コイン</span><b>${save.coins}</b></div>
-        <p class="hint">ほかのプレイヤーとの順位表は準備中です。</p>`)},
-    howto(){open(`<h2>あそびかた</h2><ol class="lines" style="font-size:14px;line-height:1.7">
+      open(`<h2>${L('ランキング｜あなたの記録','排行榜｜你的记录')}</h2><div class="t-rec">
+        <span>${L('クリアした階（通算）','已通关楼层（累计）')}</span><b>${cleared}${L('階','层')}</b><span>${L('いまの挑戦','当前挑战')}</span><b>${save.lap>1?L(save.lap+'周目 ','第'+save.lap+'轮 '):''}${save.floor}F</b>
+        <span>${L('塔の制覇','制霸塔')}</span><b>${save.clears}${L('回','次')}</b><span>${L('集めた仲間','收集的伙伴')}</span><b>${got} / ${CHARS.length}</b><span>${L('★3の仲間','★3伙伴')}</span><b>${st3}${L('人','人')}</b><span>${L('コイン','金币')}</span><b>${save.coins}</b></div>
+        <p class="hint">${L('ほかのプレイヤーとの順位表は準備中です。','与其他玩家的排行榜正在准备中。')}</p>`)},
+    howto(){open(L(`<h2>あそびかた</h2><ol class="lines" style="font-size:14px;line-height:1.7">
       <li>ガチャで仲間を集める（最初の1回は無料）</li><li>編成で3人のパーティと、それぞれの技4つを決める</li>
       <li>塔に挑戦。自分のターンにサイコロが振られる</li><li>条件に合う出目を技に使う（技は1ターン1回ずつ）</li>
       <li>相手チームを全員たおせば次の階へ。コインがもらえる</li><li>コインでガチャ、かけらで技を強化して最上階を目指そう</li></ol>
-      <p class="hint">はじめてのバトルでは、チュートリアルが案内してくれます。</p>`)}};
+      <p class="hint">はじめてのバトルでは、チュートリアルが案内してくれます。</p>`,`<h2>玩法</h2><ol class="lines" style="font-size:14px;line-height:1.7">
+      <li>用扭蛋收集伙伴（第一次免费）</li><li>在编队中决定3人队伍，以及每人的4个技能</li>
+      <li>挑战塔。轮到自己时会自动掷骰子</li><li>把符合条件的点数用在技能上（技能每回合各1次）</li>
+      <li>打倒对方全员即可前往下一层，并获得金币</li><li>用金币扭蛋、用碎片强化技能，向塔顶前进吧</li></ol>
+      <p class="hint">第一场对战时，教学会为你引导。</p>`))}};
   $('#t-start').onclick=e=>{e.stopPropagation();go()};
   t.querySelectorAll('[data-ts]').forEach(b=>b.onclick=e=>{e.stopPropagation();wake();sfx('tap');P[b.dataset.ts]()});
   sheet.onclick=e=>{e.stopPropagation();if(e.target===sheet)sheet.hidden=true};
-  t.addEventListener('click',()=>{if(!wake())toast('「はじめる」をタップしてね')});
+  t.addEventListener('click',()=>{if(!wake())toast(L('「はじめる」をタップしてね','请点击「はじめる（开始）」'))});
   try{speechSynthesis.getVoices()}catch(e){}
   $('#t-start').focus({preventScroll:true})})();
 
+/* ================= 言語の切り替え ================= */
+function applyLang(l){l=l==='zh'?'zh':'ja';G.setLang(l);save.lang=l;persist();const zh=l==='zh';
+  document.documentElement.lang=zh?'zh-CN':'ja';document.title=zh?'迈斯特之塔':'マイスターの塔';
+  if(zh&&!document.getElementById('font-zh')){const k=document.createElement('link');k.id='font-zh';k.rel='stylesheet';
+    k.href='https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+QingKe+HuangYou&display=swap';document.head.append(k)}
+  document.querySelectorAll('[data-zh]').forEach(e=>{if(e.dataset.ja==null)e.dataset.ja=e.innerHTML;e.innerHTML=zh?e.dataset.zh:e.dataset.ja});
+  document.querySelectorAll('[data-zh-aria]').forEach(e=>{if(e.dataset.jaAria==null)e.dataset.jaAria=e.getAttribute('aria-label');e.setAttribute('aria-label',zh?e.dataset.zhAria:e.dataset.jaAria)});
+  document.querySelectorAll('[data-zh-ph]').forEach(e=>{if(e.dataset.jaPh==null)e.dataset.jaPh=e.placeholder;e.placeholder=zh?e.dataset.zhPh:e.dataset.jaPh});
+  updCoins();
+  const vis=['tower','party','gacha','dex'].find(x=>!$('#v-'+x).hidden);
+  if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex})[vis]()}
+
 /* ================= 起動 ================= */
-fixParty();updCoins();setSnd();persist();
+fixParty();applyLang(save.lang||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'ja'));updCoins();setSnd();persist();
 nav(hasAny()?'tower':'gacha');
 </script>
 </body>
