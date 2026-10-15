@@ -260,6 +260,7 @@ details p{margin:6px 0 0}
 .t-tapglow{position:absolute;left:26%;width:48%;top:81.6%;height:6%;border-radius:14px;background:radial-gradient(ellipse,rgba(140,190,255,.7),transparent 70%);animation:tapglow 1.6s ease-in-out infinite;pointer-events:none;mix-blend-mode:screen}
 @keyframes tapglow{50%{opacity:.1}}
 .title.awake .t-tapglow{display:none}
+.t-ver{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:4;font:700 11px var(--f-body);color:#fff;background:rgba(5,10,28,.6);border:1px solid rgba(217,174,69,.6);border-radius:4px;padding:1px 7px;letter-spacing:.05em;pointer-events:none}
 .t-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
 .title.called .t-flash{animation:tflash .8s ease-out}
 .title.called .t-stage{animation:callshake .5s}
@@ -487,11 +488,13 @@ hr{border-color:var(--line)!important}
     <button class="t-hot" data-ts="howto" style="left:64%;top:93.6%;width:22%;height:4.6%" aria-label="あそびかた" data-zh-aria="玩法"></button>
   </div>
   <div class="t-confirm" id="t-sheet" hidden><div class="t-card" id="t-card"></div></div>
+  <div class="t-ver" id="t-ver" aria-label="バージョン"></div>
   <div class="t-flash"></div>
 </div>
 
 <script src="engine.js"></script>
 <script>
+const VERSION='1.4.0';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -916,7 +919,7 @@ const TBGM={timer:null,step:0,next:0,out:null,
   fade(){if(!this.timer)return;const a=AC;try{this.out.gain.setValueAtTime(this.out.gain.value,a.currentTime);this.out.gain.linearRampToValueAtTime(0,a.currentTime+.8)}catch(e){}
     const tm=this.timer;this.timer=null;setTimeout(()=>{clearInterval(tm)},850)},
   stop(){clearInterval(this.timer);this.timer=null;try{this.out&&this.out.disconnect()}catch(e){}}};
-(function(){const t=$('#title');let awake=false,leaving=false;
+(function(){const t=$('#title');let awake=false,leaving=false;$('#t-ver').textContent='Ver '+VERSION;
   function speak(){try{if(!save.se||!('speechSynthesis' in window))return;const zh=G.getLang()==='zh';const u=new SpeechSynthesisUtterance(zh?'迈斯特之塔！':'マイスターの、塔！');u.lang=zh?'zh-CN':'ja-JP';u.rate=.95;u.pitch=1.15;
     const v=speechSynthesis.getVoices().find(v=>(zh?/^zh(-|_)?(CN|Hans)?/i:/^ja/i).test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
   function jingle(){[60,64,67,72].forEach((n,i)=>tone(N(n),.14,'square',.08,0,i*.09));[72,76,79,84].forEach(n=>tone(N(n),.9,'triangle',.06,0,.4));noise(.5,.05,.4,4000)}
@@ -940,6 +943,7 @@ const TBGM={timer:null,step:0,next:0,out:null,
       <div class="row between"><span>BGM</span><button class="snd" id="ts-bgm" aria-pressed="${save.bgm}">${save.bgm?'ON':'OFF'}</button></div>
       <hr style="border:0;border-top:1px solid var(--line);width:100%">
       <div class="label">${L('データ','数据')}</div><p class="hint">${L('セーブデータを消して、最初からやり直せます。元には戻せません。','可以删除存档从头开始，删除后无法恢复。')}</p>
+      <div class="row between"><span>${L('バージョン','版本')}</span><b>Ver ${VERSION}</b></div>
       <div id="ts-reset-box"><button class="btn small" id="ts-reset" style="color:var(--low);border-color:var(--low)">${L('セーブデータを消す','删除存档')}</button></div>`);
       card.querySelectorAll('[data-lang]').forEach(b=>b.onclick=e=>{e.stopPropagation();sfx('tap');applyLang(b.dataset.lang);draw()});
       $('#ts-se').onclick=e=>{e.stopPropagation();save.se=!save.se;persist();setSnd();sfx('tap');draw()};
