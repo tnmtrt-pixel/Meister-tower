@@ -1,8 +1,26 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1430">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="マイスターの塔">
+<meta name="description" content="仲間と挑む、ものづくりの頂上へ！ ガチャで仲間を集め、サイコロで技を出し合って塔を登るバトルゲーム。">
+<link rel="apple-touch-icon" href="img/icon.png">
 <title>マイスターの塔</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+1p:wght@400;700;800&family=Yuji+Syuku&text=%E5%8C%A0&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;font-size:14px}
+img{max-width:100%}
+</style>
 <style>
 /* Layout: 1カラムのゲームアプリ。タイトル絵に合わせた「鋼と金の工房」スキン：紺の金属パネル＋金の縁取り、青く光る主ボタン。意図的に1テーマ（暗）で固定 */
 :root{
@@ -350,7 +368,8 @@ h2{font-weight:400;letter-spacing:.02em;color:#fff;text-shadow:0 2px 0 rgba(0,0,
 details summary{color:#B9CBEE}
 hr{border-color:var(--line)!important}
 </style>
-
+</head>
+<body>
 <div class="bgfx" aria-hidden="true"></div>
 <div class="wrap">
   <header>
@@ -866,3 +885,5 @@ const TBGM={timer:null,step:0,next:0,out:null,
 fixParty();updCoins();setSnd();persist();
 nav(hasAny()?'tower':'gacha');
 </script>
+</body>
+</html>
