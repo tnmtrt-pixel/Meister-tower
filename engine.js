@@ -115,7 +115,18 @@ const HIDDEN={id:'takumi',name:'匠',img:'img/takumi.webp',crest:'匠',color:'#A
   {n:'精密加工',c:{t:'odd'},dmg:{b:3,m:1},t:2},
   {n:'検査',c:{t:'eq',n:1},fx:{dDown:1,weak:3},t:2},
   {n:'奥義・千本鍛え',c:{t:'pair'},dmg:{b:18},t:3}]};
-const ALL=[...CHARS,HIDDEN];
+/* 乱入キャラ：匠空（ガチャには出ない。乱入バトルで勝つと仲間になる） */
+const SORA={id:'sora',name:'匠空',img:'img/sora.webp',color:'#2C78C8',role:'乱入者・ドローン操縦士',raidChar:true,
+  passive:{k:'sky',n:'上空からの視点',d:'攻撃が相手のガードを2つ貫通する'},
+  lines:['空の上から見てたよ。きみの腕、試させて！','空からは全部お見通し！','まいった！ 仲間にしてよ！'],moves:[
+  {n:'ドローン偵察',c:{t:'any'},dmg:{b:1,m:1}},
+  {n:'空撮',c:{t:'even'},dmg:{b:2},fx:{pow:3}},
+  {n:'プロペラカッター',c:{t:'min',n:4},dmg:{b:7}},
+  {n:'ホバリング',c:{t:'odd'},fx:{guard:5}},
+  {n:'自動追尾',c:{t:'max',n:3},dmg:{b:1,m:2},t:2},
+  {n:'電波妨害',c:{t:'min',n:5},dmg:{b:6},fx:{dDown:1},t:2},
+  {n:'空爆ドローン',c:{t:'pair'},dmg:{b:20},fx:{guard:3},t:3}]};
+const ALL=[...CHARS,HIDDEN,SORA];
 ALL.forEach(c=>c.moves.forEach(m=>m.t=m.t||1));
 const byId=id=>ALL.find(c=>c.id===id);
 
@@ -134,6 +145,7 @@ const ZH={
   gorilla:{name:'伏特猩猩',role:'攻击型·电击力量',pn:'全力输出',pd:'用点数6发动的攻击伤害+3',lines:['全力上了，吼！','百万伏特的胜利！','电……没电了……']},
   robot:{name:'机甲罗博',role:'防守型·稳定作战',pn:'自我修复',pd:'自己的回合结束时恢复2点体力',lines:['战斗模式，启动','任务，完成','系统……关闭……']},
   rocker:{name:'十七',role:'一发逆转型·赌徒',pn:'摇滚',pd:'每回合骰子+1个，但回合开始时受到1点伤害',lines:['用我的吉他让你闭嘴','不需要安可','……今天只是琴弦断了']},
+  sora:{name:'匠空',role:'乱入者·无人机操作员',pn:'空中视角',pd:'攻击可穿透对方2点护盾',lines:['我在天上都看到了。让我试试你的本事！','从天上看得一清二楚！','服了！让我加入你们吧！']},
   takumi:{name:'匠',role:'隐藏角色·塔之主',pn:'大师之技',pd:'攻击伤害+1，获得的护盾+1',lines:['让我看看你夜里磨练、开创未来的力量吧！','磨练得还不够哦，再来挑战吧！','好厉害！你才是真正的大师！']},
  },
  moves:{
@@ -147,6 +159,7 @@ const ZH={
   '放電':'放电','胸たたき':'捶胸','コード書き換え':'改写代码','電撃パンチ':'电击拳','ハイボルテージ':'高电压','ジャングルボルト':'丛林伏特','100万ボルト':'百万伏特',
   'ロボパンチ':'机器人拳','センサー照準':'传感器瞄准','アーマーモード':'装甲模式','修理プログラム':'修复程序','ブースター':'推进器','ロケットパンチ':'火箭拳','フルバースト':'全弹发射',
   'ギターソロ':'吉他独奏','シャウト':'嘶吼','ギタースマッシュ':'吉他重击','アンコール':'安可','パワーコード':'强力和弦','スピーカー爆音':'音箱轰鸣','ジュウナナ':'十七',
+  'ドローン偵察':'无人机侦察','空撮':'航拍','プロペラカッター':'螺旋桨切割','ホバリング':'悬停','自動追尾':'自动追踪','電波妨害':'电波干扰','空爆ドローン':'空袭无人机',
   '匠の一打':'匠之一击','研ぎ澄ます':'磨砺','段取り八分':'准备八分','仕上げ':'收尾','精密加工':'精密加工','検査':'检验','奥義·千本鍛え':'奥义·千锤百炼'},
  floors:['见习之间','车床室','制图室','焊接工房','电气实习室','化学室','机械工厂','信息处理室','风暴屋顶','塔主之间','试作室','锻造场','控制室','研究所','精密测量室','发电站','设计局','风暴展望台','观星回廊','天空工房'],
  rules:{odd:'用奇数点数发动的攻击伤害+2',dice:'双方骰子+1个',even:'用偶数点数发动的攻击伤害+2',pair:'对子技能伤害+4',heal:'恢复量变为2倍',guardHalf:'获得的护盾减半',six:'用点数6发动的攻击伤害+3',storm:'回合开始时，当前行动方受到1点伤害',boss:'对方队伍攻击伤害+1'},
@@ -219,18 +232,20 @@ function autoPick(ch,star,jitter=0,R=Math.random,lvMap={}){
   return sel.map(x=>x.k).sort((a,b)=>a-b)}
 
 /* ---- バトル ---- */
-function mkFighter(id,star,mv,lvMap,hp,elv=0,bonus=0){const ch=byId(id);
-  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0,lv:elv,bonus}}
+function mkFighter(id,star,mv,lvMap,hp,elv=0,bonus=0,raid=false){const ch=byId(id);
+  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0,lv:elv,bonus,raid}}
 function enemiesFor(f,lap,R=Math.random,avoid=[]){const n=floorCount(f),st=f>TOP?3:floorStar(f),lv=enemyLv(f,lap),out=[],pool=CHARS.map(c=>c.id);
   for(let i=0;i<n;i++){
     if((f===TOP||f===TOP2)&&i===n-1){out.push({id:'takumi',star:3,hp:bossHP(f,lap),lv:f===TOP2?lv+1:0,bonus:f===TOP2?lvBonus(lv):0,boss:true});break}
     let id;let tries=0;do{id=pool[Math.floor(R()*pool.length)];tries++}while(tries<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));
     out.push({id,star:st,hp:floorHP(f,lap),lv,bonus:lvBonus(lv)})}
   return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
+/* 乱入バトルの敵：チート性能の匠空 */
+function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,raid:true,mv:[2,4,5,6]}}
 function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,mv,hp}]} */
   const S={floor:o.floor,lap:o.lap||1,rule:(FLOORS[o.floor-1]||{}).rule,turn:0,over:-1,ev:[],
     sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
-           {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0)),idx:0,dice:[],used:new Set(),first:false}]};
+           {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0,!!e.raid)),idx:0,dice:[],used:new Set(),first:false}]};
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
 const rk=S=>S.rule&&S.rule.k;
@@ -259,7 +274,7 @@ function startTurn(S,i,R=Math.random){if(S.over>=0)return take(S);
   if(pk==='gamble'&&f.hp>0){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`ロックンロール！ ${f.ch.name}は 1ダメージ`,`摇滚！ ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
   checkKO(S);if(S.over>=0)return take(S);
   const g=act(S,i),gk=g.ch.passive.k;
-  let n=DICE+g.dMod+(rk(S)==='dice'?1:0)+(gk==='gamble'?1:0)-(sd.first?1:0);n=Math.max(1,Math.min(MAXD,n));g.dMod=0;
+  let n=DICE+g.dMod+(rk(S)==='dice'?1:0)+(gk==='gamble'?1:0)+(g.raid?2:0)-(sd.first?1:0);n=Math.max(1,Math.min(MAXD,n));g.dMod=0;
   const firstNote=sd.first?L('（最初のターンは1個少ない）','（第一回合少1个）'):'';sd.first=false;
   sd.dice=Array.from({length:n},()=>({v:r6(R),used:false}));
   E(S,'roll',L(`サイコロ${n}個 → `,`骰子${n}个 → `)+`${sd.dice.map(d=>d.v).join(L('・','·'))}${firstNote}`,{side:i});
@@ -306,7 +321,8 @@ function useMove(S,i,mi,ks){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=f.move
   E(S,'cast',L(`${f.ch.name}の ${m.n}！（出目 `,`${f.ch.name} 使出 ${m.n}！（点数 `)+`${ks.map(k=>sd.dice[k].v).join(L('・','·'))}）`,{side:i,mi,vals:ks.map(k=>sd.dice[k].v)});
   const fx=m.fx||{};
   if(m.dmg){const r=calcDmg(S,i,m,v);let d=r.d;f.pow=0;f.weak=0;
-    if(o.guard&&d>0){const g=Math.min(o.guard,d);o.guard-=g;d-=g;r.notes.push(L(`ガード−${g}`,`护盾−${g}`))}
+    const pierce=f.raid?99:(f.ch.passive.k==='sky'?2:0);
+    if(o.guard&&d>0){const eff=Math.max(0,o.guard-pierce),g=Math.min(eff,d);if(g){o.guard-=g;d-=g;r.notes.push(L(`ガード−${g}`,`护盾−${g}`))}else r.notes.push(L('ガード貫通','穿透护盾'))}
     o.hp=Math.max(0,o.hp-d);E(S,'hit',L(`${o.ch.name}に ${d} のダメージ！`,`${o.ch.name} 受到 ${d} 点伤害！`)+(r.notes.length?'（'+r.notes.join('、')+'）':''),{side:1-i,amt:d,src:i})}
   if(fx.guard){const g=gain(S,f,fx.guard);E(S,'guard',L(`${f.ch.name}は ガード${g}を得た！`,`${f.ch.name} 获得护盾${g}！`),{side:i,amt:g})}
   if(fx.pow){const p=fx.pow+(f.ch.passive.k==='powBonus'?1:0);f.pow+=p;E(S,'buff',L(`${f.ch.name}の 次の攻撃が +${p}！`,`${f.ch.name} 的下次攻击 +${p}！`),{side:i})}
@@ -337,7 +353,7 @@ function simulate(o,R=Math.random){const S=newBattle(o);let i=0,guard=0;
   while(S.over<0&&guard++<200){startTurn(S,i,R);let c;while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R)))useMove(S,i,c.mi,c.ks);endTurn(S,i);take(S);i=1-i}
   return S.over}
 
-const API={L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+const API={raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

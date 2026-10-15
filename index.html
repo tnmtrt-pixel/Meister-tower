@@ -207,6 +207,14 @@ details p{margin:6px 0 0}
 .lines{font-size:13px;margin:0;padding-left:1.2em}
 
 /* 結果 */
+.raid-ov{background:rgba(40,0,8,.78);animation:redpulse 1s ease-in-out 3}
+@keyframes redpulse{50%{background:rgba(120,0,20,.85)}}
+.raid-card{border-color:#FF5D6C!important;box-shadow:0 0 0 1px #3B0008,0 0 40px rgba(255,93,108,.5)!important}
+.raid-card .warn{font-family:var(--f-display);font-size:40px;letter-spacing:.12em;color:#FF5D6C;text-shadow:0 0 14px rgba(255,93,108,.8);animation:blinkw .5s steps(2) 6}
+@keyframes blinkw{50%{opacity:.2}}
+.raid-card .crest{width:150px;border-width:4px;animation:pop .6s}
+.bubble-in{background:#F5F8FF;color:#0E1A3A;border:2px solid var(--gold,#D9AE45);border-radius:10px;padding:6px 10px;font-weight:700;font-size:14px}
+@media (prefers-reduced-motion:reduce){.raid-ov,.raid-card .warn,.raid-card .crest{animation:none}}
 .overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(10,14,26,.72);padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .ov-card{background:var(--panel);border:3px solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--accent);padding:20px 18px;width:min(360px,100%);display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;position:relative;overflow:hidden}
 .ov-card>*:not(.rays){position:relative;z-index:1}
@@ -503,7 +511,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
   if(!v.v3&&(s.lap>1||(+v.clears||0)>0)){s.floor=Math.max(s.floor,TOP+1);s.best=Math.max(s.best,s.floor);s.lap=1}/* 旧版で10Fを制覇済みなら上層へ */
   s.v3=true;s.clears=Math.max(0,Math.floor(+v.clears||0));
-  s.dexReward=!!v.dexReward;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
+  s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
   for(const k in o)if(byId(k))s.owned[k]=Math.min(3,Math.max(1,Math.floor(+o[k]||1)));
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
@@ -669,9 +677,10 @@ function renderDex(){const got=CHARS.filter(c=>owns(c.id)).length;
   $('#dex').innerHTML=ALL.map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.hidden?'？':'')}</span><span class="nm">${o?c.name:L('？？？','？？？')}</span></button>`}).join('');
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
-  if(!o){el.innerHTML=`<p class="hint">${c.hidden?L('隠しキャラ。10Fの塔の主をたおすか、図鑑をコンプリートすると…？','隐藏角色。打倒10F的塔之主，或集齐图鉴的话……？'):L('まだ出会っていないキャラ。ガチャで仲間にしよう。','尚未遇见的角色。用扭蛋让它成为伙伴吧。')}</p>`;return}
+  if(!o){el.innerHTML=`<p class="hint">${c.raidChar?L('突然乱入してくる謎のキャラ。倒すと仲間になる…？','会突然乱入的神秘角色。打倒它就会成为伙伴……？'):c.hidden?L('隠しキャラ。10Fの塔の主をたおすか、図鑑をコンプリートすると…？','隐藏角色。打倒10F的塔之主，或集齐图鉴的话……？'):L('まだ出会っていないキャラ。ガチャで仲間にしよう。','尚未遇见的角色。用扭蛋让它成为伙伴吧。')}</p>`;return}
   el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br><small>${c.role}</small></div></div>
   <div class="passive"><b>${L('能力','特性')}「${c.passive.n}」</b><br>${c.passive.d}</div>
+  ${c.raidChar?`<p class="hint">${L('乱入バトルで勝つと手に入る限定キャラ。ガチャには出ません。','在乱入对战中获胜才能获得的限定角色，不会出现在扭蛋中。')}</p>`:''}
   ${c.hidden?`<p class="hint">${L('★アップの条件：10Fの塔の主を初めてたおす／20Fの真・塔の主をたおす（周回ごと）／図鑑コンプリート。どれも★が1つ上がります。','★提升条件：首次打倒10F的塔之主／打倒20F的真·塔之主（每轮）／集齐图鉴。每达成一项★提升1。')}</p>`:''}
   <div><div class="label">${L('セリフ','台词')}</div><ul class="lines"><li>${L('登場','登场')}：「${c.lines[0]}」</li><li>${L('勝利','胜利')}：「${c.lines[1]}」</li><li>${L('敗北','失败')}：「${c.lines[2]}」</li></ul></div>
   <div class="label">${L('覚える技','可学技能')}</div><div class="moves">${c.moves.map((m,k)=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
@@ -687,19 +696,21 @@ $('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsW
 
 /* ================= バトル ================= */
 let B=null;
-function beginBattle(){fixParty();if(!save.party.length)return;
-  TUT.on=!save.tutDone;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
+function beginBattle(raid=false){fixParty();if(!save.party.length)return;
+  TUT.on=!save.tutDone&&!raid;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
   const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}));persist();
-  const BF=(tsel!=null&&canPlay(tsel))?tsel:save.floor,RP=isReplay(BF);
-  const enemies=G.enemiesFor(BF,save.lap,Math.random,save.party);
-  B={floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
-  const fl=FLOORS[BF-1];
+  const BF=raid?save.floor:((tsel!=null&&canPlay(tsel))?tsel:save.floor),RP=raid?false:isReplay(BF);
+  const enemies=raid?[G.raidEnemy()]:G.enemiesFor(BF,save.lap,Math.random,save.party);
+  B={raid,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  if(raid)B.S.rule=null;
+  const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:FLOORS[BF-1];
   ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
-  $('#floor-tag').textContent=`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
+  $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
   (async()=>{const e=G.act(B.S,1);
-    await say(`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}`+L(`。相手は${B.S.sides[1].team.length}人！`,`。对手共${B.S.sides[1].team.length}人！`));
+    if(raid)await say(L('乱入モード：サイコロ+2・攻撃+2・ガード完全無視！','乱入模式：骰子+2·攻击+2·完全无视护盾！'),900);
+    else await say(`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}`+L(`。相手は${B.S.sides[1].team.length}人！`,`。对手共${B.S.sides[1].team.length}人！`));
     bubble(1,e.ch.lines[0]);await say(L(`${e.ch.name}（★${e.star}）が 現れた！`,`${e.ch.name}（★${e.star}）出现了！`),900);
     if(TUT.on)await coach(L('バトルの見かた','对战画面'),L('ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','欢迎来到第一场对战！<em>上方是对手</em>，<em>下方是你</em>的角色。绿色条是体力，降到0就会倒下。打倒对方全员就获胜！'),'#f1, #f0');
     runTurn(0)})()}
@@ -718,6 +729,7 @@ function updF(i){const v=B.view[i],t=v.team[v.idx],el=$('#f'+i),f=B.S.sides[i].t
   el.querySelectorAll('.pips i').forEach((p,k)=>p.classList.toggle('dead',v.team[k].hp<=0));
   const c=[`<span class="chip pas">${f.ch.passive.n}</span>`];
   if(t.guard)c.push(`<span class="chip guard">${L('ガード','护盾')} ${t.guard}</span>`);if(t.pow)c.push(`<span class="chip up">${L('次の攻撃','下次攻击')} +${t.pow}</span>`);
+  if(f.raid)c.push(`<span class="chip down">${L('乱入モード','乱入模式')}</span>`);
   if(t.weak)c.push(`<span class="chip down">${L('次の攻撃','下次攻击')} −${t.weak}</span>`);if(t.dMod)c.push(`<span class="chip ${t.dMod>0?'up':'down'}">${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}</span>`);
   el.querySelector('.chips').innerHTML=c.join('');el.querySelector('.chip.pas').onclick=()=>infoSheet(i)}
 async function say(t,ms=650){if(!t)return;const p=document.createElement('p');p.textContent=t;const l=$('#log');l.append(p);l.scrollTop=l.scrollHeight;await W(ms)}
@@ -822,8 +834,9 @@ async function tutTurn(){
     tutFinish()}}
 
 /* ================= 決着 ================= */
-async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
+async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=true}document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
   const win=B.S.over===0,f=B.floor,RP=B.replay,me=G.act(B.S,0),foe=G.act(B.S,1);
+  if(B.raid)return finishRaid(win,me,foe);
   const coins=RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
   let opened=false,master=false;
   if(win&&!RP){
@@ -834,6 +847,7 @@ async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySel
     else if(f===TOP2){master=true;save.clears+=1;save.lap+=1;save.floor=TOP+1}
     else save.floor=f+1;
     save.best=Math.max(save.best||1,save.floor,f)}
+  if(win&&save.tutDone&&!TUT.justEnded)RAID.pending=!save.soraSeen||Math.random()<RAID.rate;TUT.justEnded=false;
   if(!RP)tsel=null;persist();updCoins();
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}
   else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');bubble(1,foe.ch.lines[1])}
@@ -841,6 +855,30 @@ async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySel
   showOverlay({word:master?'MEISTER!':clear?'CLEAR!':win?'WINNER':'LOSE…',ch:win?me.ch:foe.ch,win,coins,
     sub:master?L('真・塔の主をたおした！<br>マイスターの称号を手に入れた','打倒了真·塔之主！<br>获得了「大师」称号'):opened?L('塔の主をたおした！<br>上層（11〜20F）への道が開いた','打倒了塔之主！<br>通往上层（11〜20F）的道路开启了'):win?L(`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`,`${me.ch.name}获胜！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑战通关':'通关'}`):L(`${foe.ch.name}に敗れた…`,`败给了${foe.ch.name}……`),
     hint:RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${save.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${save.floor}F`)):(unlock?unlock+'　':'')+(master?L(`上層は${save.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${save.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${save.floor}F ${FLOORS[save.floor-1].n}`,`下一层：${save.floor}F ${FLOORS[save.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`))})}
+/* ================= 乱入：匠空 ================= */
+const RAID={pending:false,rate:.08};
+function alarm(){for(let i=0;i<6;i++)tone(i%2?660:880,.16,'square',.07,0,i*.18)}
+function showRaid(dest){save.soraSeen=true;persist();const c=G.byId('sora');
+  const ov=document.createElement('div');ov.className='overlay raid-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+  ov.innerHTML=`<div class="ov-card raid-card"><div class="warn">WARNING</div>
+    <div class="sub">${L('乱入者が現れた！','乱入者出现了！')}</div>${crest(c)}
+    <div class="bubble-in">「${c.lines[0]}」</div>
+    <p class="hint">${L('ドローン操縦士・匠空。サイコロ+2・攻撃+2・ガード完全無視のチート性能！ 勝てば★3で仲間になり、コイン30枚。逃げても何も失いません。','无人机操作员·匠空。骰子+2·攻击+2·完全无视护盾的作弊级性能！获胜后以★3加入队伍，并获得30金币。逃跑也不会有任何损失。')}</p>
+    <div class="sub">${L('挑戦しますか？','要挑战吗？')}</div>
+    <div class="row" style="justify-content:center"><button class="btn primary" id="raid-go">${L('挑戦する','挑战')}</button><button class="btn" id="raid-no">${L('逃げる','逃跑')}</button></div></div>`;
+  document.body.append(ov);alarm();
+  $('#raid-go').onclick=()=>{ov.remove();sfx('tap');beginBattle(true)};
+  $('#raid-no').onclick=()=>{ov.remove();sfx('tap');nav(dest||'tower');toast(L('匠空は空へ飛び去っていった…またどこかで現れるかも','匠空飞向了天空……也许会在某处再次出现'))};
+  $('#raid-go').focus()}
+async function finishRaid(win,me,foe){const coins=win?30:0;save.coins+=coins;let msg='';
+  if(win){const res=grant('sora',3);msg=res==='new'?L('匠空が★3で仲間になった！','匠空以★3加入了队伍！'):L('匠空のかけらを手に入れた','获得了匠空的碎片')}
+  persist();updCoins();
+  if(win){await say(`${foe.ch.name}「${foe.ch.lines[2]}」`,400);sfx('win');bubble(1,foe.ch.lines[2])}
+  else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');bubble(1,foe.ch.lines[1])}
+  await W(900);
+  showOverlay({word:win?'VICTORY!!':'LOSE…',ch:foe.ch,win,coins,
+    sub:win?L('乱入者・匠空をたおした！','打倒了乱入者·匠空！'):L('匠空の圧倒的な力に敗れた…','败给了匠空压倒性的力量……'),
+    hint:win?msg+L('　編成でパーティに入れられます','　可以在编队中加入队伍'):L('負けても失うものはありません。強くなって次の乱入を待とう','失败也不会失去任何东西。变强后等待下次乱入吧')})}
 function showOverlay(o){const ov=document.createElement('div');ov.className='overlay';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
   ov.innerHTML=`<div class="ov-card ${o.win?'win':'lose'}">${o.win?'<div class="rays"></div>':''}
     <div class="big-word">${o.word}</div>${crest(o.ch)}<div class="sub">${o.sub}</div>
@@ -849,7 +887,7 @@ function showOverlay(o){const ov=document.createElement('div');ov.className='ove
     <div class="row" style="justify-content:center"><button class="btn primary" data-go="tower">${L('タワーへ','前往塔')}</button><button class="btn" data-go="gacha">${L('ガチャへ','前往扭蛋')}</button><button class="btn" data-go="party">${L('編成へ','前往编队')}</button></div></div>`;
   document.body.append(ov);const cc=ov.querySelector('.cc');let n=0;
   const tick=o.coins<=0?null:setInterval(()=>{n++;cc.textContent=n;tone(1200+n*25,.04,'square',.04);if(n>=o.coins)clearInterval(tick)},RM?1:Math.max(40,700/o.coins));
-  ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}nav(b.dataset.go)});
+  ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}if(RAID.pending){RAID.pending=false;showRaid(b.dataset.go)}else nav(b.dataset.go)});
   ov.querySelector('[data-go]').focus()}
 
 /* ================= タイトル画面 ================= */
