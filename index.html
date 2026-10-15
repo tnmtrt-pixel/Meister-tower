@@ -457,6 +457,11 @@ hr{border-color:var(--line)!important}
     </div>
     <div class="panel" id="dex-detail"><p class="hint" data-zh="点击角色可以查看特性和台词。">キャラをタップすると、能力やセリフが見られます。</p></div>
     <div class="panel">
+      <h2 data-zh="礼物代码">プレゼントコード</h2>
+      <p class="hint" data-zh="输入代码即可获得礼物。每个代码在同一设备上只能使用一次。">コードを入れるとプレゼントがもらえます。同じ端末で使えるのは1回だけです。</p>
+      <div class="row"><input id="gift-code" class="code-out" style="height:auto;flex:1;min-width:0;font:700 18px var(--f-body);letter-spacing:.12em;text-transform:uppercase" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="プレゼントコード" data-zh-aria="礼物代码" placeholder="CODE"><button class="btn" id="gift-go" data-zh="领取">受け取る</button></div>
+    </div>
+    <div class="panel">
       <h2 data-zh="转移存档">セーブデータの引っ越し</h2>
       <p class="hint" data-zh="可以把进度转移到其他设备。导出代码后，在目标设备上读取即可。">別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込んでください。</p>
       <div class="row"><button class="btn small" id="exp" data-zh="导出代码">コードを書き出す</button><button class="btn small" id="copy" hidden data-zh="复制">コピー</button></div>
@@ -504,7 +509,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.5.0';
+const VERSION='1.6.0';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -524,7 +529,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
   if(!v.v3&&(s.lap>1||(+v.clears||0)>0)){s.floor=Math.max(s.floor,TOP+1);s.best=Math.max(s.best,s.floor);s.lap=1}/* 旧版で10Fを制覇済みなら上層へ */
   s.v3=true;s.clears=Math.max(0,Math.floor(+v.clears||0));
-  s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
+  s.gifts=Array.isArray(v.gifts)?v.gifts.filter(x=>typeof x==='string'&&/^[0-9a-f]{64}$/.test(x)).slice(0,50):[];s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
   for(const k in o)if(byId(k))s.owned[k]=Math.min(3,Math.max(1,Math.floor(+o[k]||1)));
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
@@ -707,6 +712,24 @@ $('#copy').onclick=async()=>{const t=$('#code');try{await navigator.clipboard.wr
 $('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsWith('OKS2.')){toast(L('「OKS2.」で始まるコードを貼り付けてください','请粘贴以「OKS2.」开头的代码'));return}
   try{const s=atob(c.slice(5));save=sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))));persist();updCoins();setSnd();toast(L('セーブデータを読み込みました','已读取存档'));nav(hasAny()?'tower':'gacha')}
   catch(e){toast(L('コードが途中で切れているようです。全部コピーできているか確認してください','代码似乎不完整，请确认是否已全部复制'))}};
+
+/* ================= プレゼントコード ================= */
+/* コードそのものは書かず、ハッシュだけを置く（make_gift.py で作る） */
+const GIFTS=[{h:'76cd5b4208f0afb03592f2b4d66409dcaf2944d3767469d7e7ab4d49c58fe76b',coins:100}];
+const GKEY='okc-gifts';/* セーブを消しても残る＝同じ端末で1回だけ */
+function giftUsed(){let a=[];try{a=JSON.parse(localStorage.getItem(GKEY)||'[]')}catch(e){}return Array.isArray(a)?a:[]}
+async function giftHash(c){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('meister-tower:'+c));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+let giftBusy=false;
+$('#gift-go').onclick=async()=>{if(giftBusy)return;const inp=$('#gift-code');
+  const c=inp.value.normalize('NFKC').trim().toUpperCase().replace(/[\s\-]/g,'');if(!c){toast(L('コードを入力してください','请输入代码'));return}
+  giftBusy=true;try{const h=await giftHash(c),g=GIFTS.find(x=>x.h===h);
+    if(!g){sfx('tap');toast(L('コードがちがうようです','代码不正确'));return}
+    const used=giftUsed(),list=save.gifts||[];if(used.includes(h)||list.includes(h)){toast(L('このコードはもう使っています','此代码已经使用过了'));return}
+    used.push(h);try{localStorage.setItem(GKEY,JSON.stringify(used))}catch(e){}
+    $('#toast').hidden=true;save.gifts=[...list,h];save.coins+=g.coins;persist();updCoins();inp.value='';
+    showOverlay({word:'PRESENT!',ch:HIDDEN,sub:L(`プレゼントコードを受け取った！`,`领取了礼物代码！`),coins:g.coins,win:true})}
+  catch(e){toast(L('この画面では使えません。ゲームのページで開いてください','此画面无法使用，请在游戏页面打开'))}
+  finally{giftBusy=false}};
 
 /* ================= バトル ================= */
 let B=null;
