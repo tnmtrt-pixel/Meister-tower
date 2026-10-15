@@ -1,0 +1,11 @@
+{
+  // マイスターの塔 通信対戦サーバー
+  // Cloudflare で Worker を作るときの名前は、下の name と同じ「meister-tower-online」にしてください
+  "name": "meister-tower-online",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "durable_objects": {
+    "bindings": [{ "name": "ROOM", "class_name": "Room" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "meister-tower-online",
+  "private": true,
+  "version": "1.0.0",
+  "description": "マイスターの塔 通信対戦サーバー（Cloudflare Workers）",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.0"
+  }
+}
