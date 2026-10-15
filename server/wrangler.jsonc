@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "compatibility_date": "2025-09-01",
   "durable_objects": {
-    "bindings": [{ "name": "ROOM", "class_name": "Room" }]
+    "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "RANK", "class_name": "Rank" }]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }]
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["Rank"] }]
 }

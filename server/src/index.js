@@ -9,6 +9,12 @@
  */
 
 const ROOM_RE = /^[A-Z0-9]{4,8}$/;
+const CORS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-headers': 'content-type',
+  'access-control-max-age': '86400',
+};
 
 export default {
   async fetch(request, env) {
@@ -21,6 +27,11 @@ export default {
       const room = (url.searchParams.get('room') || '').toUpperCase();
       if (!ROOM_RE.test(room)) return new Response('合言葉が正しくありません', { status: 400 });
       const stub = env.ROOM.get(env.ROOM.idFromName(room));
+      return stub.fetch(request);
+    }
+    if (url.pathname.startsWith('/api/')) {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+      const stub = env.RANK.get(env.RANK.idFromName('global'));
       return stub.fetch(request);
     }
     return new Response('not found', { status: 404 });
@@ -111,5 +122,132 @@ export class Room {
     const op = this.players[0];
     if (op) this.send(op, { t: 'left' });
     if (this.players.length === 0) this.started = false;
+  }
+}
+
+/*
+ * ランキング（Durable Object 1つ・SQLite）
+ *  ニックネームは「単語番号3つ」で保存する。文字は保存しないので、悪い言葉は作れない。
+ *  表示はゲーム側が単語リストから組み立てる（言語切替にも対応）。
+ *
+ *  POST /api/profile {id, sec, w:[a,b,c], icon, title, on}
+ *  POST /api/score   {id, sec, floor, wins, pvp, dex}
+ *  GET  /api/rank?type=floor|week|pvp|dex&id=
+ *  POST /api/admin   {key, id, hide}   ※ Cloudflareの環境変数 ADMIN_KEY を設定したときだけ使える
+ */
+const ID_RE = /^[0-9a-f]{16,32}$/;
+const SEC_RE = /^[0-9a-f]{32}$/;
+const TYPES = { floor: 'floor', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json; charset=utf-8' } });
+const int = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.floor(+v || 0)));
+async function sha(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+/* 日本時間・月曜はじまりの週番号（朝5時切り替え） */
+export function weekNo(now = Date.now()) {
+  const day = Math.floor((now + (9 - 5) * 3600e3) / 86400e3);
+  return Math.floor((day + 3) / 7);
+}
+
+export class Rank {
+  constructor(state, env) {
+    this.env = env;
+    this.sql = state.storage.sql;
+    this.sql.exec(`CREATE TABLE IF NOT EXISTS u (
+      id TEXT PRIMARY KEY, sec TEXT NOT NULL, w TEXT NOT NULL DEFAULT '[]', icon TEXT NOT NULL DEFAULT '', title INTEGER NOT NULL DEFAULT 0,
+      ison INTEGER NOT NULL DEFAULT 1, hidden INTEGER NOT NULL DEFAULT 0,
+      floor INTEGER NOT NULL DEFAULT 0, pvp INTEGER NOT NULL DEFAULT 0, dex INTEGER NOT NULL DEFAULT 0,
+      wins INTEGER NOT NULL DEFAULT 0, wk INTEGER NOT NULL DEFAULT 0, wkv INTEGER NOT NULL DEFAULT 0,
+      upd INTEGER NOT NULL DEFAULT 0, last INTEGER NOT NULL DEFAULT 0)`);
+  }
+
+  row(id) {
+    const r = this.sql.exec('SELECT * FROM u WHERE id = ?', id).toArray();
+    return r[0] || null;
+  }
+
+  async auth(b) {
+    if (!ID_RE.test(b.id || '') || !SEC_RE.test(b.sec || '')) return { err: 'bad id' };
+    const h = await sha('mt:' + b.sec), r = this.row(b.id);
+    if (r && r.sec !== h) return { err: 'auth' };
+    return { r, h };
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    try {
+      if (request.method === 'GET' && url.pathname === '/api/rank') return this.rank(url);
+      if (request.method !== 'POST') return json({ err: 'method' }, 405);
+      const b = await request.json().catch(() => ({}));
+      if (url.pathname === '/api/profile') return this.profile(b);
+      if (url.pathname === '/api/score') return this.score(b);
+      if (url.pathname === '/api/admin') return this.admin(b);
+      return json({ err: 'not found' }, 404);
+    } catch (e) {
+      return json({ err: 'server' }, 500);
+    }
+  }
+
+  async profile(b) {
+    const a = await this.auth(b);
+    if (a.err) return json({ err: a.err }, 403);
+    const w = (Array.isArray(b.w) ? b.w : []).slice(0, 3).map((n) => int(n, 0, 999));
+    if (w.length !== 3) return json({ err: 'name' }, 400);
+    const icon = String(b.icon || '').replace(/[^a-z0-9]/g, '').slice(0, 16);
+    const title = int(b.title, 0, 99), on = b.on === false ? 0 : 1, now = Date.now();
+    if (a.r) this.sql.exec('UPDATE u SET w=?, icon=?, title=?, ison=?, upd=? WHERE id=?', JSON.stringify(w), icon, title, on, now, b.id);
+    else this.sql.exec('INSERT INTO u (id, sec, w, icon, title, ison, upd, wk) VALUES (?,?,?,?,?,?,?,?)', b.id, a.h, JSON.stringify(w), icon, title, on, now, weekNo(now));
+    return json({ ok: true });
+  }
+
+  async score(b) {
+    const a = await this.auth(b);
+    if (a.err) return json({ err: a.err }, 403);
+    if (!a.r) return json({ err: 'no profile' }, 404);
+    const r = a.r, now = Date.now();
+    if (now - r.last < 1500) return json({ ok: true, skip: true });
+    /* ありえない数字は切り捨てる */
+    const floor = Math.min(Math.max(r.floor, int(b.floor, 0, 100000)), r.floor + 25);
+    const dex = Math.min(Math.max(r.dex, int(b.dex, 0, 99)), r.dex + 5);
+    const pvp = Math.min(Math.max(r.pvp, int(b.pvp, 0, 100000)), r.pvp + 50);
+    const wins = int(b.wins, 0, 1000000);
+    const gain = r.last ? Math.min(Math.max(0, wins - r.wins), 300) : 0; /* 初回送信は今週分に数えない */
+    const wk = weekNo(now), wkv = (r.wk === wk ? r.wkv : 0) + gain;
+    this.sql.exec('UPDATE u SET floor=?, dex=?, pvp=?, wins=?, wk=?, wkv=?, last=? WHERE id=?', floor, dex, pvp, wins, wk, wkv, now, b.id);
+    return json({ ok: true });
+  }
+
+  rank(url) {
+    const type = TYPES[url.searchParams.get('type')] ? url.searchParams.get('type') : 'floor';
+    const col = TYPES[type], wk = weekNo();
+    const where = `ison=1 AND hidden=0 AND ${col} > 0` + (type === 'week' ? ` AND wk=${wk}` : '');
+    const top = this.sql.exec(`SELECT id, w, icon, title, ${col} AS v FROM u WHERE ${where} ORDER BY ${col} DESC, last ASC LIMIT 50`).toArray()
+      .map((r, i) => ({ n: i + 1, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, v: r.v }));
+    let me = null;
+    const id = url.searchParams.get('id') || '';
+    if (ID_RE.test(id)) {
+      const r = this.row(id);
+      if (r) {
+        const v = type === 'week' && r.wk !== wk ? 0 : r[col];
+        const ok = r.ison && !r.hidden && v > 0;
+        const n = ok ? this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND last < ?))`, v, v, r.last).toArray()[0].c + 1 : 0;
+        me = { n, v, hidden: !!r.hidden };
+      }
+    }
+    const total = this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where}`).toArray()[0].c;
+    return json({ type, top, me, total, wk });
+  }
+
+  async admin(b) {
+    const key = this.env && this.env.ADMIN_KEY;
+    if (!key || b.key !== key) return json({ err: 'auth' }, 403);
+    if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });
+    if (!ID_RE.test(b.id || '') && !/^[0-9a-f]{4}$/.test(b.id || '')) return json({ err: 'id' }, 400);
+    const hide = b.hide === false ? 0 : 1;
+    const n = b.id.length === 4
+      ? this.sql.exec('UPDATE u SET hidden=? WHERE substr(id, -4) = ?', hide, b.id).rowsWritten
+      : this.sql.exec('UPDATE u SET hidden=? WHERE id=?', hide, b.id).rowsWritten;
+    return json({ ok: true, n });
   }
 }
