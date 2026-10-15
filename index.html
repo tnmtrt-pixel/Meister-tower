@@ -127,6 +127,9 @@ button{font-family:var(--f-body)}
 .party-strip .crest{width:56px;box-shadow:2px 2px 0 var(--ink);border-width:2px}
 details summary{cursor:pointer}
 details p{margin:6px 0 0}
+.fl.can{cursor:pointer}
+.fl.sel{outline:2px solid var(--blue-hi,#8FD3FF);outline-offset:1px;box-shadow:0 0 12px rgba(143,211,255,.6)}
+.fl .rp{font-size:10px;opacity:.85}
 .startbar{position:sticky;bottom:0;justify-content:flex-end;background:var(--paper);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);z-index:5}
 
 /* バトル */
@@ -563,15 +566,26 @@ function nav(v){if(B&&!B.done){toast('バトル中です。決着がついてか
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
 /* ================= タワー ================= */
-function renderTower(){fixParty();const f=save.floor,fl=FLOORS[f-1];
-  $('#tower').innerHTML=`<div class="roof">▲ 頂上</div>`+Array.from({length:TOP},(_,j)=>TOP-j).map(n=>`<div class="fl${n<f?' done':n===f?' now':''}${n===TOP?' boss':''}"><span>${n}F ${FLOORS[n-1].n}</span>${n<f?'<span>✓</span>':''}</div>`).join('');
+/* 再挑戦：クリア済みの階を選べる。報酬は初回より少なめ */
+let tsel=null;
+const canPlay=n=>n<=save.floor||save.clears>0;
+const isReplay=n=>n!==save.floor;
+const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
+function renderTower(){fixParty();if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
+  $('#tower').innerHTML=`<div class="roof">▲ 頂上</div>`+Array.from({length:TOP},(_,j)=>TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n<save.floor||(save.clears>0&&n>save.floor)?' done':n===save.floor?' now':''}${n===TOP?' boss':''}${ok?' can':''}${n===f?' sel':''}`;
+    const lab=`<span>${n}F ${FLOORS[n-1].n}</span>${n===save.floor?'<span class="rp">挑戦中</span>':ok?'<span class="rp">✓</span>':''}`;
+    return ok?`<button type="button" class="${cls}" data-fl="${n}" aria-pressed="${n===f}" style="text-align:left;width:100%">${lab}</button>`:`<div class="${cls}">${lab}</div>`}).join('');
+  document.querySelectorAll('#tower [data-fl]').forEach(b=>b.onclick=()=>{sfx('tap');tsel=+b.dataset.fl;renderTower()});
   $('#lap-label').textContent=`マイスターの塔${save.lap>1?'・'+save.lap+'周目':''}${save.clears?'　制覇 '+save.clears+'回':''}`;
-  $('#floor-title').textContent=`${f}F ${fl.n}`;
+  $('#floor-title').textContent=`${f}F ${fl.n}${rp?'（再挑戦）':''}`;
   $('#floor-rule').textContent=fl.rule?'特別ルール：'+fl.rule.d:'特別ルールなし';
   const n=G.floorCount(f),st=Math.min(3,G.floorStar(f)+(save.lap>2?1:0));
-  $('#floor-info').textContent=f===TOP?`相手：ランダム${n-1}人（★${st}）＋ 塔の主　勝利で ${G.floorCoins(f)} コイン`:`相手：ランダム${n}人（★${st}）　勝利で ${G.floorCoins(f)} コイン`;
+  const enemyTxt=f===TOP?`相手：ランダム${n-1}人（★${st}）＋ 塔の主`:`相手：ランダム${n}人（★${st}）`;
+  $('#floor-info').innerHTML=rp?`${enemyTxt}<br>再挑戦の報酬：勝利で <b style="color:var(--gold-hi)">${replayCoins(f)}</b> コイン（初回クリアは${G.floorCoins(f)}）。負けたときのコインはなし。塔の進み具合は変わりません。<br><button type="button" class="btn small" id="back-now" style="margin-top:6px">挑戦中の${save.floor}Fに戻る</button>`
+    :`${enemyTxt}　勝利で ${G.floorCoins(f)} コイン${save.floor>1||save.clears?'<br><span style="font-size:12px">クリアした階をタップすると再挑戦できます</span>':''}`;
+  const bn=$('#back-now');if(bn)bn.onclick=()=>{tsel=save.floor;renderTower()};
   $('#party-strip').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||'<span class="hint">パーティが空です</span>';
-  $('#start').textContent=f===TOP?'塔の主に挑む':`${f}F に挑戦`;$('#start').disabled=!save.party.length;
+  $('#start').textContent=rp?`${f}F に再挑戦`:f===TOP?'塔の主に挑む':`${f}F に挑戦`;$('#start').disabled=!save.party.length;
   $('#start-hint').textContent=save.party.length<3&&Object.keys(save.owned).length>save.party.length?'パーティに空きがあります':''}
 $('#go-party').onclick=()=>nav('party');
 $('#tut-again').onclick=()=>{save.tutDone=false;persist();toast('次のバトルでチュートリアルが始まります')};
@@ -657,14 +671,15 @@ function beginBattle(){fixParty();if(!save.party.length)return;
   TUT.on=!save.tutDone;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`);return}
   const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}));persist();
-  const enemies=G.enemiesFor(save.floor,save.lap,Math.random,save.party);
-  B={S:G.newBattle({floor:save.floor,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
-  const fl=FLOORS[save.floor-1];
+  const BF=(tsel!=null&&canPlay(tsel))?tsel:save.floor,RP=isReplay(BF);
+  const enemies=G.enemiesFor(BF,save.lap,Math.random,save.party);
+  B={floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  const fl=FLOORS[BF-1];
   ['tower','party','gacha','dex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
-  $('#floor-tag').textContent=`${save.floor}F ${fl.n}${fl.rule?'｜'+fl.rule.d:''}`;
+  $('#floor-tag').textContent=`${BF}F ${fl.n}${RP?'（再挑戦）':''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
   (async()=>{const e=G.act(B.S,1);
-    await say(`${save.floor}F ${fl.n}。相手は${B.S.sides[1].team.length}人！`);
+    await say(`${BF}F ${fl.n}${RP?'（再挑戦）':''}。相手は${B.S.sides[1].team.length}人！`);
     bubble(1,e.ch.lines[0]);await say(`${e.ch.name}（★${e.star}）が 現れた！`,900);
     if(TUT.on)await coach('バトルの見かた','ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','#f1, #f0');
     runTurn(0)})()}
@@ -788,19 +803,19 @@ async function tutTurn(){
 
 /* ================= 決着 ================= */
 async function finish(){if(B.done)return;if(TUT.on)tutFinish();document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
-  const win=B.S.over===0,f=save.floor,me=G.act(B.S,0),foe=G.act(B.S,1);
-  const coins=win?G.floorCoins(f):1;save.coins+=coins;let clear=false,unlock='';
-  if(win){if(f===TOP){clear=true;save.clears+=1;save.floor=1;save.lap+=1;
+  const win=B.S.over===0,f=B.floor,RP=B.replay,me=G.act(B.S,0),foe=G.act(B.S,1);
+  const coins=RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
+  if(win&&!RP){if(f===TOP){clear=true;save.clears+=1;save.floor=1;save.lap+=1;
       const res=grant('takumi',owns('takumi')?Math.min(3,starOf('takumi')+1):1);if(res!=='dup')save.shards.takumi=(save.shards.takumi||0)+1;
       unlock=res==='new'?'塔の主「匠」が仲間になった！':res==='up'?`「匠」が★${starOf('takumi')}になった！`:'「匠」のかけらを手に入れた'}
     else save.floor=f+1}
-  persist();updCoins();
+  if(!RP)tsel=null;persist();updCoins();
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}
   else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');bubble(1,foe.ch.lines[1])}
   await W(900);
   showOverlay({word:clear?'CLEAR!':win?'WINNER':'LOSE…',ch:win?me.ch:foe.ch,win,coins,
-    sub:clear?'塔の主をたおした！<br>マイスターの称号を手に入れた':win?`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} クリア`:`${foe.ch.name}に敗れた…`,
-    hint:(unlock?unlock+'　':'')+(clear?`次は${save.lap}周目。相手がさらに強くなります`:win?`次は ${save.floor}F ${FLOORS[save.floor-1].n}`:`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`)})}
+    sub:clear?'塔の主をたおした！<br>マイスターの称号を手に入れた':win?`${me.ch.name}の勝利！<br>${f}F ${FLOORS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`:`${foe.ch.name}に敗れた…`,
+    hint:RP?(win?`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${save.floor}F`:`再挑戦で負けてもコインはもらえません。挑戦中の階は ${save.floor}F`):(unlock?unlock+'　':'')+(clear?`次は${save.lap}周目。相手がさらに強くなります`:win?`次は ${save.floor}F ${FLOORS[save.floor-1].n}`:`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`)})}
 function showOverlay(o){const ov=document.createElement('div');ov.className='overlay';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
   ov.innerHTML=`<div class="ov-card ${o.win?'win':'lose'}">${o.win?'<div class="rays"></div>':''}
     <div class="big-word">${o.word}</div>${crest(o.ch)}<div class="sub">${o.sub}</div>
@@ -808,7 +823,7 @@ function showOverlay(o){const ov=document.createElement('div');ov.className='ove
     <span class="hint">${o.hint||''}</span>
     <div class="row" style="justify-content:center"><button class="btn primary" data-go="tower">タワーへ</button><button class="btn" data-go="gacha">ガチャへ</button><button class="btn" data-go="party">編成へ</button></div></div>`;
   document.body.append(ov);const cc=ov.querySelector('.cc');let n=0;
-  const tick=setInterval(()=>{n++;cc.textContent=n;tone(1200+n*25,.04,'square',.04);if(n>=o.coins)clearInterval(tick)},RM?1:Math.max(40,700/o.coins));
+  const tick=o.coins<=0?null:setInterval(()=>{n++;cc.textContent=n;tone(1200+n*25,.04,'square',.04);if(n>=o.coins)clearInterval(tick)},RM?1:Math.max(40,700/o.coins));
   ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}nav(b.dataset.go)});
   ov.querySelector('[data-go]').focus()}
 
