@@ -200,7 +200,7 @@ details p{margin:6px 0 0}
 .picons button{flex:none;width:52px;padding:0;border:3px solid transparent;border-radius:10px;background:none}
 .picons button[aria-pressed="true"]{border-color:#FFE08A}
 .picons .crest,.rk .crest{width:100%;border-width:2px;box-shadow:none}
-.rtabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .rtabs button{padding:7px 0;border-radius:8px;border:2px solid var(--line);background:none;color:var(--ink);font:700 12px var(--f-body)}
 .rtabs button[aria-pressed="true"]{border-color:#FFE08A;color:#FFE08A;background:rgba(255,224,138,.08)}
 .rk{display:grid;grid-template-columns:34px 38px 1fr auto;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -594,7 +594,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.8.1';
+const VERSION='1.8.2';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -886,7 +886,7 @@ const clearedFloors=()=>Math.max(save.best||1,save.floor)-1+(save.lap-1)*TOP;
 const dexCount=()=>ALL.filter(c=>owns(c.id)).length;
 let scoreT=null;
 function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);
-  scoreT=setTimeout(()=>api('/api/score',{id:p.id,sec:p.sec,floor:clearedFloors(),wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).catch(()=>{}),now?0:1800)}
+  scoreT=setTimeout(()=>api('/api/score',{id:p.id,sec:p.sec,now:Math.min(TOP2,Math.max(save.best||1,save.floor)),floor:clearedFloors(),wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).catch(()=>{}),now?0:1800)}
 async function pushProfile(){const p=ensureProf();
   await api('/api/profile',{id:p.id,sec:p.sec,w:p.w,icon:p.icon||save.party[0]||'',title:p.title||0,on:p.on!==false});
   p.reg=true;persist();await new Promise(r=>setTimeout(r,1600));pushScore(true)}
@@ -927,18 +927,19 @@ function renderProf(){const el=$('#prof'),p=ensureProf();if(!p.icon||!owns(p.ico
     catch(err){b.disabled=false;toast(L('サーバーにつながりませんでした。通信できる場所でもう一度試してください','无法连接服务器，请在网络良好的地方再试一次'))}}}
 
 /* ================= ランキング画面 ================= */
-const RT={floor:['到達階','到达层',L('階','层')],week:['週間','每周',L('勝','胜')],pvp:['通信勝利','联机胜利',L('勝','胜')],dex:['図鑑','图鉴',L('人','人')]};
-let rtype='floor',rdata={};
+const RT={now:['到達階','到达层'],floor:['総踏破','总踏破'],pvp:['通信勝利','联机胜利']};
+const rval=(t,v)=>t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
+let rtype='now',rdata={};
 function renderRank(){const el=$('#rank');
   const tabs=`<div class="rtabs">${Object.keys(RT).map(k=>`<button type="button" data-rt="${k}" aria-pressed="${rtype===k}">${L(RT[k][0],RT[k][1])}</button>`).join('')}</div>`;
-  const note={floor:L('塔でクリアした階の数（周回込み）','在塔中通关的层数（含多轮）'),week:L('今週、塔で勝った回数（月曜朝5時にリセット）','本周在塔中获胜的次数（周一早上5点重置）'),pvp:L('通信対戦で勝った回数','联机对战获胜次数'),dex:L('仲間にしたキャラの数','已成为伙伴的角色数')}[rtype];
+  const note={now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),pvp:L('通信対戦で勝った回数','联机对战获胜次数')}[rtype];
   const d=rdata[rtype],p=save.prof;
   let body;
   if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
   else{const myTag=p.id?p.id.slice(-4):'';
-    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${r.v}<small>${RT[rtype][2]}</small></span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。一番乗りをねらおう！','还没有人上榜。争取第一个上榜吧！')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${d.me.v}${RT[rtype][2]}）`:L('圏外','未上榜')}</b></div>`}
+    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${rval(rtype,r.v)}</span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。一番乗りをねらおう！','还没有人上榜。争取第一个上榜吧！')}</p>`}</div>
+    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rval(rtype,d.me.v)}）`:L('圏外','未上榜')}</b></div>`}
   el.innerHTML=`<div class="row between"><h2>${L('ランキング','排行榜')}</h2><button class="btn small" id="r-re">${L('更新','刷新')}</button></div>${tabs}<p class="hint">${note}</p>${body}`;
   el.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{sfx('tap');rtype=b.dataset.rt;renderRank();if(!rdata[rtype])loadRank()});
   $('#r-re').onclick=()=>{sfx('tap');loadRank()}}
@@ -1303,7 +1304,7 @@ const TBGM={timer:null,step:0,next:0,out:null,
         $('#ts-no').onclick=e=>{e.stopPropagation();draw()}}};draw()},
     rank(){const cleared=Math.max(save.best||1,save.floor)-1+(save.lap-1)*TOP,got=CHARS.filter(c=>owns(c.id)).length,st3=Object.values(save.owned).filter(v=>v===3).length;
       open(`<h2>${L('ランキング｜あなたの記録','排行榜｜你的记录')}</h2><div class="t-rec">
-        <span>${L('クリアした階（通算）','已通关楼层（累计）')}</span><b>${cleared}${L('階','层')}</b><span>${L('いまの挑戦','当前挑战')}</span><b>${save.lap>1?L(save.lap+'周目 ','第'+save.lap+'轮 '):''}${save.floor}F</b>
+        <span>${L('総踏破','总踏破')}</span><b>${cleared}${L('階','层')}</b><span>${L('いまの挑戦','当前挑战')}</span><b>${save.lap>1?L(save.lap+'周目 ','第'+save.lap+'轮 '):''}${save.floor}F</b>
         <span>${L('塔の制覇','制霸塔')}</span><b>${save.clears}${L('回','次')}</b><span>${L('集めた仲間','收集的伙伴')}</span><b>${got} / ${CHARS.length}</b><span>${L('★3の仲間','★3伙伴')}</span><b>${st3}${L('人','人')}</b><span>${L('コイン','金币')}</span><b>${save.coins}</b></div>
         <p class="hint">${L('みんなとのランキングは「通信」タブで見られます。','与大家的排行榜可以在「联机」页查看。')}</p>`)},
     howto(){open(L(`<h2>あそびかた</h2><ol class="lines" style="font-size:14px;line-height:1.7">
