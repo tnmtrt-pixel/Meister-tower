@@ -249,6 +249,9 @@ details p{margin:6px 0 0}
 .pset .pn{font:800 12px var(--f-body)}.pset[aria-pressed="true"] .pn{color:#FFE08A}
 .pset .pc{display:flex;gap:2px;min-height:26px;align-items:center}.pset .pc img{width:26px;height:26px;border-radius:6px;object-fit:cover;background:#fff}
 #psets-t{grid-template-columns:1fr;gap:4px}#psets-t .pset{flex-direction:row;justify-content:space-between;padding:4px 8px}#psets-t .pn{white-space:nowrap}
+.cbtn.slot.pick{border-color:#FFE08A!important;box-shadow:0 0 0 2px #FFE08A,0 0 16px rgba(255,224,138,.6)!important;animation:slotpulse 1s ease-in-out infinite alternate}
+@keyframes slotpulse{to{transform:translateY(-3px)}}
+#slots{flex-wrap:wrap}.slot-hint{width:100%;margin:4px 0 0;font-size:12px}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -566,7 +569,7 @@ hr{border-color:var(--line)!important}
       <div class="party-strip" id="slots"></div>
     </div>
     <div class="panel">
-      <div class="label" data-zh="伙伴（点击查看详情）">仲間（タップで詳細）</div>
+      <div class="label" data-zh="伙伴（点击查看详情／已选位置时为替换）">仲間（タップで詳細／枠を選んでいるときは入れ替え）</div>
       <div class="grid5" id="owned"></div>
     </div>
     <div class="panel" id="detail"></div>
@@ -653,7 +656,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.14.2';
+const VERSION='1.15.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -709,7 +712,7 @@ function loadout(id){const ch=byId(id),st=starOf(id);let l=save.load[id];
 function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
 function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
   return`<button type="button" class="pset" data-ps="${k}" aria-pressed="${k===save.pidx}"><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span></button>`}).join('')}
-function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');setPidx(+b.dataset.ps);after()})}
+function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');slotSel=null;setPidx(+b.dataset.ps);after()})}
 function fixParty(){save.party=save.party.filter(owns).slice(0,3);
   if(!save.party.length&&hasAny())save.party=Object.keys(save.owned).sort((a,b)=>starOf(b)-starOf(a)).slice(0,3)}
 function grant(id,st){const cur=starOf(id);
@@ -804,10 +807,27 @@ $('#start').onclick=()=>{ac();sfx('tap');beginBattle()};
 
 /* ================= 編成 ================= */
 let sel=null;
+/* 編成：枠をタップ → 仲間をタップで入れ替え。枠どうしなら並び替え */
+let slotSel=null;
+function partySet(k,id){const P=save.party.slice(),j=P.indexOf(id);
+  if(j>=0){const t=P[k];P[k]=id;if(t)P[j]=t;else P.splice(j,1)}/* もうパーティにいる → 位置を交換 */
+  else if(k<P.length)P[k]=id;else P.push(id);
+  save.party=P.filter(Boolean).slice(0,3);persist()}
 function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!owns(sel))sel=save.party[0]||Object.keys(save.owned)[0];
-  $('#slots').innerHTML=[0,1,2].map(k=>{const id=save.party[k];return id?`<button class="cbtn" data-id="${id}" aria-pressed="${id===sel}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`:`<div class="cbtn" style="width:76px;opacity:.5;cursor:default"><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></div>`}).join('');
-  $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="nm">${c.name}</span></button>`}).join('');
-  document.querySelectorAll('#slots .cbtn[data-id],#owned .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');sel=b.dataset.id;renderParty()});
+  if(slotSel!=null&&slotSel>save.party.length)slotSel=null;
+  $('#slots').innerHTML=[0,1,2].map(k=>{const id=save.party[k],on=slotSel===k;
+    return id?`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`
+      :`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px" ${k>save.party.length?'disabled':''}><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></button>`}).join('')
+    +`<p class="hint slot-hint">${slotSel!=null?L(`${slotSel+1}番手を選択中：下の仲間をタップすると入れ替わります（枠をタップで並び替え）`,`已选择第${slotSel+1}位：点击下方伙伴即可替换（点击其他位置可调换顺序）`):L('枠をタップ → 仲間をタップで入れ替え','点击位置 → 再点击伙伴即可替换')}</p>`;
+  $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="nm">${c.name}</span></button>`}).join('');
+  document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.slot;
+    if(slotSel==null){slotSel=k;if(save.party[k])sel=save.party[k]}
+    else if(slotSel===k)slotSel=null;
+    else{const a=save.party[slotSel],c=save.party[k];if(a&&c){partySet(k,a)}else if(a&&!c){/* 空き枠へ移動＝末尾へ */save.party=[...save.party.filter(x=>x!==a),a];persist()}else if(!a&&c){save.party=[...save.party.filter(x=>x!==c),c];persist()}slotSel=null}
+    renderParty()});
+  document.querySelectorAll('#owned .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');const id=b.dataset.id;
+    if(slotSel!=null){partySet(slotSel,id);slotSel=null;sfx('buff')}
+    sel=id;renderParty()});
   renderDetail()}
 function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.innerHTML='';return}
   const st=starOf(id),l=loadout(id),pi=save.party.indexOf(id),sh=save.shards[id]||0;
