@@ -209,6 +209,9 @@ export const CupMixin = {
   },
 
   async cupDecide(T, R, m, win) {
+    if (m.win === win) { m.flag = false; return; }
+    if (m.win) this.sql.exec('UPDATE u SET cupv = MAX(0, cupv - 1) WHERE id = ?', m.win); // 勝者の付け替え
+    this.sql.exec('UPDATE u SET cupv = cupv + 1 WHERE id = ?', win);
     m.win = win;
     m.flag = false;
     const u = await this.cupUser(win);
@@ -319,6 +322,7 @@ export const CupMixin = {
       case 'redo': {
         const m = R && R.ms.find((x) => x.t === (b.t | 0));
         if (!m || !m.b) return fail('match');
+        if (m.win) this.sql.exec('UPDATE u SET cupv = MAX(0, cupv - 1) WHERE id = ?', m.win);
         m.win = null; m.rep = {}; m.flag = false; m.room = 'K' + rid(6);
         break;
       }
@@ -337,7 +341,7 @@ export const CupMixin = {
           const p = st[i], u = await this.cupUser(p.pid);
           u.coins = (u.coins || 0) + PARTICIPATION_COINS;
           u.flags.entered = true;
-          if (i === 0 && fin && fin.ms[0].win) { u.flags.champ = true; u.champs = (u.champs || 0) + 1; }
+          if (i === 0 && fin && fin.ms[0].win) { u.flags.champ = true; u.champs = (u.champs || 0) + 1; this.sql.exec('UPDATE u SET cupv = cupv + 1000 WHERE id = ?', p.pid); }
           u.hist = [{ tid: T.id, name: T.name, sub: T.sub, date: T.date, w: p.w, l: p.l, n: i + 1, of: n, champ: i === 0 && !!(fin && fin.ms[0].win) }, ...(u.hist || [])].slice(0, 20);
           await this.cupUserPut(p.pid, u);
         }

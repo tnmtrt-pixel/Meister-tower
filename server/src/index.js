@@ -138,7 +138,7 @@ export class Room {
  */
 const ID_RE = /^[0-9a-f]{16,32}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
-const TYPES = { now: 'now', floor: 'floor', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const TYPES = { now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
 /* 同点のときの並び（到達階が同じなら総踏破が多い人が上） */
 const SUB = { now: 'floor' };
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json; charset=utf-8' } });
@@ -165,6 +165,8 @@ export class Rank {
       wins INTEGER NOT NULL DEFAULT 0, wk INTEGER NOT NULL DEFAULT 0, wkv INTEGER NOT NULL DEFAULT 0,
       upd INTEGER NOT NULL DEFAULT 0, last INTEGER NOT NULL DEFAULT 0)`);
     try { this.sql.exec('ALTER TABLE u ADD COLUMN now INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
+    /* 大会記録：優勝回数×1000＋大会での勝利数 */
+    try { this.sql.exec('ALTER TABLE u ADD COLUMN cupv INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
   }
 
   row(id) {

@@ -645,7 +645,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.12.1';
+const VERSION='1.12.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1037,12 +1037,12 @@ function renderProf(){const el=$('#prof'),p=ensureProf();if(!p.icon||!owns(p.ico
     catch(err){b.disabled=false;toast(L('サーバーにつながりませんでした。通信できる場所でもう一度試してください','无法连接服务器，请在网络良好的地方再试一次'))}}}
 
 /* ================= ランキング画面 ================= */
-const RT={floor:['総踏破','总踏破'],now:['到達階','到达层'],pvp:['通信勝利','联机胜利']};
-const rval=(t,v)=>t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
+const RT={floor:['総踏破','总踏破'],now:['到達階','到达层'],cup:['大会記録','大赛记录']};
+const rval=(t,v)=>t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:t==='cup'?`${v>=1000?`🏆${Math.floor(v/1000)} `:''}${v%1000}<small>${L('勝','胜')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
 let rtype='floor',rdata={};
 function renderRank(){const el=$('#rank');
   const tabs=`<div class="rtabs">${Object.keys(RT).map(k=>`<button type="button" data-rt="${k}" aria-pressed="${rtype===k}">${L(RT[k][0],RT[k][1])}</button>`).join('')}</div>`;
-  const note={now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),pvp:L('通信対戦で勝った回数','联机对战获胜次数')}[rtype];
+  const note={now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),cup:L('大会での優勝回数（🏆）と、大会で勝った試合の数','大赛夺冠次数（🏆）与大赛中获胜的场数')}[rtype];
   const d=rdata[rtype],p=save.prof;
   let body;
   if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
