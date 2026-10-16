@@ -653,7 +653,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.14.1';
+const VERSION='1.14.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1280,7 +1280,7 @@ async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;if(B.onlin
 /* 使える技が1つもなくなったら、自動でターン終了 */
 const canAct=()=>{const sd=B.S.sides[0],f=sd.team[sd.idx];return f.moves.some((m,mi)=>!sd.used.has(mi)&&G.diceFor(B.S,0,mi,null))};
 function autoEndCheck(human){clearTimeout(B.autoT);if(!human||B.busy||B.done||TUT.on||B.S.over>=0||canAct())return;
-  B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||canAct())return;toast(L('使える技がないので、ターンを終了します','没有可用的技能，自动结束回合'));const E=$('#end');if(E)E.click()},900)}
+  B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||canAct())return;const E=$('#end');if(E)E.click()},900)}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function renderControl(rolled){if(!B)return;const el=$('#control');
   if(B.done){el.innerHTML='';el.style.minHeight='';B.ctlHTML='';return}
