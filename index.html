@@ -643,10 +643,11 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js"></script>
+<script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.12.0';
+const VERSION='1.12.1';
 const G=window.ENGINE;
+if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
 const $=s=>document.querySelector(s);
