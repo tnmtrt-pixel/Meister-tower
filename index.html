@@ -252,6 +252,12 @@ details p{margin:6px 0 0}
 .cbtn.slot.pick{border-color:#FFE08A!important;box-shadow:0 0 0 2px #FFE08A,0 0 16px rgba(255,224,138,.6)!important;animation:slotpulse 1s ease-in-out infinite alternate}
 @keyframes slotpulse{to{transform:translateY(-3px)}}
 #slots{flex-wrap:wrap}.slot-hint{width:100%;margin:4px 0 0;font-size:12px}
+.tw-list{display:grid;gap:6px}
+.tw{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:rgba(8,14,34,.6);color:var(--ink);text-align:left;cursor:pointer}
+.tw[aria-pressed="true"]{border-color:#FFE08A;background:rgba(255,224,138,.1);box-shadow:0 0 10px rgba(255,224,138,.3)}
+.tw.soon{opacity:.55;border-style:dashed}
+.tw-i{font-size:24px}.tw-n{flex:1;font-weight:800;line-height:1.25}.tw-n small{display:block;font-weight:700;font-size:11px;color:var(--muted)}
+.tw[aria-pressed="true"] .tw-n small{color:#FFE08A}.tw-v{font:800 11px var(--f-body);color:var(--muted)}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -540,6 +546,7 @@ hr{border-color:var(--line)!important}
   </header>
 
   <section class="view" id="v-tower">
+    <div class="panel towers" id="towers"></div>
     <div class="panel" id="mission"></div>
     <div class="panel tower-panel">
       <div class="tower" id="tower"></div>
@@ -656,7 +663,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.15.0';
+const VERSION='1.16.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -773,13 +780,21 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
 /* ================= タワー ================= */
+/* 塔の一覧。vol.2 以降の塔はここに足していく */
+const TOWERS=[{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1},
+  {id:'t2',icon:'🏭',ja:'？？？の塔',zh:'？？？之塔',vol:2,soon:true},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
+function renderTowers(){const el=$('#towers');if(!hasAny()){el.hidden=true;return}el.hidden=false;
+  const prog=()=>save.clears||save.lap>1?L(`${save.lap}周目 ${save.floor}F`,`第${save.lap}轮 ${save.floor}F`):`${save.floor}F`;
+  el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}" data-tw="${k}" aria-pressed="${k===0}">
+    <span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':prog()}</small></span><span class="tw-v">vol.${t.vol}</span></button>`).join('')}</div>`;
+  el.querySelectorAll('.tw.soon').forEach(b=>b.onclick=()=>{sfx('tap');const t=TOWERS[+b.dataset.tw];toast(L(`vol.${t.vol}のキャラが待ちかまえる新しい塔。近日公開！`,`vol.${t.vol}角色等待着的新塔，即将开放！`))})}
 /* 再挑戦：クリア済みの階を選べる。報酬は初回より少なめ */
 let tsel=null,tview=null;
 const canPlay=n=>n<=Math.max(save.floor,save.best);
 const upperOpen=()=>Math.max(save.floor,save.best)>TOP;
 const isReplay=n=>n!==save.floor;
 const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
-function renderTower(){fixParty();renderMission();if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
+function renderTower(){fixParty();renderTowers();renderMission();if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
   if(tview==null)tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
   $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==save.floor&&ok?' done':n===save.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
@@ -1025,7 +1040,8 @@ function showWordBook(){sfx('tap');const draw=()=>{const [n,all]=wordCount(),lis
 async function api(path,body){if(!ONLINE_URL)throw new Error('no server');
   const r=await fetch(ONLINE_URL+path,body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.err||r.status);return j}
-const clearedFloors=()=>Math.max(save.best||1,save.floor)-1+(save.lap-1)*TOP;
+/* 総踏破：下層10階＋上層の周回×10＋今の周で登った階（塔が増えたら合計する） */
+const clearedFloors=()=>save.floor>TOP?(save.lap-1)*TOP+save.floor-1:Math.max(save.best||1,save.floor)-1;
 const dexCount=()=>ALL.filter(c=>owns(c.id)).length;
 let scoreT=null;
 function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);
@@ -1559,7 +1575,7 @@ const TBGM={timer:null,step:0,next:0,out:null,
       $('#ts-reset').onclick=e=>{e.stopPropagation();$('#ts-reset-box').innerHTML=`<p class="hint" style="color:var(--low)">${L('本当に消しますか？ 仲間・コイン・塔の進み具合がすべて消えます。','真的要删除吗？伙伴、金币、塔的进度将全部消失。')}</p><div class="row"><button class="btn small" id="ts-yes" style="color:var(--low);border-color:var(--low)">${L('消す','删除')}</button><button class="btn small" id="ts-no">${L('やめる','取消')}</button></div>`;
         $('#ts-yes').onclick=e=>{e.stopPropagation();const keep={se:save.se,bgm:save.bgm};save=Object.assign(blank(),keep);persist();updCoins();sel=null;toast(L('セーブデータを消しました','已删除存档'));draw()};
         $('#ts-no').onclick=e=>{e.stopPropagation();draw()}}};draw()},
-    rank(){const cleared=Math.max(save.best||1,save.floor)-1+(save.lap-1)*TOP,got=CHARS.filter(c=>owns(c.id)).length,st3=Object.values(save.owned).filter(v=>v===3).length;
+    rank(){const cleared=clearedFloors(),got=CHARS.filter(c=>owns(c.id)).length,st3=Object.values(save.owned).filter(v=>v===3).length;
       open(`<h2>${L('ランキング｜あなたの記録','排行榜｜你的记录')}</h2><div class="t-rec">
         <span>${L('総踏破','总踏破')}</span><b>${cleared}${L('階','层')}</b><span>${L('いまの挑戦','当前挑战')}</span><b>${save.lap>1?L(save.lap+'周目 ','第'+save.lap+'轮 '):''}${save.floor}F</b>
         <span>${L('塔の制覇','制霸塔')}</span><b>${save.clears}${L('回','次')}</b><span>${L('集めた仲間','收集的伙伴')}</span><b>${got} / ${CHARS.length}</b><span>${L('★3の仲間','★3伙伴')}</span><b>${st3}${L('人','人')}</b><span>${L('コイン','金币')}</span><b>${save.coins}</b></div>

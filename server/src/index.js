@@ -218,7 +218,7 @@ export class Rank {
     if (now - r.last < 1500) return json({ ok: true, skip: true });
     /* ありえない数字は切り捨てる */
     const nowF = Math.max(r.now || 0, int(b.now, 0, 20));
-    const floor = Math.min(Math.max(r.floor, int(b.floor, 0, 100000)), r.floor + 25);
+    const floor = Math.min(int(b.floor, 0, 100000), r.floor + 25); /* 総踏破は最新の値（数え方の修正で下がることがある） */
     const dex = Math.min(Math.max(r.dex, int(b.dex, 0, 99)), r.dex + 5);
     const pvp = Math.min(Math.max(r.pvp, int(b.pvp, 0, 100000)), r.pvp + 50);
     const wins = int(b.wins, 0, 1000000);
