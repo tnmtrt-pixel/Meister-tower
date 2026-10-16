@@ -138,7 +138,7 @@ export class Room {
  */
 const ID_RE = /^[0-9a-f]{16,32}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
-const TYPES = { now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const TYPES = { inf: 'inf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
 /* 同点のときの並び（到達階が同じなら総踏破が多い人が上） */
 const SUB = { now: 'floor' };
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json; charset=utf-8' } });
@@ -167,6 +167,8 @@ export class Rank {
     try { this.sql.exec('ALTER TABLE u ADD COLUMN now INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
     /* 大会記録：優勝回数×1000＋大会での勝利数 */
     try { this.sql.exec('ALTER TABLE u ADD COLUMN cupv INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
+    /* 無限の塔の最高到達階 */
+    try { this.sql.exec('ALTER TABLE u ADD COLUMN inf INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
   }
 
   row(id) {
@@ -218,13 +220,14 @@ export class Rank {
     if (now - r.last < 1500) return json({ ok: true, skip: true });
     /* ありえない数字は切り捨てる */
     const nowF = Math.max(r.now || 0, int(b.now, 0, 20));
-    const floor = Math.min(int(b.floor, 0, 100000), r.floor + 25); /* 総踏破は最新の値（数え方の修正で下がることがある） */
+    const inf = Math.min(Math.max(r.inf || 0, int(b.inf, 0, 9999)), (r.inf || 0) + 60); /* 1回で伸ばせるのは60階まで */
+    const floor = b.floor == null ? r.floor : Math.min(int(b.floor, 0, 100000), r.floor + 25); /* 総踏破は最新の値（数え方の修正で下がることがある） */
     const dex = Math.min(Math.max(r.dex, int(b.dex, 0, 99)), r.dex + 5);
     const pvp = Math.min(Math.max(r.pvp, int(b.pvp, 0, 100000)), r.pvp + 50);
     const wins = int(b.wins, 0, 1000000);
     const gain = r.last ? Math.min(Math.max(0, wins - r.wins), 300) : 0; /* 初回送信は今週分に数えない */
     const wk = weekNo(now), wkv = (r.wk === wk ? r.wkv : 0) + gain;
-    this.sql.exec('UPDATE u SET now=?, floor=?, dex=?, pvp=?, wins=?, wk=?, wkv=?, last=? WHERE id=?', nowF, floor, dex, pvp, wins, wk, wkv, now, b.id);
+    this.sql.exec('UPDATE u SET inf=?, now=?, floor=?, dex=?, pvp=?, wins=?, wk=?, wkv=?, last=? WHERE id=?', inf, nowF, floor, dex, pvp, wins, wk, wkv, now, b.id);
     return json({ ok: true });
   }
 

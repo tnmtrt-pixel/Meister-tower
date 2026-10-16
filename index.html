@@ -200,7 +200,7 @@ details p{margin:6px 0 0}
 .picons button{flex:none;width:52px;padding:0;border:3px solid transparent;border-radius:10px;background:none}
 .picons button[aria-pressed="true"]{border-color:#FFE08A}
 .picons .crest,.rk .crest{width:100%;border-width:2px;box-shadow:none}
-.rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.rtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:4px}
 .rtabs button{padding:7px 0;border-radius:8px;border:2px solid var(--line);background:none;color:var(--ink);font:700 12px var(--f-body)}
 .rtabs button[aria-pressed="true"]{border-color:#FFE08A;color:#FFE08A;background:rgba(255,224,138,.08)}
 .rk{display:grid;grid-template-columns:34px 38px 1fr auto;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
@@ -258,6 +258,8 @@ details p{margin:6px 0 0}
 .tw.soon{opacity:.55;border-style:dashed}
 .tw-i{font-size:24px}.tw-n{flex:1;font-weight:800;line-height:1.25}.tw-n small{display:block;font-weight:700;font-size:11px;color:var(--muted)}
 .tw[aria-pressed="true"] .tw-n small{color:#FFE08A}.tw-v{font:800 11px var(--f-body);color:var(--muted)}
+.hprow{align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}.hprow b{font-size:18px;color:#FFE08A}
+.tw.locked{opacity:.7}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -548,6 +550,7 @@ hr{border-color:var(--line)!important}
   <section class="view" id="v-tower">
     <div class="panel towers" id="towers"></div>
     <div class="panel" id="mission"></div>
+    <div class="panel" id="infpanel" hidden></div>
     <div class="panel tower-panel">
       <div class="tower" id="tower"></div>
       <div class="story">
@@ -661,9 +664,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=c7503194"></script>
+<script src="engine.js?v=05158792"></script>
 <script>
-const VERSION='1.16.0';
+const VERSION='1.17.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -678,7 +681,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -696,6 +699,9 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.boss={};for(const k in (v.boss||{}))if(byId(k)&&v.boss[k])s.boss[k]=true;
   s.wseen=(Array.isArray(v.wseen)?v.wseen:[]).filter(x=>typeof x==='string').slice(0,400);s.wnote=(Array.isArray(v.wnote)?v.wnote:[]).filter(x=>typeof x==='string').slice(0,400);
   s.pidx=Math.min(2,Math.max(0,v.pidx|0));s.parties=[0,1,2].map(k=>(Array.isArray(v.parties)&&Array.isArray(v.parties[k])?v.parties[k]:[]).filter(id=>typeof id==='string'&&byId(id)).slice(0,3));
+  s.hpLv={};for(const k in (v.hpLv||{}))if(byId(k))s.hpLv[k]=Math.min(5,Math.max(0,v.hpLv[k]|0));
+  {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0)},
+    run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
@@ -781,12 +787,14 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
-const TOWERS=[{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1},
+const TOWERS=[{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true},
   {id:'t2',icon:'🏭',ja:'？？？の塔',zh:'？？？之塔',vol:2,soon:true},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
 function renderTowers(){const el=$('#towers');if(!hasAny()){el.hidden=true;return}el.hidden=false;
   const prog=()=>save.clears||save.lap>1?L(`${save.lap}周目 ${save.floor}F`,`第${save.lap}轮 ${save.floor}F`):`${save.floor}F`;
-  el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}" data-tw="${k}" aria-pressed="${k===0}">
-    <span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':prog()}</small></span><span class="tw-v">vol.${t.vol}</span></button>`).join('')}</div>`;
+  el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}${t.inf&&!infOpen()?' locked':''}" data-tw="${k}" aria-pressed="false">
+    <span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog()}</small></span><span class="tw-v">${t.inf?'∞':'vol.'+t.vol}</span></button>`).join('')}</div>`;
+  el.querySelectorAll('.tw').forEach(b=>b.setAttribute('aria-pressed',TOWERS[+b.dataset.tw].id===towerMode));
+  el.querySelectorAll('.tw:not(.soon)').forEach(b=>b.onclick=()=>{const t=TOWERS[+b.dataset.tw];if(t.inf&&!infOpen()){toast(L('マイスターの塔の10Fをクリアすると挑戦できます','通关迈斯特之塔10F后即可挑战'));return}sfx('tap');towerMode=t.id;renderTower()});
   el.querySelectorAll('.tw.soon').forEach(b=>b.onclick=()=>{sfx('tap');const t=TOWERS[+b.dataset.tw];toast(L(`vol.${t.vol}のキャラが待ちかまえる新しい塔。近日公開！`,`vol.${t.vol}角色等待着的新塔，即将开放！`))})}
 /* 再挑戦：クリア済みの階を選べる。報酬は初回より少なめ */
 let tsel=null,tview=null;
@@ -794,7 +802,8 @@ const canPlay=n=>n<=Math.max(save.floor,save.best);
 const upperOpen=()=>Math.max(save.floor,save.best)>TOP;
 const isReplay=n=>n!==save.floor;
 const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
-function renderTower(){fixParty();renderTowers();renderMission();if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
+function renderTower(){fixParty();if(towerMode==='inf'&&!infOpen())towerMode='meister';renderTowers();renderMission();
+  const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}if(tsel==null||!canPlay(tsel))tsel=save.floor;const f=tsel,fl=FLOORS[f-1],rp=isReplay(f);
   if(tview==null)tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
   $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==save.floor&&ok?' done':n===save.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
@@ -850,11 +859,13 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
   <div class="passive"><b>${L('能力','特性')}「${ch.passive.n}」</b><br>${ch.passive.d}</div>
   <div class="row">${pi<0?`<button class="btn small" id="p-add" ${save.party.length>=3?'disabled':''}>${L('パーティに入れる','加入队伍')}</button>`:`<button class="btn small" id="p-rem" ${save.party.length<=1?'disabled':''}>${L('パーティから外す','移出队伍')}</button>${pi>0?`<button class="btn small" id="p-first">${L('先頭にする','设为首位')}</button>`:''}`}
     <span class="hint">${pi<0&&save.party.length>=3?L('パーティは3人まで。誰かを外してください','队伍最多3人，请先移出一人'):''}</span></div>
+  <div class="row between hprow"><span>${L('体力','体力')} <b>${hpOf(id)}</b><small class="hint">（${L('塔と無限の塔で有効','仅在塔与无限之塔中有效')}）</small></span>${(save.hpLv[id]||0)>=HP_MAX_LV?`<button class="up" disabled>${L('体力<br>MAX','体力<br>MAX')}</button>`:`<button class="up" id="hp-up" ${sh<HP_COST[save.hpLv[id]||0]?'disabled':''}>${L(`体力+2<br>かけら${HP_COST[save.hpLv[id]||0]}`,`体力+2<br>碎片${HP_COST[save.hpLv[id]||0]}`)}</button>`}</div>
   <div class="row between"><span class="label">${L('技を4つ選ぶ','选择4个技能')}（${l.length} / 4）</span><span class="label">${L('かけら','碎片')} ${sh}</span></div>
   <div class="moves">${ch.moves.map((m0,k)=>{const m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
     return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?L('で解放','解锁'):''}</span>`:'')}</button>
     <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?L('強化<br>MAX','强化<br>MAX'):L(`強化+${lv+1}<br>かけら${cost}`,`强化+${lv+1}<br>碎片${cost}`)}</button></div>`}).join('')}</div>
   <p class="hint">${L('強化すると、ダメージ（ダメージがない技はガードなどの効果）が+2ずつ上がります（最大+2）。かけらはガチャで同じキャラが出ると手に入ります。','强化后伤害（无伤害的技能则为护盾等效果）每级+2（最多+2）。在扭蛋中抽到重复角色可获得碎片。')}</p>`;
+  const HU=$('#hp-up');if(HU)HU.onclick=()=>{const lv=save.hpLv[id]||0,c=HP_COST[lv];if(lv>=HP_MAX_LV||(save.shards[id]||0)<c)return;save.shards[id]-=c;save.hpLv[id]=lv+1;persist();sfx('buff');toast(L(`${ch.name}の体力が ${hpOf(id)} になった`,`${ch.name}的体力变为 ${hpOf(id)}`));renderDetail()};
   const A=$('#p-add'),Rm=$('#p-rem'),F=$('#p-first');
   if(A)A.onclick=()=>{save.party.push(id);persist();renderParty()};
   if(Rm)Rm.onclick=()=>{save.party=save.party.filter(x=>x!==id);persist();renderParty()};
@@ -867,7 +878,7 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
     else{toast(L('技は4つまでです。外したい技をタップしてください','技能最多4个，请点击要移除的技能'));return}
     l.sort((a,b)=>a-b);sfx('tap');save.load[id]=l;persist();
     renderDetail()});
-  el.querySelectorAll('.up').forEach(b=>b.onclick=()=>{const k=+b.dataset.u,lv=lvOf(id,k),cost=lv===0?2:4;if((save.shards[id]||0)<cost||lv>=2)return;
+  el.querySelectorAll('.up[data-u]').forEach(b=>b.onclick=()=>{const k=+b.dataset.u,lv=lvOf(id,k),cost=lv===0?2:4;if((save.shards[id]||0)<cost||lv>=2)return;
     save.shards[id]-=cost;(save.lv[id]=save.lv[id]||{})[k]=lv+1;persist();sfx('buff');toast(L(`${ch.moves[k].n} を +${lv+1} に強化しました`,`已将 ${ch.moves[k].n} 强化到 +${lv+1}`));renderDetail()})}
 
 /* ================= ガチャ ================= */
@@ -978,7 +989,9 @@ const TITLES=[
   {ja:'通信の猛者',zh:'联机猛将',d:['通信対戦で10勝','联机对战10胜'],ok:()=>(save.st.pvp||0)>=10},
   {ja:'天空の覇者',zh:'天空霸者',d:['匠空を仲間にする','让匠空成为伙伴'],ok:()=>owns('sora')},
   {ja:'チャンピオン',zh:'冠军',d:['大会で優勝','在大赛中夺冠'],ok:()=>!!save.cup.champ},
-  {ja:'マイスター位 2026',zh:'大师位 2026',d:['グランドファイナルで優勝','在总决赛中夺冠'],ok:()=>!!save.cup.meister}];
+  {ja:'マイスター位 2026',zh:'大师位 2026',d:['グランドファイナルで優勝','在总决赛中夺冠'],ok:()=>!!save.cup.meister},
+  {ja:'無限の挑戦者',zh:'无限挑战者',d:['無限の塔で50Fに到達','在无限之塔到达50F'],ok:()=>save.inf.best>=50},
+  {ja:'無限の覇者',zh:'无限霸者',d:['無限の塔で100Fに到達','在无限之塔到达100F'],ok:()=>save.inf.best>=100}];
 const W3=G.WORDS;/* 単語リストは engine.js（運営画面と共通） */
 const titleOk=i=>!!(TITLES[i]&&TITLES[i].ok());
 /* 単語の解放条件（単語ごとに表示する） */
@@ -992,9 +1005,9 @@ const WCOND={
 const WMAP={1:'t1',2:'t2',3:'t3',4:'t4',5:'t5',6:'t6',7:'t7',8:'t8',9:'t9'};
 const cname=id=>{const c=byId(id);return c&&(!c.hidden&&!c.raidChar||owns(id))?c.name:L('ひみつのキャラ','神秘角色')};
 const statN={L:()=>save.st.days||0,M:()=>save.st.ms||0,G:()=>save.st.pulls||0,N:()=>ALL.filter(c=>owns(c.id)).length,S:()=>Object.values(save.owned).filter(v=>v===3).length,
-  F:()=>Math.max(save.best||1,save.floor),W:()=>save.st.wins||0};
+  F:()=>Math.max(save.best||1,save.floor),W:()=>save.st.wins||0,I:()=>save.inf.best||0};
 const STXT={L:['ログイン{n}日','登录{n}天'],M:['ミッション{n}回達成','完成任务{n}次'],G:['ガチャを{n}回引く','扭蛋{n}次'],N:['仲間を{n}人にする','拥有{n}名伙伴'],
-  S:['★3の仲間を{n}人にする','拥有{n}名★3伙伴'],F:['塔の{n}Fに到達','到达塔的{n}F'],W:['塔で{n}勝','在塔中获胜{n}次']};
+  S:['★3の仲間を{n}人にする','拥有{n}名★3伙伴'],I:['無限の塔で{n}Fに到達','在无限之塔到达{n}F'],F:['塔の{n}Fに到達','到达塔的{n}F'],W:['塔で{n}勝','在塔中获胜{n}次']};
 /* 単語の解放条件。prog があれば進み具合を表示する */
 const condOf=w=>{if(w[2]==null)return null;const k=w[2];
   if(typeof k==='string'){
@@ -1002,7 +1015,7 @@ const condOf=w=>{if(w[2]==null)return null;const k=w[2];
       return{ja:`${nm}をパーティに入れて10Fか20Fのボスをたおす（再挑戦でもOK）`,zh:`让${nm}加入队伍并打倒10F或20F的头目（再挑战也可以）`,ok:()=>!!save.boss[id],g:'char'}}
     if(k.startsWith('u:')){const [,id,n]=k.split(':'),nm=cname(id),need=+n,cur=()=>save.use[id]||0;
       return{ja:`${nm}をパーティに入れて塔で${need}勝`,zh:`让${nm}加入队伍在塔中获胜${need}次`,ok:()=>cur()>=need,prog:()=>[Math.min(cur(),need),need],g:'char'}}
-    const m=/^([LMGNSFW]):(\d+)$/.exec(k);
+    const m=/^([LMGNSFWI]):(\d+)$/.exec(k);
     if(m){const need=+m[2],f=statN[m[1]];return{ja:STXT[m[1]][0].replace('{n}',need),zh:STXT[m[1]][1].replace('{n}',need),ok:()=>f()>=need,prog:()=>[Math.min(f(),need),need],g:m[1]}}}
   const c=WCOND[typeof k==='number'?WMAP[k]:k];return c&&{...c,g:typeof k==='string'&&(k.startsWith('cup')||k==='meister')?'cup':'title'}};
 const wordOk=(p,i)=>{const w=W3[p][i];if(!w)return false;if(save.keepW[p]===i)return true;/* 鍵付きにする前から名前に使っていた単語 */const c=condOf(w);return!c||c.ok()};
@@ -1023,7 +1036,7 @@ function checkTitles(){const seen=save.tseen||[];const got=TITLES.map((_,i)=>i).
 /* ================= 単語帳 ================= */
 function wordCount(){let n=0,all=0;W3.forEach((l,p)=>l.forEach((_,i)=>{all++;if(wordOk(p,i))n++}));return[n,all]}
 let wtab=0;
-const WGROUP=[['free','最初から','初始'],['L','ログイン','登录'],['M','ミッション','任务'],['G','ガチャ','扭蛋'],['N','仲間','伙伴'],['S','★3の仲間','★3伙伴'],['F','塔の到達階','塔的到达层'],['W','塔の勝利数','塔的胜场'],['title','称号','称号'],['cup','大会','大赛'],['char','キャラ別','角色专属']];
+const WGROUP=[['free','最初から','初始'],['L','ログイン','登录'],['M','ミッション','任务'],['G','ガチャ','扭蛋'],['N','仲間','伙伴'],['S','★3の仲間','★3伙伴'],['F','塔の到達階','塔的到达层'],['I','無限の塔','无限之塔'],['W','塔の勝利数','塔的胜场'],['title','称号','称号'],['cup','大会','大赛'],['char','キャラ別','角色专属']];
 const wgroup=w=>{const c=condOf(w);return c?c.g:'free'};
 function showWordBook(){sfx('tap');const draw=()=>{const [n,all]=wordCount(),list=W3[wtab];
     const html=`<h2>${L('単語帳','词语本')}</h2><p class="hint">${L(`集めた単語 <b>${n} / ${all}</b>　条件を満たすと新しい単語が使えるようになります。`,`已收集词语 <b>${n} / ${all}</b>　满足条件即可使用新词语。`)}</p>
@@ -1045,7 +1058,7 @@ const clearedFloors=()=>save.floor>TOP?(save.lap-1)*TOP+save.floor-1:Math.max(sa
 const dexCount=()=>ALL.filter(c=>owns(c.id)).length;
 let scoreT=null;
 function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);
-  scoreT=setTimeout(()=>api('/api/score',{id:p.id,sec:p.sec,now:Math.min(TOP2,Math.max(save.best||1,save.floor)),floor:clearedFloors(),wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).catch(()=>{}),now?0:1800)}
+  scoreT=setTimeout(()=>api('/api/score',{id:p.id,sec:p.sec,inf:save.inf.best||0,wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).catch(()=>{}),now?0:1800)}
 async function pushProfile(){const p=ensureProf();
   await api('/api/profile',{id:p.id,sec:p.sec,w:p.w,icon:p.icon||save.party[0]||'',title:p.title||0,on:p.on!==false});
   p.reg=true;persist();await new Promise(r=>setTimeout(r,1600));pushScore(true)}
@@ -1088,12 +1101,12 @@ function renderProf(){const el=$('#prof'),p=ensureProf();if(!p.icon||!owns(p.ico
     catch(err){b.disabled=false;toast(L('サーバーにつながりませんでした。通信できる場所でもう一度試してください','无法连接服务器，请在网络良好的地方再试一次'))}}}
 
 /* ================= ランキング画面 ================= */
-const RT={floor:['総踏破','总踏破'],now:['到達階','到达层'],cup:['大会記録','大赛记录']};
-const rval=(t,v)=>t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:t==='cup'?`${v>=1000?`🏆${Math.floor(v/1000)} `:''}${v%1000}<small>${L('勝','胜')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
-let rtype='floor',rdata={};
+const RT={inf:['無限の塔','无限之塔'],cup:['大会記録','大赛记录']};
+const rval=(t,v)=>t==='inf'||t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:t==='cup'?`${v>=1000?`🏆${Math.floor(v/1000)} `:''}${v%1000}<small>${L('勝','胜')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
+let rtype='inf',rdata={};
 function renderRank(){const el=$('#rank');
   const tabs=`<div class="rtabs">${Object.keys(RT).map(k=>`<button type="button" data-rt="${k}" aria-pressed="${rtype===k}">${L(RT[k][0],RT[k][1])}</button>`).join('')}</div>`;
-  const note={now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),cup:L('大会での優勝回数（🏆）と、大会で勝った試合の数','大赛夺冠次数（🏆）与大赛中获胜的场数')}[rtype];
+  const note={inf:L('無限の塔の最高到達階','无限之塔的最高到达层'),now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),cup:L('大会での優勝回数（🏆）と、大会で勝った試合の数','大赛夺冠次数（🏆）与大赛中获胜的场数')}[rtype];
   const d=rdata[rtype],p=save.prof;
   let body;
   if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
@@ -1240,12 +1253,61 @@ function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)|
     ${hall.length?`<h2 style="margin-top:12px">🏛 ${L('殿堂','殿堂')}</h2>${hall.map(e=>`<div class="hall"><div class="label">${cupT(e.name)}　${cupT(e.sub)}　${cupDate(e.date)}</div>
       ${e.top.map((p,k)=>`<div class="hall-p"><span class="medal">${k?'🥈':'🥇'}</span><div style="flex:1;min-width:0">${whoHTML(p)}${partyHTML(p.party)}</div></div>`).join('')}</div>`).join('')}`:''}`}
 
+/* ================= 無限の塔 ================= */
+/* 負けるまで登る。体力は生き残ったキャラだけ毎階全回復、たおれたキャラはボス（10階ごと）を倒すと半分で復活 */
+const INF_REW={floor:3,boss:10,best:10,cap:20};/* 1階3・ボス10・自己ベスト更新+10、1日20コインまで */
+const HP_MAX_LV=5,HP_COST=[3,4,5,6,7];/* 体力強化：1段階+2（最大+10）。塔と無限の塔だけで有効 */
+const hpOf=id=>G.PLAYER_HP+2*(save.hpLv[id]||0);
+const infOpen=()=>Math.max(save.best||1,save.floor)>TOP;
+let towerMode='meister';
+function infStart(){fixParty();if(!save.party.length)return;
+  const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
+  save.inf.run={f:1,party:save.party.slice(),hp:Object.fromEntries(save.party.map(id=>[id,hpOf(id)]))};persist();beginInf()}
+function beginInf(){const run=save.inf.run;if(!run)return;
+  const party=run.party.filter(owns).map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
+  const enemies=G.infEnemies(run.f,Math.random,run.party);
+  TUT.on=false;B={inf:true,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
+  const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
+  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  const boss=run.f%10===0;$('#floor-tag').textContent=L(`無限の塔 ${run.f}F${boss?'｜ボス戦':''}`,`无限之塔 ${run.f}F${boss?'｜头目战':''}`);
+  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
+  (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
+async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,msg='';
+  if(win){const D=save.inf.day.d===today()?save.inf.day:(save.inf.day={d:today(),c:0});
+    let r=INF_REW.floor+(f%10===0?INF_REW.boss:0);const nb=f>save.inf.best;if(nb){r+=INF_REW.best;save.inf.best=f}
+    coins=Math.max(0,Math.min(r,INF_REW.cap-D.c));D.c+=coins;save.coins+=coins;
+    B.S.sides[0].team.forEach(x=>{run.hp[x.ch.id]=x.hp>0?x.max:(f%10===0?Math.round(x.max*G.INF.revive):0)});
+    save.st.wins=(save.st.wins||0)+1;mission('win');B.S.sides[0].team.forEach(x=>{save.use[x.ch.id]=(save.use[x.ch.id]||0)+1});
+    run.f=f+1;msg=nb?L('自己ベスト更新！','刷新个人最佳！'):'';
+    if(D.c>=INF_REW.cap&&coins<r)msg+=(msg?'　':'')+L('今日の報酬は上限です','今日奖励已达上限')}
+  else{save.inf.run=null}
+  persist();updCoins();pushScore();checkTitles();
+  if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose')}
+  await W(900);
+  showOverlay({word:win?(f%10===0?'BOSS CLEAR!':`${f}F CLEAR`):'GAME OVER',ch:win?me.ch:foe.ch,win,coins,
+    sub:win?L(`無限の塔 ${f}F 突破！`,`突破无限之塔 ${f}F！`)+(msg?'<br>'+msg:''):L(`無限の塔 ${f}Fで力尽きた…<br>自己ベスト ${save.inf.best}F`,`在无限之塔 ${f}F 倒下了……<br>个人最佳 ${save.inf.best}F`),
+    hint:win?L('続けて登るか、ここで中断できます（続きはタワー画面から）','可以继续攀登，也可以在此中断（之后可从塔画面继续）'):L('また1階から挑戦できます','可以再从1层开始挑战'),
+    go:win?[['inf-next',L(`${f+1}Fへ進む`,`前往 ${f+1}F`)],['tower',L('中断する','中断')]]:[['tower',L('タワーへ','前往塔')],['party',L('編成へ','前往编队')]]})}
+function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d===today()?save.inf.day.c:0;
+  el.innerHTML=`<h2>🗼 ${L('無限の塔','无限之塔')}</h2>
+    <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎階全回復、たおれた仲間は10階ごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每层完全恢复，倒下的伙伴在打倒每10层的头目后复活。')}</p>
+    <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D} / ${INF_REW.cap}${L('コイン','金币')}</b></div>
+    <p class="hint">${L(`報酬：1階${INF_REW.floor}コイン、ボス階+${INF_REW.boss}、自己ベスト更新で+${INF_REW.best}（1日${INF_REW.cap}コインまで）`,`奖励：每层${INF_REW.floor}金币，头目层+${INF_REW.boss}，刷新最佳+${INF_REW.best}（每天最多${INF_REW.cap}金币）`)}</p>
+    ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
+      <div class="row"><button class="btn primary" id="inf-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
+    :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
+      <button class="btn primary" id="inf-go">${L('1階から挑戦する','从1层开始挑战')}</button>`}`;
+  if(!run)bindPsets('#psets-i',renderInf);
+  $('#inf-go').onclick=()=>{ac();sfx('tap');if(save.inf.run)beginInf();else infStart()};
+  const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1階からです','要放弃吗？下次将从1层开始')))return;save.inf.run=null;persist();renderTower()}}
+
 /* ================= バトル ================= */
 let B=null;
 function beginBattle(raid=false){fixParty();if(!save.party.length)return;
   TUT.on=!save.tutDone&&!raid;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
-  const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}));persist();
+  const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));persist();
   const BF=raid?save.floor:((tsel!=null&&canPlay(tsel))?tsel:save.floor),RP=raid?false:isReplay(BF);
   const enemies=raid?[G.raidEnemy()]:G.enemiesFor(BF,save.lap,Math.random,save.party);
   B={raid,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:save.lap,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
@@ -1347,7 +1409,7 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
 function openSheet(html,close){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
   bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}<button class="btn primary" data-close style="align-self:center">${close||L('バトルに戻る','返回对战')}</button></div>`;
   bg.onclick=e=>{if(e.target===bg||e.target.dataset.close!==undefined){bg.remove()}};document.body.append(bg);bg.querySelector('[data-close]').focus({preventScroll:true})}
-function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].team[v.idx],t=v.team[v.idx],fl=FLOORS[B.S.floor-1];
+function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].team[v.idx],t=v.team[v.idx],fl=FLOORS[B.S.floor-1]||{n:'',rule:null};
   const st=[];if(t.guard)st.push(`${L('ガード','护盾')} ${t.guard}`);if(t.pow)st.push(`${L('次の攻撃','下次攻击')} +${t.pow}`);if(t.weak)st.push(`${L('次の攻撃','下次攻击')} −${t.weak}`);if(t.dMod)st.push(`${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}`);
   openSheet(`<div class="label">${i?L('相手のキャラ','对手的角色'):L('あなたのキャラ','你的角色')}</div>
   <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br><small>${f.ch.role}　${L('体力','体力')} ${t.hp} / ${t.max}</small></div></div>
@@ -1394,6 +1456,7 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
   const win=B.S.over===0,f=B.floor,RP=B.replay,me=G.act(B.S,0),foe=G.act(B.S,1);
   if(B.online)return finishOnline(win,me,foe);
   if(B.raid)return finishRaid(win,me,foe);
+  if(B.inf)return finishInf(win,me,foe);
   const coins=RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
   let opened=false,master=false;
   if(win&&!RP){
@@ -1514,7 +1577,7 @@ function showOverlay(o){const ov=document.createElement('div');ov.className='ove
     <div class="row" style="justify-content:center">${o.go?o.go.map((g,k)=>`<button class="btn${k?'':' primary'}" data-go="${g[0]}">${g[1]}</button>`).join(''):`<button class="btn primary" data-go="tower">${L('タワーへ','前往塔')}</button><button class="btn" data-go="gacha">${L('ガチャへ','前往扭蛋')}</button><button class="btn" data-go="party">${L('編成へ','前往编队')}</button>`}</div></div>`;
   document.body.append(ov);const cc=ov.querySelector('.cc');let n=0;
   const tick=o.coins<=0?null:setInterval(()=>{n++;cc.textContent=n;tone(1200+n*25,.04,'square',.04);if(n>=o.coins)clearInterval(tick)},RM?1:Math.max(40,700/o.coins));
-  ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}if(RAID.pending){RAID.pending=false;showRaid(b.dataset.go)}else nav(b.dataset.go)});
+  ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{clearInterval(tick);cc.textContent=o.coins;ov.remove();if(B&&B.done){B=null}if(b.dataset.go==='inf-next'){beginInf();return}if(RAID.pending){RAID.pending=false;showRaid(b.dataset.go)}else nav(b.dataset.go)});
   ov.querySelector('[data-go]').focus()}
 
 /* ================= タイトル画面 ================= */

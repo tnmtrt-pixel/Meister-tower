@@ -240,6 +240,13 @@ function enemiesFor(f,lap,R=Math.random,avoid=[]){const n=floorCount(f),st=f>TOP
     let id;let tries=0;do{id=pool[Math.floor(R()*pool.length)];tries++}while(tries<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));
     out.push({id,star:st,hp:floorHP(f,lap),lv,bonus:lvBonus(lv)})}
   return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
+/* 無限の塔：負けるまで登る。数字はシミュレーションで調整済み（今の最強で中央値40F前後、100Fは届かない） */
+const INF={lvEvery:12,hp0:18,hpPer:.35,boss0:30,bossPer:6,revive:.5};
+function infEnemies(f,R=Math.random,avoid=[]){const boss=f%10===0,m=f%10,lv=Math.floor(f/INF.lvEvery),bonus=lvBonus(lv),st=Math.min(3,1+Math.floor((f-1)/10));
+  const n=boss?2:(m<=3?1:2),hp=Math.round(INF.hp0+f*INF.hpPer),pool=CHARS.map(c=>c.id),out=[];
+  for(let i=0;i<n;i++){let id,t=0;do{id=pool[Math.floor(R()*pool.length)];t++}while(t<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));out.push({id,star:st,hp,lv,bonus})}
+  if(boss){const k=f/10;out.push({id:k%2?'takumi':'sora',star:3,hp:Math.round(INF.boss0+k*INF.bossPer),lv:lv+1,bonus,boss:true})}
+  return out.map(e=>({...e,mv:e.id==='sora'?[2,4,5,6]:autoPick(byId(e.id),e.star,1.5,R)}))}
 /* 乱入バトルの敵：チート性能の匠空 */
 function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,raid:true,mv:[2,4,5,6]}}
 /* 通信対戦：同じシードの乱数で、両方の端末が同じ結果を計算する（自分は常に side 0） */
@@ -252,7 +259,7 @@ function newPvP(o){/* o:{me:[{id,star,mv,lv}],opp:[...],seed,firstSide} */
   return S}
 function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,mv,hp}]} */
   const S={floor:o.floor,lap:o.lap||1,rule:(FLOORS[o.floor-1]||{}).rule,turn:0,over:-1,ev:[],
-    sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
+    sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,p.hp||PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
            {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0,!!e.raid)),idx:0,dice:[],used:new Set(),first:false}]};
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
@@ -380,7 +387,8 @@ const WORDS=[[
   ['{c}の','{c}的','u:wolf:1'],['牙をむく','露出獠牙的','u:wolf:20'],['月に吠える','对月长嚎的','u:wolf:100'],['{c}の','{c}的','u:onmyo:1'],['百鬼夜行の','百鬼夜行的','u:onmyo:100'],['{c}の','{c}的','u:tsukiyo:1'],
   ['天の川の','银河的','u:tsukiyo:100'],['{c}の','{c}的','u:mouse:1'],['ちょこまか','蹦蹦跳跳的','u:mouse:50'],['{c}の','{c}的','u:owl:1'],['{c}の','{c}的','u:gorilla:1'],['力持ちの','力大无穷的','u:gorilla:20'],
   ['{c}の','{c}的','u:robot:1'],['全自動','全自动','u:robot:20'],['{c}の','{c}的','u:rocker:1'],['一か八かの','孤注一掷的','u:rocker:20'],['ロックな','摇滚的','u:rocker:50'],['{c}の','{c}的','u:takumi:1'],
-  ['{c}の','{c}的','u:sora:1'],['空飛ぶ','飞翔的','u:sora:50']],
+  ['{c}の','{c}的','u:sora:1'],['空飛ぶ','飞翔的','u:sora:50'],
+  ['10階の','10层的','I:10'],['20階の','20层的','I:20'],['30階の','30层的','I:30'],['40階の','40层的','I:40'],['50階の','50层的','I:50'],['60階の','60层的','I:60'],['70階の','70层的','I:70'],['80階の','80层的','I:80'],['90階の','90层的','I:90'],['100階の','100层的','I:100']],
 [
   ['旋盤','车床','S:3'],['フライス','铣床','G:200'],['溶接','焊接','S:7'],['歯車','齿轮'],['ドライバー','螺丝刀'],['スパナ','扳手'],
   ['ハンマー','锤子'],['ヤスリ','锉刀','G:20'],['ネジ','螺丝'],['ボルト','螺栓'],['ナット','螺母'],['ノギス','卡尺','G:30'],
@@ -408,8 +416,8 @@ const WORDS=[[
 /* 単語の文字。「{c}」はキャラ名に置きかえる */
 function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],w[1]);
   if(t.includes('{c}')){const c=byId(String(w[2]).split(':')[1]);t=t.replace('{c}',c?c.name:'？')}return t}
-const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026']];
-const API={WORDS,TITLE_NAMES,wordText,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
+const API={WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
