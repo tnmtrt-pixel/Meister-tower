@@ -246,7 +246,7 @@ function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,ra
 function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 function newPvP(o){/* o:{me:[{id,star,mv,lv}],opp:[...],seed,firstSide} */
   const fs=o.firstSide?1:0;
-  const S={floor:0,lap:1,rule:null,turn:0,over:-1,ev:[],pvp:true,firstSide:fs,R:rng(o.seed),
+  const S={floor:0,lap:1,rule:null,turn:0,over:-1,ev:[],pvp:true,maxRound:o.maxRound||12,firstSide:fs,R:rng(o.seed),
     sides:[{team:o.me.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===0},
            {team:o.opp.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===1}]};
   return S}
@@ -277,6 +277,12 @@ function startTurn(S,i,R=S.R||Math.random){if(S.over>=0)return take(S);
   S.turn=i;const sd=S.sides[i],f=act(S,i),pk=f.ch.passive.k;f.guard=0;sd.used=new Set();sd.dice=[];
   E(S,'turn',i===0?L('あなたのターン！','你的回合！'):L('相手のターン！','对方的回合！'),{side:i});
   if(i===(S.firstSide||0))S.round=(S.round||0)+1;
+  /* 通信対戦：決められたラウンドを超えたら、残り体力の割合で判定（両方の端末で同じ結果になる） */
+  if(S.maxRound&&S.round>S.maxRound){const rate=k=>{const t=S.sides[k].team;return t.reduce((a,f)=>a+Math.max(0,f.hp),0)/t.reduce((a,f)=>a+f.max,0)};
+    const hp=k=>S.sides[k].team.reduce((a,f)=>a+Math.max(0,f.hp),0);const a=rate(0),b=rate(1);
+    const w=a!==b?(a>b?0:1):hp(0)!==hp(1)?(hp(0)>hp(1)?0:1):1-(S.firstSide||0);
+    E(S,'judge',L(`${S.maxRound}ラウンド終了！ 残り体力 ${Math.round(a*100)}% 対 ${Math.round(b*100)}% で判定`,`${S.maxRound}回合结束！剩余体力 ${Math.round(a*100)}% 对 ${Math.round(b*100)}%，进行判定`),{side:w});
+    S.over=w;E(S,'over','',{winner:w});return take(S)}
   if(S.round>=FATIGUE){const d=S.round-FATIGUE+1;f.hp=Math.max(0,f.hp-d);E(S,'hit',L(`長期戦の疲れ！ ${f.ch.name}に ${d} ダメージ`,`持久战的疲劳！ ${f.ch.name} 受到 ${d} 点伤害`),{side:i,amt:d,src:-1})}
   if(rk(S)==='storm'){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`嵐で ${f.ch.name}に 1ダメージ`,`风暴使 ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
   if(pk==='gamble'&&f.hp>0){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`ロックンロール！ ${f.ch.name}は 1ダメージ`,`摇滚！ ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
@@ -361,7 +367,24 @@ function simulate(o,R=Math.random){const S=newBattle(o);let i=0,guard=0;
   while(S.over<0&&guard++<200){startTurn(S,i,R);let c;while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R)))useMove(S,i,c.mi,c.ks);endTurn(S,i);take(S);i=1-i}
   return S.over}
 
-const API={rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+/* プロフィール名の単語（前・中・後）。番号はサーバーに保存されるので、並びは変えずに後ろへ足すこと。3つ目は解放条件 */
+const WORDS=[
+ [['夜明けの','黎明的'],['真夜中の','午夜的'],['燃える','燃烧的'],['凍てつく','冰封的'],['無敵の','无敌的'],['静かなる','沉静的'],['熱血','热血'],['気まぐれ','随性的'],['疾風の','疾风的'],['鋼の','钢铁的'],
+  ['黄金の','黄金的'],['青き','蔚蓝的'],['眠れる','沉睡的'],['光る','闪耀的'],['さすらいの','流浪的'],['不屈の','不屈的'],['陽気な','开朗的'],['迷える','迷途的'],['天才','天才'],['雷鳴の','雷鸣的'],
+  ['星降る','星落的'],['月夜の','月夜的'],['朝練の','晨练的'],['放課後の','放学后的'],['腹ぺこ','饿肚子的'],['全力','全力'],['寡黙な','沉默的'],['秘密の','秘密的'],['噂の','传闻中的'],['はじまりの','起点的'],
+  ['挑む','挑战的',1],['伝説の','传说的',2],['真・','真·',3],['博識の','博学的',4],['星屑の','星屑的',5],['皆勤の','全勤的',6],['百戦錬磨の','身经百战的',7],['最強の','最强的',8],['天空の','天空的',9],
+  ['白星の','白星的','cupwin']],
+ [['旋盤','车床'],['フライス','铣床'],['溶接','焊接'],['歯車','齿轮'],['ドライバー','螺丝刀'],['スパナ','扳手'],['ハンマー','锤子'],['ヤスリ','锉刀'],['ネジ','螺丝'],['ボルト','螺栓'],
+  ['ナット','螺母'],['ノギス','卡尺'],['万力','虎钳'],['ドリル','钻头'],['はんだ','焊锡'],['回路','电路'],['モーター','马达'],['ロボット','机器人'],['鉄骨','钢梁'],['設計図','设计图'],
+  ['定規','直尺'],['電池','电池'],['ペンチ','钳子'],['金型','模具'],['エンジン','引擎'],['ドローン','无人机'],['チェーン','链条'],['砥石','磨刀石'],['鋳物','铸件'],['プログラム','程序'],
+  ['塔','塔',2],['匠','匠',3],['星','星',5],['雷','雷',8],['空','空',9],
+  ['ゼッケン','号码布','cup1'],['トロフィー','奖杯','cupfin']],
+ [['職人','工匠'],['マイスター','大师'],['見習い','学徒'],['使い','使者'],['名人','名人'],['番人','守卫'],['博士','博士'],['隊長','队长'],['王','王'],['騎士','骑士'],
+  ['魔術師','魔术师'],['探検家','探险家'],['守護者','守护者'],['旅人','旅人'],['研究者','研究员'],['選手','选手'],['先輩','前辈'],['仙人','仙人'],['忍者','忍者'],['達人','达人'],
+  ['挑戦者','挑战者',1],['塔の主','塔之主',3],['収集家','收藏家',4],['皆勤賞','全勤奖',6],['指揮官','指挥官',7],['覇者','霸者',8],['パイロット','飞行员',9],
+  ['チャンピオン','冠军','cupchamp'],['名匠','名匠','meister']]];
+const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026']];
+const API={WORDS,TITLE_NAMES,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

@@ -1,3 +1,4 @@
+import { CupMixin } from './cup.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -156,6 +157,7 @@ export class Rank {
   constructor(state, env) {
     this.env = env;
     this.sql = state.storage.sql;
+    this.store = state.storage;
     this.sql.exec(`CREATE TABLE IF NOT EXISTS u (
       id TEXT PRIMARY KEY, sec TEXT NOT NULL, w TEXT NOT NULL DEFAULT '[]', icon TEXT NOT NULL DEFAULT '', title INTEGER NOT NULL DEFAULT 0,
       ison INTEGER NOT NULL DEFAULT 1, hidden INTEGER NOT NULL DEFAULT 0,
@@ -181,10 +183,12 @@ export class Rank {
     const url = new URL(request.url);
     try {
       if (request.method === 'GET' && url.pathname === '/api/rank') return this.rank(url);
+      if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
       if (url.pathname === '/api/profile') return this.profile(b);
       if (url.pathname === '/api/score') return this.score(b);
+      if (url.pathname.startsWith('/api/cup/')) return this.cupRoute(url.pathname, b, json);
       if (url.pathname === '/api/admin') return this.admin(b);
       return json({ err: 'not found' }, 404);
     } catch (e) {
@@ -257,3 +261,5 @@ export class Rank {
     return json({ ok: true, n });
   }
 }
+
+Object.assign(Rank.prototype, CupMixin);
