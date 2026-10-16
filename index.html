@@ -666,7 +666,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=05158792"></script>
 <script>
-const VERSION='1.17.0';
+const VERSION='1.17.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1275,12 +1275,13 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
 async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,msg='';
   if(win){const D=save.inf.day.d===today()?save.inf.day:(save.inf.day={d:today(),c:0});
-    let r=INF_REW.floor+(f%10===0?INF_REW.boss:0);const nb=f>save.inf.best;if(nb){r+=INF_REW.best;save.inf.best=f}
-    coins=Math.max(0,Math.min(r,INF_REW.cap-D.c));D.c+=coins;save.coins+=coins;
+    let r=INF_REW.floor;const nb=f>save.inf.best;if(nb){r+=INF_REW.best;save.inf.best=f}
+    const capped=Math.max(0,Math.min(r,INF_REW.cap-D.c)),bossC=f%10===0?INF_REW.boss:0;/* ボス撃破のコインは1日の上限とは別 */
+    D.c+=capped;coins=capped+bossC;save.coins+=coins;
     B.S.sides[0].team.forEach(x=>{run.hp[x.ch.id]=x.hp>0?x.max:(f%10===0?Math.round(x.max*G.INF.revive):0)});
     save.st.wins=(save.st.wins||0)+1;mission('win');B.S.sides[0].team.forEach(x=>{save.use[x.ch.id]=(save.use[x.ch.id]||0)+1});
     run.f=f+1;msg=nb?L('自己ベスト更新！','刷新个人最佳！'):'';
-    if(D.c>=INF_REW.cap&&coins<r)msg+=(msg?'　':'')+L('今日の報酬は上限です','今日奖励已达上限')}
+    if(D.c>=INF_REW.cap&&capped<r)msg+=(msg?'　':'')+L('今日の報酬は上限です','今日奖励已达上限')}
   else{save.inf.run=null}
   persist();updCoins();pushScore();checkTitles();
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose')}
@@ -1293,7 +1294,7 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
   el.innerHTML=`<h2>🗼 ${L('無限の塔','无限之塔')}</h2>
     <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎階全回復、たおれた仲間は10階ごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每层完全恢复，倒下的伙伴在打倒每10层的头目后复活。')}</p>
     <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D} / ${INF_REW.cap}${L('コイン','金币')}</b></div>
-    <p class="hint">${L(`報酬：1階${INF_REW.floor}コイン、ボス階+${INF_REW.boss}、自己ベスト更新で+${INF_REW.best}（1日${INF_REW.cap}コインまで）`,`奖励：每层${INF_REW.floor}金币，头目层+${INF_REW.boss}，刷新最佳+${INF_REW.best}（每天最多${INF_REW.cap}金币）`)}</p>
+    <p class="hint">${L(`報酬：1階${INF_REW.floor}コイン、自己ベスト更新で+${INF_REW.best}（この2つは1日${INF_REW.cap}コインまで）。ボスを倒すと上限とは別に${INF_REW.boss}コイン`,`奖励：每层${INF_REW.floor}金币，刷新最佳+${INF_REW.best}（这两项每天最多${INF_REW.cap}金币）。打倒头目另得${INF_REW.boss}金币（不计入上限）`)}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
       <div class="row"><button class="btn primary" id="inf-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
     :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
