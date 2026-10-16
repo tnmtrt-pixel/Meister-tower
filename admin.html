@@ -75,6 +75,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <div class="big">運営用パスワード</div>
     <p class="st">Cloudflare に登録した ADMIN_KEY を入れてください。</p>
     <input id="key" type="password" style="width:300px"> <button class="btn primary" id="go">入る</button>
+    <p id="lerr" class="st" style="color:var(--low);font-weight:800"></p>
   </div>
   <div id="create" class="card hide">
     <div class="big">新しい大会を作る</div>
@@ -106,7 +107,7 @@ let TID='',S=null,poll=null;
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('hide'),3000)};
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function adm(op,extra={}){const r=await fetch(API+'/api/cup/admin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,op,tid:TID,...extra})});
-  const j=await r.json().catch(()=>({}));if(r.status===403){showLogin();throw new Error('auth')}if(j.cup)S=j.cup;if(!r.ok)throw new Error(j.err||r.status);return j}
+  const j=await r.json().catch(()=>({}));if(r.status===403){showLogin();throw new Error('auth')}if(r.status===404&&!j.err)throw new Error('old')if(j.cup)S=j.cup;if(!r.ok)throw new Error(j.err||r.status);return j}
 const nameOf=p=>p?(p.w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('')+'#'+p.tag:'';
 const titleOf=p=>p&&p.title?(G.TITLE_NAMES[p.title]||[''])[0]:'';
 const img=id=>{const c=G.byId(id);return c?`<img src="${c.img}" alt="">`:'<img alt="">'};
@@ -115,7 +116,10 @@ const ERR={'need 2':'受付した人が2人以上必要です','final done':'決
 const errMsg=e=>{const m=String(e.message||e);if(m.startsWith('undecided:'))return`まだ結果が出ていない卓があります：${m.slice(10)}番`;return ERR[m]||m};
 
 function showLogin(){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#create').classList.add('hide');clearInterval(poll)}
-$('#go').onclick=async()=>{KEY=$('#key').value.trim();try{sessionStorage.setItem('mt-admin',KEY)}catch(e){}await boot()};
+$('#go').onclick=async()=>{KEY=$('#key').value.trim();$('#lerr').textContent='確認しています…';try{sessionStorage.setItem('mt-admin',KEY)}catch(e){}await boot()};
+async function why(r){/* ログインできない理由を表示する */
+  if(r==='auth'){$('#lerr').textContent='パスワードがちがいます。または、Cloudflare に ADMIN_KEY がまだ登録されていません（登録後に Deploy が必要です）。';return}
+  try{const t=await fetch(API+'/api/cup/pub');$('#lerr').textContent=t.status===404?'サーバーがまだ古い版です。Cloudflare の更新が終わるまで数分待ってください。':'サーバーにつながりません：'+r}catch(e){$('#lerr').textContent='サーバーにつながりません。通信環境を確認してください。'}}
 $('#logout').onclick=()=>{KEY='';try{sessionStorage.removeItem('mt-admin')}catch(e){}showLogin()};
 $('#new').onclick=()=>{$('#create').classList.remove('hide')};
 $('#ccancel').onclick=()=>$('#create').classList.add('hide');
@@ -127,7 +131,7 @@ async function boot(){try{const j=await adm('list');$('#login').classList.add('h
     const list=j.list||[];if(!TID&&list.length)TID=(list.filter(x=>x.status!=='done').pop()||list[list.length-1]).id;
     $('#sel').innerHTML=list.map(x=>`<option value="${x.id}" ${x.id===TID?'selected':''}>${esc(x.name.ja)}／${esc(x.sub.ja)}（${({open:'エントリー受付中',checkin:'当日受付中',play:'進行中',done:'終了'})[x.status]}）</option>`).join('')||'<option>大会がありません</option>';
     if(!list.length){$('#create').classList.remove('hide');$('#app').classList.add('hide');return}
-    $('#app').classList.remove('hide');await refresh();clearInterval(poll);poll=setInterval(refresh,2000)}catch(e){if(String(e.message)!=='auth')toast('サーバーにつながりません：'+errMsg(e))}}
+    $('#app').classList.remove('hide');$('#lerr').textContent='';await refresh();clearInterval(poll);poll=setInterval(refresh,2000)}catch(e){showLogin();why(String(e.message||e))}}
 async function refresh(){if(!TID)return;try{await adm("state")}catch(e){return}render()}
 const act=(op,extra,confirmMsg)=>async()=>{if(confirmMsg&&!confirm(confirmMsg))return;try{await adm(op,extra);render();if(op==='delete'){TID='';boot()}}catch(e){toast(errMsg(e))}};
 
