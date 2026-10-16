@@ -226,7 +226,7 @@ const SORA={id:'sora',name:'匠空',img:'img/sora.webp',color:'#2C78C8',role:'20
   {n:'ホバリング',c:{t:'odd'},fx:{guard:5}},
   {n:'自動追尾',c:{t:'max',n:3},dmg:{b:1,m:2},t:2},
   {n:'電波妨害',c:{t:'min',n:5},dmg:{b:6},fx:{dDown:1},t:2},
-  {n:'空爆ドローン',c:{t:'pair'},dmg:{b:20},fx:{guard:3},t:3}]};
+  {n:'空爆ドローン',c:{t:'pair'},dmg:{b:18},fx:{guard:3},t:3}]};
 /* 審判の塔のボス（ガチャには出ない。倒すと仲間になる） */
 const VERDICT={id:'verdict',no:23,name:'ヴェルディクト',img:'img/verdict.webp',color:'#6B4A9E',role:'審判の塔10Fの主・白黒の鳥',reward:'judge10',
   passive:{k:'wb',n:'白黒の羽',d:'自分のターンごとに白と黒が入れ替わる。黒の間は攻撃+2、白の間は受けるダメージ−1'},
@@ -416,14 +416,14 @@ function enemiesFor(f,lap,R=Math.random,avoid=[],tw='meister'){const T=towerOf(t
     if((f===TOP||f===TOP2)&&i===n-1){out.push({id:f===TOP?T.b10:T.b20,star:3,hp:bossHP(f,lap,tw),lv:f===TOP2?lv+1:0,bonus:f===TOP2?lvBonus(lv):0,boss:true});break}
     let id;let tries=0;do{id=pool[Math.floor(R()*pool.length)];tries++}while(tries<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));
     out.push({id,star:st,hp:floorHP(f,lap),lv,bonus:lvBonus(lv)})}
-  return out.map(e=>({...e,mv:e.id==='sora'?[2,4,5,6]:autoPick(byId(e.id),e.star,1.5,R)}))}
+  return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
 /* 無限の塔：負けるまで登る。数字はシミュレーションで調整済み（今の最強で中央値40F前後、100Fは届かない） */
 const INF={lvEvery:12,hp0:18,hpPer:.35,boss0:30,bossPer:6,revive:.5};
 function infEnemies(f,R=Math.random,avoid=[]){const boss=f%10===0,m=f%10,lv=Math.floor(f/INF.lvEvery),bonus=lvBonus(lv),st=Math.min(3,1+Math.floor((f-1)/10));
   const n=boss?2:(m<=3?1:2),hp=Math.round(INF.hp0+f*INF.hpPer),pool=CHARS.map(c=>c.id),out=[];
   for(let i=0;i<n;i++){let id,t=0;do{id=pool[Math.floor(R()*pool.length)];t++}while(t<20&&(out.some(e=>e.id===id)||(avoid.includes(id)&&R()<.6)));out.push({id,star:st,hp,lv,bonus})}
   if(boss){const k=f/10;out.push({id:['takumi','verdict','sora','eclipse'][(k-1)%4],star:3,hp:Math.round(INF.boss0+k*INF.bossPer),lv:lv+1,bonus,boss:true})}
-  return out.map(e=>({...e,mv:e.id==='sora'?[2,4,5,6]:autoPick(byId(e.id),e.star,1.5,R)}))}
+  return out.map(e=>({...e,mv:autoPick(byId(e.id),e.star,1.5,R)}))}
 /* 乱入バトルの敵：チート性能の匠空 */
 function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,raid:true,mv:[2,4,5,6]}}
 /* 通信対戦：同じシードの乱数で、両方の端末が同じ結果を計算する（自分は常に side 0） */
