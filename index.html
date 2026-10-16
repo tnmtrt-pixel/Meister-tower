@@ -260,6 +260,7 @@ details p{margin:6px 0 0}
 .tw[aria-pressed="true"] .tw-n small{color:#FFE08A}.tw-v{font:800 11px var(--f-body);color:var(--muted)}
 .hprow{align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}.hprow b{font-size:18px;color:#FFE08A}
 .tw.locked{opacity:.7}
+#auto{min-width:96px;font-weight:800}#auto.on{background:linear-gradient(180deg,#FFE08A,#D9AE45);color:#2A1B00;border-color:#fff;box-shadow:0 0 12px rgba(255,224,138,.6)}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -666,7 +667,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=05158792"></script>
 <script>
-const VERSION='1.17.2';
+const VERSION='1.18.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -681,7 +682,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -702,6 +703,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.hpLv={};for(const k in (v.hpLv||{}))if(byId(k))s.hpLv[k]=Math.min(5,Math.max(0,v.hpLv[k]|0));
   {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0)},
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
+  s.auto=!!v.auto;
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
@@ -1378,13 +1380,23 @@ async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;if(B.onlin
 
 /* 使える技が1つもなくなったら、自動でターン終了 */
 const canAct=()=>{const sd=B.S.sides[0],f=sd.team[sd.idx];return f.moves.some((m,mi)=>!sd.used.has(mi)&&G.diceFor(B.S,0,mi,null))};
-function autoEndCheck(human){clearTimeout(B.autoT);if(!human||B.busy||B.done||TUT.on||B.S.over>=0||canAct())return;
-  B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||canAct())return;const E=$('#end');if(E)E.click()},900)}
+/* オートモード：技とサイコロを自動で選ぶ（ON/OFFは保存される）。チュートリアル中は使わない */
+function autoEndCheck(human){clearTimeout(B.autoT);if(!human||B.busy||B.done||TUT.on||B.S.over>=0)return;
+  if(save.auto){B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||!save.auto)return;const c=G.cpuChoose(B.S,0);if(c)doMove(c.mi,c.ks);else endMyTurn()},550);return}
+  if(canAct())return;
+  B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||canAct())return;endMyTurn()},900)}
+async function doMove(mi,ks){if(!B||B.busy)return;const sd=B.S.sides[0],m=sd.team[sd.idx].moves[mi];
+  B.busy=true;B.sel=null;renderControl();mission('move');if((m.t||1)>=2)mission('hmove');if(B.online)onlineSend({t:'act',mi,ks});await play(G.useMove(B.S,0,mi,ks));
+  if(!B)return;if(B.S.over>=0)return finish();
+  B.busy=false;renderControl();if(TUT.on&&TUT.wait==='move')tutAdvance()}
+async function endMyTurn(){if(!B||B.busy)return;if(tutBlock('end'))return;if(TUT.on&&TUT.wait==='end')tutAdvance();B.busy=true;sfx('tap');renderControl();
+  if(B.online){onlineSend({t:'end'});return onlineQueue(async()=>{await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();await runTurn(1)})}
+  await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();runTurn(1)}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function renderControl(rolled){if(!B)return;const el=$('#control');
   if(B.done){el.innerHTML='';el.style.minHeight='';B.ctlHTML='';return}
   const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],f=sd.team[v.idx],human=i===0;
-  const html=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''}</div>
+  const html=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${TUT.on?(human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO ${save.auto?'ON':'OFF'}</button>`}</div>
   <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
   ${human?`<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
     let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),after=Math.max(0,r.d-o.guard);
@@ -1395,16 +1407,15 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
   B.ctlHTML=html;el.innerHTML=html;
   /* 高さを最大に保って、ターンごとに画面がガタつかないようにする */
   const h=el.offsetHeight;if(h>(B.ctlMax||0)){B.ctlMax=h;el.style.minHeight=h+'px'}
+  const AU=$('#auto');if(AU)AU.onclick=()=>{sfx('tap');save.auto=!save.auto;persist();renderControl()};
   hl();if(!human)return;
   el.querySelectorAll('.die').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;if(B.busy||!sd.dice[k]||sd.dice[k].used)return;sfx('tap');B.sel=B.sel===k?null:k;renderControl()});
   el.querySelectorAll('.mv').forEach(b=>b.onclick=async()=>{if(B.busy)return;if(tutBlock('move'))return;const mi=+b.dataset.mi,m=f.moves[mi];
     if(sd.used.has(mi)){toast(L('この技はこのターンもう使いました','这个技能本回合已经用过了'));return}
     const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
     if(B.sel!=null&&!ks.includes(B.sel))toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`));
-    B.busy=true;B.sel=null;renderControl();mission('move');if((m.t||1)>=2)mission('hmove');if(B.online)onlineSend({t:'act',mi,ks});await play(G.useMove(B.S,0,mi,ks));
-    if(!B)return;if(B.S.over>=0)return finish();
-    B.busy=false;renderControl();if(TUT.on&&TUT.wait==='move')tutAdvance()});
-  const E=$('#end');if(E)E.onclick=async()=>{if(B.busy)return;if(tutBlock('end'))return;if(TUT.on&&TUT.wait==='end')tutAdvance();B.busy=true;sfx('tap');renderControl();if(B.online){onlineSend({t:'end'});return onlineQueue(async()=>{await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();await runTurn(1)})}await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();runTurn(1)}}
+    doMove(mi,ks)});
+  const E=$('#end');if(E)E.onclick=()=>endMyTurn();}
 
 /* ================= 対戦中の情報 ================= */
 function openSheet(html,close){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
@@ -1525,7 +1536,7 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
     const left=Math.max(0,Math.ceil((B.deadline-Date.now())/1000)),mine=B.S.turn===0;
     el.hidden=false;el.className='ttimer'+(left<=10?' hot':'');el.textContent=(mine?L('あなたの残り時間 ','你的剩余时间 '):L('相手の残り時間 ','对方剩余时间 '))+left+L('秒','秒');
     if(mine&&left<=10&&left!==B.lastBeep){B.lastBeep=left;if(left>0)tone(880,.05,'square',.03)}
-    if(mine&&left<=0&&!B.busy&&!B.timedOut){B.timedOut=true;toast(L('時間切れ！ ターンを終了します','时间到！自动结束回合'));const E=$('#end');if(E)E.click()}
+    if(mine&&left<=0&&!B.busy&&!B.timedOut){B.timedOut=true;toast(L('時間切れ！ ターンを終了します','时间到！自动结束回合'));endMyTurn()}
     if(!mine)B.timedOut=false},250)}
 function beginOnline(m){
   TUT.on=false;
