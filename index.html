@@ -261,6 +261,13 @@ details p{margin:6px 0 0}
 .hprow{align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}.hprow b{font-size:18px;color:#FFE08A}
 .tw.locked{opacity:.7}
 #auto{min-width:96px;font-weight:800}#auto.on{background:linear-gradient(180deg,#FFE08A,#D9AE45);color:#2A1B00;border-color:#fff;box-shadow:0 0 12px rgba(255,224,138,.6)}
+.tw.has-img{flex-wrap:wrap;padding:0;overflow:hidden;gap:0}
+.tw.has-img .tw-img{position:relative;display:block;width:100%;aspect-ratio:3/1}
+.tw.has-img .tw-img img{width:100%;height:100%;object-fit:cover;display:block}
+.tw.has-img .tw-i{display:none}.tw.has-img .tw-n{padding:6px 10px}.tw.has-img .tw-v{padding:6px 10px}
+.tw.has-img.soon{opacity:1;border-style:solid}.tw.has-img.soon .tw-img img,.tw.has-img.locked .tw-img img{filter:brightness(.55) saturate(.8)}
+.tw-soon{position:absolute;right:8px;top:8px;padding:3px 10px;border:2px solid #FFE08A;color:#FFE08A;font:800 12px var(--f-body);letter-spacing:.12em;background:rgba(0,0,0,.55);transform:rotate(-3deg)}
+.banner.soon.art{aspect-ratio:16/9}.banner.soon.art img{filter:brightness(.6) saturate(.9)}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -593,7 +600,7 @@ hr{border-color:var(--line)!important}
       <div class="banners">
         <button class="banner" id="pull" type="button"><img src="img/gacha-v1.webp" alt=""><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.1">キャラクター vol.1</b></span><span class="bn-p" id="pull-price">3</span></button>
         <div class="pullrow" id="pullrow"><button class="btn" id="pull1" type="button"><span data-zh="扭蛋1次">1回引く</span><small>3<span data-zh="金币">コイン</span></small></button><button class="btn primary" id="pull10" type="button"><span data-zh="11连抽">11連</span><small>30<span data-zh="金币">コイン</span> · <span data-zh="必得★2以上">★2以上1体確定</span></small></button></div>
-        <button class="banner soon" type="button" data-soon="2"><img src="img/gacha-v2.webp" alt=""><span class="bn-q">?</span><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.2">キャラクター vol.2</b></span><span class="bn-s">COMING SOON</span></button>
+        <button class="banner soon art" type="button" data-soon="2"><img src="img/gacha-v2.webp" alt=""><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.2">キャラクター vol.2</b></span><span class="bn-s">COMING SOON</span></button>
         <button class="banner soon" type="button" data-soon="3"><img src="img/gacha-v3.webp" alt=""><span class="bn-q">?</span><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.3">キャラクター vol.3</b></span><span class="bn-s">COMING SOON</span></button>
       </div>
       <div class="row" style="justify-content:center"><button class="btn" id="to-tower" data-zh="前往塔">タワーへ</button></div>
@@ -667,7 +674,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=05158792"></script>
 <script>
-const VERSION='1.18.0';
+const VERSION='1.19.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -789,12 +796,12 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
-const TOWERS=[{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true},
-  {id:'t2',icon:'🏭',ja:'？？？の塔',zh:'？？？之塔',vol:2,soon:true},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
+const TOWERS=[{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},
+  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,soon:true,img:'img/tower-judge.webp'},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
 function renderTowers(){const el=$('#towers');if(!hasAny()){el.hidden=true;return}el.hidden=false;
   const prog=()=>save.clears||save.lap>1?L(`${save.lap}周目 ${save.floor}F`,`第${save.lap}轮 ${save.floor}F`):`${save.floor}F`;
-  el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}${t.inf&&!infOpen()?' locked':''}" data-tw="${k}" aria-pressed="false">
-    <span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog()}</small></span><span class="tw-v">${t.inf?'∞':'vol.'+t.vol}</span></button>`).join('')}</div>`;
+  el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}${t.img?' has-img':''}${t.inf&&!infOpen()?' locked':''}" data-tw="${k}" aria-pressed="false">
+    ${t.img?`<span class="tw-img"><img src="${t.img}" alt="${L(t.ja,t.zh)}">${t.soon?'<span class="tw-soon">COMING SOON</span>':''}${t.inf&&!infOpen()?'<span class="tw-soon">🔒</span>':''}</span>`:''}<span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog()}</small></span><span class="tw-v">${t.inf?'∞':'vol.'+t.vol}</span></button>`).join('')}</div>`;
   el.querySelectorAll('.tw').forEach(b=>b.setAttribute('aria-pressed',TOWERS[+b.dataset.tw].id===towerMode));
   el.querySelectorAll('.tw:not(.soon)').forEach(b=>b.onclick=()=>{const t=TOWERS[+b.dataset.tw];if(t.inf&&!infOpen()){toast(L('マイスターの塔の10Fをクリアすると挑戦できます','通关迈斯特之塔10F后即可挑战'));return}sfx('tap');towerMode=t.id;renderTower()});
   el.querySelectorAll('.tw.soon').forEach(b=>b.onclick=()=>{sfx('tap');const t=TOWERS[+b.dataset.tw];toast(L(`vol.${t.vol}のキャラが待ちかまえる新しい塔。近日公開！`,`vol.${t.vol}角色等待着的新塔，即将开放！`))})}
