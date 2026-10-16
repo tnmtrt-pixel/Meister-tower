@@ -107,7 +107,7 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.remove('hide');c
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function adm(op,extra={}){const r=await fetch(API+'/api/cup/admin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,op,tid:TID,...extra})});
   const j=await r.json().catch(()=>({}));if(r.status===403){showLogin();throw new Error('auth')}if(j.cup)S=j.cup;if(!r.ok)throw new Error(j.err||r.status);return j}
-const nameOf=p=>p?(p.w||[]).slice(0,3).map((n,k)=>((G.WORDS[k]||[])[n]||['？'])[0]).join('')+'#'+p.tag:'';
+const nameOf=p=>p?(p.w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('')+'#'+p.tag:'';
 const titleOf=p=>p&&p.title?(G.TITLE_NAMES[p.title]||[''])[0]:'';
 const img=id=>{const c=G.byId(id);return c?`<img src="${c.img}" alt="">`:'<img alt="">'};
 const plHTML=(p,cls='')=>p?`<div class="pl ${cls}">${img(p.icon)}<div><span class="tt">${esc(titleOf(p))}</span><span class="nm">${esc(nameOf(p))}</span></div></div>`:'<div class="pl"><span class="nm">—</span></div>';
