@@ -243,6 +243,12 @@ details p{margin:6px 0 0}
 .cup-hist div{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}.cup-hist b{text-align:right}
 .hall{border:1px solid rgba(244,186,28,.5);border-radius:10px;padding:8px;margin-top:8px;background:rgba(244,186,28,.05)}
 .hall-p{display:flex;gap:8px;align-items:flex-start;padding:4px 0}.medal{font-size:24px}
+.psets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 8px}
+.pset{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border:2px solid var(--line);border-radius:10px;background:rgba(8,14,34,.6);color:var(--ink);cursor:pointer}
+.pset[aria-pressed="true"]{border-color:#FFE08A;background:rgba(255,224,138,.12);box-shadow:0 0 10px rgba(255,224,138,.35)}
+.pset .pn{font:800 12px var(--f-body)}.pset[aria-pressed="true"] .pn{color:#FFE08A}
+.pset .pc{display:flex;gap:2px;min-height:26px;align-items:center}.pset .pc img{width:26px;height:26px;border-radius:6px;object-fit:cover;background:#fff}
+#psets-t{grid-template-columns:1fr;gap:4px}#psets-t .pset{flex-direction:row;justify-content:space-between;padding:4px 8px}#psets-t .pn{white-space:nowrap}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -539,7 +545,8 @@ hr{border-color:var(--line)!important}
         <h2 id="floor-title">1F 見習いの間</h2>
         <div><span class="rule" id="floor-rule">特別ルールなし</span></div>
         <p class="hint" id="floor-info"></p>
-        <div class="label" data-zh="你的队伍">あなたのパーティ</div>
+        <div class="label" data-zh="选择队伍">パーティを選ぶ</div>
+        <div class="psets" id="psets-t"></div>
         <div class="party-strip" id="party-strip"></div>
         <button class="btn small" id="go-party" style="align-self:flex-start" data-zh="更改编队">編成を変える</button>
       </div>
@@ -555,6 +562,7 @@ hr{border-color:var(--line)!important}
   <section class="view" id="v-party" hidden>
     <div class="panel">
       <div class="row between"><h2 data-zh="队伍">パーティ</h2><span class="hint" data-zh="最多3人，从首位开始依次出战">最大3人。先頭から順に戦います</span></div>
+      <div class="psets" id="psets-p"></div>
       <div class="party-strip" id="slots"></div>
     </div>
     <div class="panel">
@@ -645,7 +653,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.13.0';
+const VERSION='1.14.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -660,7 +668,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -677,6 +685,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.keepW=(Array.isArray(v.keepW)?v.keepW:[]).slice(0,3).map(n=>Number.isInteger(n)?n:-1);
   s.boss={};for(const k in (v.boss||{}))if(byId(k)&&v.boss[k])s.boss[k]=true;
   s.wseen=(Array.isArray(v.wseen)?v.wseen:[]).filter(x=>typeof x==='string').slice(0,400);s.wnote=(Array.isArray(v.wnote)?v.wnote:[]).filter(x=>typeof x==='string').slice(0,400);
+  s.pidx=Math.min(2,Math.max(0,v.pidx|0));s.parties=[0,1,2].map(k=>(Array.isArray(v.parties)&&Array.isArray(v.parties[k])?v.parties[k]:[]).filter(id=>typeof id==='string'&&byId(id)).slice(0,3));
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
@@ -687,7 +696,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.party=(Array.isArray(v.party)?v.party:[]).filter(id=>s.owned[id]).slice(0,3);
   return s}
 try{const v2=localStorage.getItem(SKEY);if(v2)save=sanitize(JSON.parse(v2));else{const v1=JSON.parse(localStorage.getItem('okc-save')||'null');if(v1)save=sanitize(v1)}}catch(e){}
-function persist(){try{localStorage.setItem(SKEY,JSON.stringify(save))}catch(e){}}
+function persist(){if(save.parties)save.parties[save.pidx]=save.party.slice(0,3);/* 今のパーティを、選んでいる組に記録 */try{localStorage.setItem(SKEY,JSON.stringify(save))}catch(e){}}
 const owns=id=>!!save.owned[id];
 const starOf=id=>save.owned[id]||0;
 const hasAny=()=>Object.keys(save.owned).length>0;
@@ -696,6 +705,11 @@ const moveOf=(id,k)=>G.applyLv(byId(id).moves[k],lvOf(id,k));
 function loadout(id){const ch=byId(id),st=starOf(id);let l=save.load[id];
   if(!l||!l.length||l.length>4||l.some(k=>!ch.moves[k]||ch.moves[k].t>st)){l=G.autoPick(ch,st,0,Math.random,save.lv[id]||{});save.load[id]=l}
   return l}
+/* パーティは3組まで。選んでいる組が save.party */
+function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
+function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
+  return`<button type="button" class="pset" data-ps="${k}" aria-pressed="${k===save.pidx}"><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span></button>`}).join('')}
+function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');setPidx(+b.dataset.ps);after()})}
 function fixParty(){save.party=save.party.filter(owns).slice(0,3);
   if(!save.party.length&&hasAny())save.party=Object.keys(save.owned).sort((a,b)=>starOf(b)-starOf(a)).slice(0,3)}
 function grant(id,st){const cur=starOf(id);
@@ -780,6 +794,7 @@ function renderTower(){fixParty();renderMission();if(tsel==null||!canPlay(tsel))
   $('#floor-info').innerHTML=rp?`${enemyTxt}<br>${L('再挑戦の報酬：勝利で','再挑战奖励：胜利获得')} <b style="color:var(--gold-hi)">${replayCoins(f)}</b> ${L(`コイン（初回クリアは${G.floorCoins(f)}）。負けたときのコインはなし。塔の進み具合は変わりません。`,`金币（首次通关为${G.floorCoins(f)}）。失败不获得金币，塔的进度不变。`)}<br><button type="button" class="btn small" id="back-now" style="margin-top:6px">${L(`挑戦中の${save.floor}Fに戻る`,`返回挑战中的${save.floor}F`)}</button>`
     :`${enemyTxt}　${L(`勝利で ${G.floorCoins(f)} コイン`,`胜利获得 ${G.floorCoins(f)} 金币`)}${save.floor>1||save.clears?`<br><span style="font-size:12px">${L('クリアした階をタップすると再挑戦できます','点击已通关的楼层可以再挑战')}</span>`:''}`;
   const bn=$('#back-now');if(bn)bn.onclick=()=>{tsel=save.floor;renderTower()};
+  bindPsets('#psets-t',renderTower);
   $('#party-strip').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
   $('#start').textContent=rp?L(`${f}F に再挑戦`,`再挑战 ${f}F`):f===TOP?L('塔の主に挑む','挑战塔之主'):f===TOP2?L('真・塔の主に挑む','挑战真·塔之主'):L(`${f}F に挑戦`,`挑战 ${f}F`);$('#start').disabled=!save.party.length;
   $('#start-hint').textContent=save.party.length<3&&Object.keys(save.owned).length>save.party.length?L('パーティに空きがあります','队伍还有空位'):''}
@@ -789,7 +804,7 @@ $('#start').onclick=()=>{ac();sfx('tap');beginBattle()};
 
 /* ================= 編成 ================= */
 let sel=null;
-function renderParty(){fixParty();if(!sel||!owns(sel))sel=save.party[0]||Object.keys(save.owned)[0];
+function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!owns(sel))sel=save.party[0]||Object.keys(save.owned)[0];
   $('#slots').innerHTML=[0,1,2].map(k=>{const id=save.party[k];return id?`<button class="cbtn" data-id="${id}" aria-pressed="${id===sel}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`:`<div class="cbtn" style="width:76px;opacity:.5;cursor:default"><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></div>`}).join('');
   $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="nm">${c.name}</span></button>`}).join('');
   document.querySelectorAll('#slots .cbtn[data-id],#owned .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');sel=b.dataset.id;renderParty()});
