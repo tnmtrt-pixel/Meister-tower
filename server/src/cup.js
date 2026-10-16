@@ -12,7 +12,7 @@
  *  運営用    POST /api/cup/admin    {key, op, ...}            ADMIN_KEY が必要
  */
 
-const PARTICIPATION_COINS = 27;
+const PARTICIPATION_COINS = 30;
 const ROUND_MS = 10 * 60 * 1000;
 
 const rid = (n, abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789') => {

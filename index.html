@@ -653,7 +653,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=c7503194"></script>
 <script>
-const VERSION='1.14.0';
+const VERSION='1.14.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1165,7 +1165,7 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   if(!reg&&c.status!=='done')body=`<p class="hint">${L('参加するには、下のプロフィールで名前を決めて「登録」してください。','参加前请先在下方个人资料中决定名字并「登记」。')}</p><button class="btn" id="cup-reg">${L('プロフィールを登録する','登记个人资料')}</button>`;
   else if(c.status==='open'){
     body=me.entered?`<p class="cup-ok">✓ ${L('エントリー済み！ 当日は受付コードを入力して受付してね','已报名！当天请输入签到码完成签到')}</p><button class="btn small" id="cup-cancel">${L('エントリーを取り消す','取消报名')}</button>`
-      :`<p class="hint">${L('参加するだけで27コイン。優勝すると称号「チャンピオン」！','参加即可获得27金币。夺冠可获得称号「冠军」！')}</p><button class="btn primary" id="cup-entry" ${c.entries>=c.cap?'disabled':''}>${c.entries>=c.cap?L('定員に達しました','名额已满'):L('参加する','参加')}</button>`}
+      :`<p class="hint">${L('参加するだけで30コイン（11連1回分）。優勝すると称号「チャンピオン」！','参加即可获得30金币（11连1次）。夺冠可获得称号「冠军」！')}</p><button class="btn primary" id="cup-entry" ${c.entries>=c.cap?'disabled':''}>${c.entries>=c.cap?L('定員に達しました','名额已满'):L('参加する','参加')}</button>`}
   else if(c.status==='checkin'){
     body=me.checked?`<p class="cup-ok">✓ ${L('受付完了！ 開始までお待ちください','签到完成！请等待比赛开始')}</p><div class="label">${L('出場パーティ（固定）','出战队伍（已锁定）')}</div>${partyHTML(me.party)}`
       :`<p class="hint">${L('スクリーンに出ている4けたの受付コードを入れてください。今のパーティで出場します（受付後は変更できません）。','请输入屏幕上显示的4位签到码。将以当前队伍出战（签到后无法更改）。')}</p>${partyHTML(onlineParty())}
