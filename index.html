@@ -645,7 +645,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.11.0';
+const VERSION='1.11.1';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -659,7 +659,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -672,6 +672,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   if(v.daily&&typeof v.daily.d==='string'&&Array.isArray(v.daily.ids))s.daily={d:v.daily.d.slice(0,10),ids:v.daily.ids.filter(x=>/^[a-z0-9]{2,12}$/.test(x)).slice(0,3),p:Object.fromEntries(Object.entries(v.daily.p||{}).map(([k,n])=>[k,Math.max(0,+n|0)])),c:(Array.isArray(v.daily.c)?v.daily.c:[]).filter(x=>typeof x==='string'),all:!!v.daily.all};
   s.newsRead=(Array.isArray(v.newsRead)?v.newsRead:[]).filter(x=>typeof x==='string').slice(-100);
   {const c=v.cup||{};s.cup={entered:!!c.entered,win1:!!c.win1,final:!!c.final,champ:!!c.champ,meister:!!c.meister}}
+  s.boss={};for(const k in (v.boss||{}))if(byId(k)&&v.boss[k])s.boss[k]=true;
   s.wseen=(Array.isArray(v.wseen)?v.wseen:[]).filter(x=>typeof x==='string').slice(0,400);s.wnote=(Array.isArray(v.wnote)?v.wnote:[]).filter(x=>typeof x==='string').slice(0,400);
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
@@ -936,7 +937,10 @@ const WCOND={
   cupfin:{ja:'大会で決勝に進出',zh:'在大赛中进入决赛',ok:()=>!!save.cup.final},cupchamp:{ja:'大会で優勝',zh:'在大赛中夺冠',ok:()=>!!save.cup.champ},
   meister:{ja:'マイスター位を獲得',zh:'获得大师位',ok:()=>!!save.cup.meister}};
 const WMAP={1:'t1',2:'t2',3:'t3',4:'t4',5:'t5',6:'t6',7:'t7',8:'t8',9:'t9'};
-const condOf=w=>w[2]==null?null:WCOND[typeof w[2]==='number'?WMAP[w[2]]:w[2]];
+const condOf=w=>{if(w[2]==null)return null;const k=w[2];
+  if(typeof k==='string'&&k.startsWith('c:')){const id=k.slice(2),c=byId(id),known=c&&(!c.hidden&&!c.raidChar||owns(id)),nm=known?c.name:L('ひみつのキャラ','神秘角色');
+    return{ja:`${nm}をパーティに入れて10Fか20Fのボスをたおす（再挑戦でもOK）`,zh:`让${nm}加入队伍并打倒10F或20F的头目（再挑战也可以）`,ok:()=>!!save.boss[id]}}/* キャラ専用の単語 */
+  return WCOND[typeof k==='number'?WMAP[k]:k]};
 const wordOk=(p,i)=>{const w=W3[p][i];if(!w)return false;const c=condOf(w);return!c||c.ok()};
 const condTxt=w=>{const c=condOf(w);return c?L(c.ja,c.zh):''};
 const wordTxt=(p,i)=>{const w=W3[p][i];return w?L(w[0],w[1]):'？'};
@@ -1325,7 +1329,8 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
     else save.floor=f+1;
     save.best=Math.max(save.best||1,save.floor,f)}
   if(win&&save.tutDone&&!TUT.justEnded)RAID.pending=!save.soraSeen||Math.random()<RAID.rate;TUT.justEnded=false;
-  if(win){save.st.wins=(save.st.wins||0)+1;mission('win');if(RP)mission('replay')}
+  if(win){save.st.wins=(save.st.wins||0)+1;mission('win');if(RP)mission('replay');
+    if(f===TOP||f===TOP2)B.S.sides[0].team.forEach(x=>{save.boss[x.ch.id]=true})}/* ボスをたおしたパーティのキャラ → 専用の単語 */
   if(!RP)tsel=null;persist();updCoins();pushScore();checkTitles();
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}
   else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');bubble(1,foe.ch.lines[1])}
