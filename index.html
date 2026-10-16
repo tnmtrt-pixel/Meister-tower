@@ -666,7 +666,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=05158792"></script>
 <script>
-const VERSION='1.17.1';
+const VERSION='1.17.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1255,7 +1255,7 @@ function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)|
 
 /* ================= 無限の塔 ================= */
 /* 負けるまで登る。体力は生き残ったキャラだけ毎階全回復、たおれたキャラはボス（10階ごと）を倒すと半分で復活 */
-const INF_REW={floor:3,boss:10,best:10,cap:20};/* 1階3・ボス10・自己ベスト更新+10、1日20コインまで */
+const INF_REW={floor:1,boss:5,best:2,cap:30};/* 1階1・自己ベスト更新+2（1日30コインまで）、ボス5は上限とは別 */
 const HP_MAX_LV=5,HP_COST=[3,4,5,6,7];/* 体力強化：1段階+2（最大+10）。塔と無限の塔だけで有効 */
 const hpOf=id=>G.PLAYER_HP+2*(save.hpLv[id]||0);
 const infOpen=()=>Math.max(save.best||1,save.floor)>TOP;
