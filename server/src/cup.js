@@ -332,6 +332,7 @@ export const CupMixin = {
       case 'finish': {
         if (T.status === 'done') return fail('done');
         const fin = T.rounds.find((x) => x.final);
+        if (fin && !fin.ms[0].win) { const v = Object.values(fin.ms[0].rep); if (v.length === 1) await this.cupDecide(T, fin, fin.ms[0], v[0]); } // 決勝の報告が片方だけならそれで確定
         if (T.status === 'play' && (!fin || !fin.ms[0].win)) {
           if (!b.force) return fail('final undecided');
         }
