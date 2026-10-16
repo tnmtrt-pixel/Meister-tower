@@ -221,6 +221,12 @@ details p{margin:6px 0 0}
 .news .new{color:#E5484D;font:800 11px var(--f-body)}
 .news b{display:block;margin:4px 0 2px;font-size:16px}
 .news p{margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap}
+.ms-head{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer}
+.ms-head h2{margin:0}
+.ms-sum{display:flex;align-items:center;gap:8px}
+.ms-ready{padding:2px 8px;border-radius:99px;background:#E5484D;color:#fff;font:800 11px var(--f-body);animation:pop .5s}
+.ms-arr{color:var(--muted);font-size:12px}
+#ms-body{margin-top:8px}
 /* ガチャ */
 .banners{display:grid;gap:12px}
 .banner{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:3px solid #D9AE45;border-radius:12px;overflow:hidden;background:#0B1730;cursor:pointer;box-shadow:0 0 0 2px #3B2A06,0 6px 18px rgba(0,0,0,.45);transition:transform .15s,filter .15s}
@@ -620,7 +626,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js"></script>
 <script>
-const VERSION='1.10.0';
+const VERSION='1.10.1';
 const G=window.ENGINE;
 const L=(ja,zh)=>G.L(ja,zh);
 const {ALL,CHARS,HIDDEN,FLOORS,TOP,TOP2,byId}=G;
@@ -1019,14 +1025,16 @@ function dailyCheck(){if(!hasAny())return;const d=today();
 function mission(k,n=1){const D=save.daily;if(!D||D.d!==today())return;let up=false;
   D.ids.forEach(id=>{const m=MS.find(x=>x.id===id);if(m&&m.k===k&&!D.c.includes(id)){const was=D.p[id]||0;D.p[id]=Math.min(m.n,was+n);if(D.p[id]>=m.n&&was<m.n){up=true;setTimeout(()=>toast(L(`ミッション達成！「${m.ja}」 タワー画面で受け取ろう`,`任务完成！「${m.zh}」 去塔的画面领取吧`)),1200)}}});
   persist()}
+let msOpen=false;/* ミッションはタップで開く */
 function renderMission(){const el=$('#mission'),D=save.daily;if(!hasAny()||!D||D.d!==today()){el.hidden=true;return}el.hidden=false;
-  const done=D.ids.filter(id=>D.c.includes(id)).length;
-  el.innerHTML=`<div class="row between"><h2>${L('今日のミッション','今日任务')}</h2><span class="label">${done} / ${D.ids.length}</span></div>
-    ${D.ids.map(id=>{const m=MS.find(x=>x.id===id);if(!m)return'';const v=D.p[id]||0,ok=v>=m.n,got=D.c.includes(id);
+  const done=D.ids.filter(id=>D.c.includes(id)).length,ready=D.ids.filter(id=>{const m=MS.find(x=>x.id===id);return m&&!D.c.includes(id)&&(D.p[id]||0)>=m.n}).length;
+  el.innerHTML=`<button type="button" class="ms-head" id="ms-tog" aria-expanded="${msOpen}"><h2>${L('今日のミッション','今日任务')}</h2><span class="ms-sum">${ready?`<span class="ms-ready">${L('受け取れる！','可领取！')}</span>`:''}<span class="label">${done} / ${D.ids.length}</span><span class="ms-arr">${msOpen?'▲':'▼'}</span></span></button>
+    <div id="ms-body" ${msOpen?'':'hidden'}>${D.ids.map(id=>{const m=MS.find(x=>x.id===id);if(!m)return'';const v=D.p[id]||0,ok=v>=m.n,got=D.c.includes(id);
       return`<div class="ms"><span>${L(m.ja,m.zh)}<br><small>${v} / ${m.n}　${L('ごほうび','奖励')} ${MS_COIN}${L('コイン','金币')}</small></span>
       ${got?`<span class="got">✓ ${L('受取済','已领取')}</span>`:`<button class="btn small${ok?' primary':''}" data-ms="${id}" ${ok?'':'disabled'}>${L('受け取る','领取')}</button>`}
       <div class="bar"><i style="width:${v/m.n*100}%"></i></div></div>`}).join('')}
-    <p class="hint">${D.all?L(`全部達成ボーナス（+${MS_ALL}コイン）を受け取りました。また明日！`,`已领取全部完成奖励（+${MS_ALL}金币）。明天见！`):L(`3つ全部達成すると、さらに +${MS_ALL}コイン。毎朝5時に新しいミッション。`,`完成全部3个任务，再得 +${MS_ALL}金币。每天早上5点更新任务。`)}</p>`;
+    <p class="hint">${D.all?L(`全部達成ボーナス（+${MS_ALL}コイン）を受け取りました。また明日！`,`已领取全部完成奖励（+${MS_ALL}金币）。明天见！`):L(`3つ全部達成すると、さらに +${MS_ALL}コイン。毎朝5時に新しいミッション。`,`完成全部3个任务，再得 +${MS_ALL}金币。每天早上5点更新任务。`)}</p></div>`;
+  $('#ms-tog').onclick=()=>{sfx('tap');msOpen=!msOpen;renderMission()};
   el.querySelectorAll('[data-ms]').forEach(b=>b.onclick=()=>{const id=b.dataset.ms,m=MS.find(x=>x.id===id);if(!m||D.c.includes(id)||(D.p[id]||0)<m.n)return;
     D.c.push(id);let c=MS_COIN;save.st.ms=(save.st.ms||0)+1;
     if(!D.all&&D.ids.every(x=>D.c.includes(x))){D.all=true;c+=MS_ALL}
