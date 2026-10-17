@@ -69,6 +69,7 @@ button{font-family:var(--f-body)}
 /* キャラの絵 */
 .crest{aspect-ratio:1;width:64px;max-width:100%;border:3px solid var(--ink);border-radius:10px;box-shadow:3px 3px 0 var(--ink);background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.35),transparent 65%),var(--c);flex:none;overflow:hidden;padding:4px;position:relative}
 .crest img{width:100%;height:100%;object-fit:contain;display:block}
+.crest.wide img{object-fit:cover;object-position:50% 30%;transform:scale(1.05)}
 .crest.k{display:grid;place-items:center;color:#fff;font-family:var(--f-crest);line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.3);padding:0;container-type:inline-size}
 .crest.k span{font-size:62cqw}
 .crest.big{width:96px}
@@ -80,6 +81,7 @@ button{font-family:var(--f-body)}
 .cbtn{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0;position:relative}
 .cbtn .crest{width:100%;box-shadow:none;border-width:2px;padding:2px}
 .cbtn .nm{font-weight:800;font-size:10px;line-height:1.2;text-align:center;word-break:break-all}
+.cbtn .nm.long{font-size:8.5px;letter-spacing:-.04em;white-space:nowrap;word-break:normal;max-width:100%;overflow:hidden}
 .cbtn[aria-pressed="true"]{border-color:var(--ink);background:var(--accent-soft);box-shadow:3px 3px 0 var(--ink)}
 .cbtn .badge{position:absolute;top:-6px;right:-6px;background:var(--ink);color:var(--paper);font:700 11px var(--f-body);border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center;padding:0 5px;z-index:2}
 .cbtn.locked .crest{background:var(--line)}
@@ -673,7 +675,7 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=029012e8"></script>
+<script src="engine.js?v=2f6abcc7"></script>
 <script>
 const VERSION='2.0.0';
 const G=window.ENGINE;
@@ -685,8 +687,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const W=ms=>sleep(RM?ms*.5:ms);
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2300)}
+const nmc=n=>(n||'').length>=6?'nm long':'nm';/* 長い名前は小さく1行で */
 const stars=n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
-const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}" style="--c:${ch.color}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${ch.color}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
+const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${ch.color}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${ch.color}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
@@ -812,7 +815,7 @@ function renderTowers(){const el=$('#towers');if(!hasAny()){el.hidden=true;retur
   el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>`<button type="button" class="tw${t.soon?' soon':''}${t.img?' has-img':''}${t.inf&&!infOpen()?' locked':''}" data-tw="${k}" aria-pressed="false">
     ${t.img?`<span class="tw-img"><img src="${t.img}" alt="${L(t.ja,t.zh)}">${t.soon?'<span class="tw-soon">COMING SOON</span>':''}${t.inf&&!infOpen()?'<span class="tw-soon">🔒</span>':''}</span>`:''}<span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog(t.id)}</small></span><span class="tw-v">${t.inf?'∞':'vol.'+t.vol}</span></button>`).join('')}</div>`;
   el.querySelectorAll('.tw').forEach(b=>b.setAttribute('aria-pressed',TOWERS[+b.dataset.tw].id===towerMode));
-  el.querySelectorAll('.tw:not(.soon)').forEach(b=>b.onclick=()=>{const t=TOWERS[+b.dataset.tw];if(t.inf&&!infOpen()){toast(L('マイスターの塔の10Fをクリアすると挑戦できます','通关迈斯特之塔10F后即可挑战'));return}sfx('tap');towerMode=t.id;renderTower()});
+  el.querySelectorAll('.tw:not(.soon)').forEach(b=>b.onclick=()=>{const t=TOWERS[+b.dataset.tw];if(t.inf&&!infOpen()){toast(L('マイスターの塔の10Fをクリアすると挑戦できます','通关迈斯特之塔10F后即可挑战'));return}sfx('tap');if(towerMode!==t.id){tsel=null;tview=null}towerMode=t.id;renderTower()});
   el.querySelectorAll('.tw.soon').forEach(b=>b.onclick=()=>{sfx('tap');const t=TOWERS[+b.dataset.tw];toast(L(`vol.${t.vol}のキャラが待ちかまえる新しい塔。近日公開！`,`vol.${t.vol}角色等待着的新塔，即将开放！`))})}
 /* 再挑戦：クリア済みの階を選べる。報酬は初回より少なめ */
 let tsel=null,tview=null;
@@ -825,7 +828,7 @@ function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと「${c.name}」のかけら+${BOSS_SHARD}`,`获胜可得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();if(towerMode==='inf'&&!infOpen())towerMode='meister';renderTowers();renderMission();
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
-  if(tview==null)tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
+  if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
   $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==T.floor&&ok?' done':n===T.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
     const lab=`<span>${n}F ${FLS[n-1].n}</span>${n===T.floor?`<span class="rp">${L('挑戦中','挑战中')}</span>`:ok?'<span class="rp">✓</span>':''}`;
@@ -864,7 +867,7 @@ function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!ow
     return id?`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`
       :`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px" ${k>save.party.length?'disabled':''}><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></button>`}).join('')
     +`<p class="hint slot-hint">${slotSel!=null?L(`${slotSel+1}番手を選択中：下の仲間をタップすると入れ替わります（枠をタップで並び替え）`,`已选择第${slotSel+1}位：点击下方伙伴即可替换（点击其他位置可调换顺序）`):L('枠をタップ → 仲間をタップで入れ替え','点击位置 → 再点击伙伴即可替换')}</p>`;
-  $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="nm">${c.name}</span></button>`}).join('');
+  $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="${nmc(c.name)}">${c.name}</span></button>`}).join('');
   document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.slot;
     if(slotSel==null){slotSel=k;if(save.party[k])sel=save.party[k]}
     else if(slotSel===k)slotSel=null;
@@ -885,7 +888,7 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
   <div class="moves">${ch.moves.map((m0,k)=>{const m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
     return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?L('で解放','解锁'):''}</span>`:'')}</button>
     <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?L('強化<br>MAX','强化<br>MAX'):L(`強化+${lv+1}<br>かけら${cost}`,`强化+${lv+1}<br>碎片${cost}`)}</button></div>`}).join('')}</div>
-  <p class="hint">${L('強化すると、ダメージ・ガード・回復が+2ずつ上がります（「次の攻撃+」「相手の次の攻撃−」と、サイコロを増減させる攻撃は+1ずつ）。最大+2。かけらはガチャで同じキャラが出るか、ボスを倒すと手に入ります。','强化后伤害·护盾·回复每级+2（「下次攻击+」「对方下次攻击−」以及增减骰子的攻击每级+1），最多+2。在扭蛋中抽到重复角色或打倒头目可获得碎片。')}</p>`;
+  <p class="hint">${L('強化すると、ダメージ・ガード・回復が+2ずつ上がります（「次の攻撃+」「相手の次の攻撃−」と、サイコロを増減させる攻撃は+1ずつ。ほかの変化技はガードが付きます）。最大+2。かけらはガチャで同じキャラが出るか、ボスを倒すと手に入ります。','强化后伤害·护盾·回复每级+2（「下次攻击+」「对方下次攻击−」以及增减骰子的攻击每级+1，其他变化技能附加护盾），最多+2。在扭蛋中抽到重复角色或打倒头目可获得碎片。')}</p>`;
   const HU=$('#hp-up');if(HU)HU.onclick=()=>{const lv=save.hpLv[id]||0,c=HP_COST[lv];if(lv>=HP_MAX_LV||(save.shards[id]||0)<c)return;save.shards[id]-=c;save.hpLv[id]=lv+1;persist();sfx('buff');toast(L(`${ch.name}の体力が ${hpOf(id)} になった`,`${ch.name}的体力变为 ${hpOf(id)}`));renderDetail()};
   const A=$('#p-add'),Rm=$('#p-rem'),F=$('#p-first');
   if(A)A.onclick=()=>{save.party.push(id);persist();renderParty()};
@@ -947,7 +950,7 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
     $('#gacha-msg').textContent=`${c.name}　${stars(s1).replace(/<\/?i>/g,'')}`}
   else{const nNew=rs.filter(r=>r.res==='new').length,n3=rs.filter(r=>r.st===3).length;
     box.innerHTML=`${st>=2?'<div class="rays"></div>':''}<b>${L('11連の結果','11连结果')}</b>
-    <div class="gx-grid">${rs.map((r,k)=>{const t=tagOf(r);return`<div class="gx-cell s${r.st}" style="animation-delay:${RM?0:k*90}ms">${crest(r.c)}<span class="rar">${stars(r.st)}</span><span class="tg ${t[0]}">${t[1]}</span><span class="nm">${r.c.name}</span></div>`}).join('')}</div>
+    <div class="gx-grid">${rs.map((r,k)=>{const t=tagOf(r);return`<div class="gx-cell s${r.st}" style="animation-delay:${RM?0:k*90}ms">${crest(r.c)}<span class="rar">${stars(r.st)}</span><span class="tg ${t[0]}">${t[1]}</span><span class="${nmc(r.c.name)}">${r.c.name}</span></div>`}).join('')}</div>
     <span class="label" style="color:#fff">${L(`★3 ×${n3}　NEW ×${nNew}`,`★3 ×${n3}　NEW ×${nNew}`)}</span>${again}`;
     $('#gacha-msg').textContent=L(`11連：★3 ×${n3}、新しい仲間 ×${nNew}`,`11连：★3 ×${n3}，新伙伴 ×${nNew}`)}
   ov.append(box);msg.textContent='';
@@ -963,7 +966,7 @@ function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vo
   $('#dex-count').textContent=`${got} / ${CHARS.length}`+L('人','人');$('#dex-bar').style.width=got/CHARS.length*100+'%';
   $('#dex-reward').innerHTML=(save.dexReward?L('vol.1：コンプリート報酬を受け取りました！','vol.1：已领取全收集奖励！'):L(`vol.1：${v1.length}人を全員集めると、コイン10枚と特別な仲間がもらえます（${g1}/${v1.length}）`,`vol.1：集齐全部${v1.length}人，可获得10金币和特别的伙伴（${g1}/${v1.length}）`))+'<br>'+
     (save.dexReward2?L('vol.2：コンプリート報酬を受け取りました！','vol.2：已领取全收集奖励！'):L(`vol.2：${v2.length}人を全員集めると、コイン10枚がもらえます（${g2}/${v2.length}）`,`vol.2：集齐全部${v2.length}人，可获得10金币（${g2}/${v2.length}）`));
-  $('#dex').innerHTML=DEXG.map(([t,fn])=>`<div class="label" style="grid-column:1/-1;margin-top:4px">${t}</div>`+ALL.filter(fn).map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.reward?'？':'')}</span><span class="nm">${o?c.name:L('？？？','？？？')}</span></button>`}).join('')).join('');
+  $('#dex').innerHTML=DEXG.map(([t,fn])=>`<div class="label" style="grid-column:1/-1;margin-top:4px">${t}</div>`+ALL.filter(fn).map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.reward?'？':'')}</span><span class="${nmc(o?c.name:'')}">${o?c.name:L('？？？','？？？')}</span></button>`}).join('')).join('');
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 /* ボスキャラの入手方法 */
 const REWARD_TXT={meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
@@ -1353,7 +1356,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
     bubble(1,e.ch.lines[0]);await say(L(`${e.ch.name}（★${e.star}）が 現れた！`,`${e.ch.name}（★${e.star}）出现了！`),900);
     if(TUT.on)await coach(L('バトルの見かた','对战画面'),L('ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','欢迎来到第一场对战！<em>上方是对手</em>，<em>下方是你</em>的角色。绿色条是体力，降到0就会倒下。打倒对方全员就获胜！'),'#f1, #f0');
     runTurn(0)})()}
-function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
+function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,dec:B.S.decree,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
 function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);
   el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?L('相手','对手'):L('あなた','你')}<span class="pips" aria-label="${i?L('相手の残り人数','对手剩余人数'):L('パーティの残り人数','队伍剩余人数')}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">${L('能力と技','特性与技能')}</button>${i?`<button class="info-btn" data-hist="1">${L('行動の記録','行动记录')}</button>`:''}</span>
   <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
@@ -1369,6 +1372,9 @@ function updF(i){const v=B.view[i],t=v.team[v.idx],el=$('#f'+i),f=B.S.sides[i].t
   const c=[`<span class="chip pas">${f.ch.passive.n}</span>`];
   if(t.guard)c.push(`<span class="chip guard">${L('ガード','护盾')} ${t.guard}</span>`);if(t.pow)c.push(`<span class="chip up">${L('次の攻撃','下次攻击')} +${t.pow}</span>`);
   if(f.raid)c.push(`<span class="chip down">${L('乱入モード','乱入模式')}</span>`);
+  if(f.ch.passive.k==='wb'&&t.white!=null)c.push(t.white?`<span class="chip guard">${L('白の羽：受けるダメージ−1','白之羽：受到伤害−1')}</span>`:`<span class="chip up">${L('黒の羽：攻撃+2','黑之羽：攻击+2')}</span>`);
+  if(f.ch.passive.k==='decree'&&v.dec!=null)c.push(`<span class="chip up">${v.dec?L('宣告：奇数','宣告：奇数'):L('宣告：偶数','宣告：偶数')}</span>`);
+  if(f.ch.passive.k==='nine'&&t.nine)c.push(`<span class="chip down">${L('九つの命：使用済み','九条命：已使用')}</span>`);
   if(t.weak)c.push(`<span class="chip down">${L('次の攻撃','下次攻击')} −${t.weak}</span>`);if(t.dMod)c.push(`<span class="chip ${t.dMod>0?'up':'down'}">${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}</span>`);
   el.querySelector('.chips').innerHTML=c.join('');el.querySelector('.chip.pas').onclick=()=>infoSheet(i)}
 async function say(t,ms=650){if(!t)return;const p=document.createElement('p');p.textContent=t;const l=$('#log');l.append(p);l.scrollTop=l.scrollHeight;await W(ms)}

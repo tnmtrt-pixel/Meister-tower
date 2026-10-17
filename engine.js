@@ -238,7 +238,7 @@ const VERDICT={id:'verdict',no:23,name:'ヴェルディクト',img:'img/verdict.
   {n:'白黒の爪',c:{t:'min',n:5},dmg:{b:10},t:2},
   {n:'月の宝珠',c:{t:'max',n:2},fx:{pow:4,heal:3},t:2},
   {n:'白黒裁断',c:{t:'pair'},dmg:{b:16},t:3}]};
-const ECLIPSE={id:'eclipse',no:24,name:'エクリプス',img:'img/eclipse.webp',color:'#B0904A',role:'審判の塔20Fの主・白黒の獣',reward:'judge20',
+const ECLIPSE={id:'eclipse',no:24,name:'エクリプス',img:'img/eclipse.webp',wide:true,color:'#B0904A',role:'審判の塔20Fの主・白黒の獣',reward:'judge20',
   passive:{k:'decree',n:'審判の宣告',d:'自分のターン開始時に「偶数」か「奇数」を宣告。宣告された出目の攻撃+3、反対の出目の攻撃−3（お互い。ゾロ目技は対象外）'},
   lines:['陰と陽、すべてを裁く。来るがいい','判決は下った','……見事。お前の光は本物だ'],moves:[
   {n:'陰の爪',c:{t:'odd'},dmg:{b:2,m:1}},
@@ -278,7 +278,7 @@ const ZH={
   seraph:{name:'炽天使',role:'回复型·祝福',pn:'祝福',pd:'回复技能的回复量+2',lines:['过来吧。你在迷茫吧？','你很努力了呢','……光芒，稍微暗淡了些吗']},
   hakurou:{name:'白狼',role:'防守型·神兽',pn:'天衣',pd:'护盾在回合开始时不会消失，可以保留（最多8）。用护盾完全挡住攻击时，回复挡下的体力',lines:['……风正在考验你','回归天上吧','……这件衣裳，还会被弄脏吗']},
   guardian:{name:'守护者',role:'防守型·尖刺反击',pn:'七色之刺',pd:'每次受到攻击（即使被护盾挡住）都对对方造成2点伤害',lines:['在我的盾牌前跪下吧','骑士道，就在于此','……我的荣耀，竟有了伤痕']},
-  libra:{name:'天秤',role:'调整型·黑与白',pn:'天秤',pd:'回合开始时，若同时有偶数和奇数骰子，下次攻击+3',lines:['命运也是一种选择……','判决，你输了','……天秤，倾斜了']},
+  libra:{name:'莉布拉',role:'调整型·黑与白',pn:'天秤',pd:'回合开始时，若同时有偶数和奇数骰子，下次攻击+3',lines:['命运也是一种选择……','判决，你输了','……天秤，倾斜了']},
   spino:{name:'棘骨龙',role:'一击型·化石之躯',pn:'化石之躯',pd:'4点以下伤害的攻击无效',lines:['咔嗒咔嗒…一亿年来的第一个猎物','变成化石再来吧','……骨头，散架了…']},
   verdict:{name:'裁决',role:'审判之塔10F之主·黑白之鸟',pn:'黑白之羽',pd:'每到自己的回合黑白交替。黑色时攻击+2，白色时受到的伤害−1',lines:['……你的灵魂是白是黑，让我来衡量','结果是，黑','……白之羽，赢了吗']},
   eclipse:{name:'日蚀',role:'审判之塔20F之主·黑白之兽',pn:'审判宣告',pd:'自己回合开始时宣告「偶数」或「奇数」。用宣告点数的攻击+3，相反点数的攻击−3（双方适用，对子技能除外）',lines:['阴与阳，皆由我裁决。来吧','判决已下','……漂亮。你的光是真的']},
@@ -387,13 +387,13 @@ function condOk(c,v){return c.t==='any'||c.t==='pair'||(c.t==='even'&&v%2===0)||
 function dmgLabel(d){if(!d)return'';const P=L('出目','点数'),m=d.m?(d.m>1?P+'×'+d.m:P):'';return m&&d.b?m+'+'+d.b:m||String(d.b)}
 function fxLabel(f){if(!f)return[];const o=[];
   if(f.guard)o.push(L(`ガード${f.guard}`,`护盾${f.guard}`));if(f.pow)o.push(L(`次の攻撃+${f.pow}`,`下次攻击+${f.pow}`));if(f.weak)o.push(L(`相手の次の攻撃−${f.weak}`,`对方下次攻击−${f.weak}`));
-  if(f.heal)o.push(L(`体力${f.heal}回復`,`恢复体力${f.heal}`));if(f.dUp)o.push(L(`次のターン サイコロ+${f.dUp}`,`下回合骰子+${f.dUp}`));if(f.dDown)o.push(L(`相手の次のターン サイコロ−${f.dDown}`,`对方下回合骰子−${f.dDown}`));if(f.reroll)o.push(L('サイコロ1個を振り直して戻す','重掷1个骰子并返还'));return o}
+  if(f.heal)o.push(L(`体力${f.heal}回復`,`恢复体力${f.heal}`));if(f.dUp)o.push(L(`次のターン サイコロ+${f.dUp}`,`下回合骰子+${f.dUp}`));if(f.dDown)o.push(L(`相手の次のターン サイコロ−${f.dDown}`,`对方下回合骰子−${f.dDown}`));if(f.reroll)o.push(L('サイコロ1個を振り直して戻す','重掷1个骰子并返还'));if(f.gdmg)o.push(L('自分のガードの数だけダメージ+','伤害加上自身护盾值'));return o}
 
 /* 技の強化（レベル1つごとに数値+2） */
 function applyLv(m,lv){if(!lv)return m;const c=JSON.parse(JSON.stringify(m));c.lv=lv;
   const fx=c.fx||{};
   if(c.dmg)c.dmg.b=(c.dmg.b||0)+((fx.dDown||fx.dUp)?1:2)*lv;
-  else{c.fx=fx;const k=['guard','heal','pow','weak'].find(k=>fx[k]);if(k)fx[k]+=(k==='pow'||k==='weak'?1:2)*lv;else fx.guard=(fx.guard||0)+2*lv}
+  else{c.fx=fx;const k=['guard','heal','pow','weak'].find(k=>fx[k]);if(k)fx[k]+=(k==='pow'||k==='weak'?1:2)*lv;else if(fx.dDown)fx.weak=(fx.weak||0)+lv;else fx.guard=(fx.guard||0)+2*lv}
   return c}
 
 /* 技の価値（自動編成用） */
@@ -442,7 +442,7 @@ function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
 const rk=S=>S.rule&&S.rule.k;
-function snap(S){return S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
+function snap(S){return S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used],dec:S.decree}))}
 function E(S,t,msg,x){S.ev.push(Object.assign({t,msg,snap:snap(S)},x||{}))}
 const take=S=>{const e=S.ev;S.ev=[];return e};
 const r6=R=>1+Math.floor(R()*6);
