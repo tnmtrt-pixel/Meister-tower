@@ -1526,7 +1526,8 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
     hint:(unlock?unlock+'　':'')+(RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${T.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${T.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${T.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${T.floor}F`)):(master?L(`上層は${T.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${T.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${T.floor}F ${FLS[T.floor-1].n}`,`下一层：${T.floor}F ${FLS[T.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`)))})}
 /* ボス撃破のごほうび：持っていなければ★1で仲間に、★3までは★+1、★3のあとはかけら */
 const BOSS_SHARD=2;/* ★3まではボスに勝つたびに★+1。★3のあとは確率でかけら+2（10Fは15%、20Fは25%）。全強化までの手間がガチャキャラとほぼ同じになる */
-const bossRate=id=>/^(takumi|verdict)$/.test(id)?.15:.25;
+/* どの塔でも、今後のボスも同じ：10Fのボスは15%、20Fのボスは25% */
+const bossRate=id=>/10$/.test(byId(id).reward||'')?.15:.25;
 const pct=id=>Math.round(bossRate(id)*100)+'%';
 function bossReward(id){const c=byId(id),st=starOf(id);
   if(st>=3){if(Math.random()<bossRate(id)){save.shards[id]=(save.shards[id]||0)+BOSS_SHARD;return L(`「${c.name}」のかけら+${BOSS_SHARD}！`,`获得「${c.name}」的碎片+${BOSS_SHARD}！`)}
