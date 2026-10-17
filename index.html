@@ -693,7 +693,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" 
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,bossDay:{d:'',ids:[]},tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -716,7 +716,6 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
   s.dexReward2=!!v.dexReward2;
-  {const b=v.bossDay||{};s.bossDay={d:String(b.d||'').slice(0,10),ids:(Array.isArray(b.ids)?b.ids:[]).filter(id=>typeof id==='string'&&byId(id)).slice(0,10)}}
   s.auto=!!v.auto;
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
@@ -826,8 +825,7 @@ const isReplay=n=>n!==TP().floor;
 const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 /* ボスの階：倒すとそのボスが仲間に（★が上がる。★3のあとはかけら） */
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
-  if(bossDone(id))return`<br><span style="font-size:12px">🎁 ${L(`「${c.name}」の今日の報酬は受け取り済み。明日またもらえます`,`今天已领取「${c.name}」的奖励，明天可再次领取`)}</span>`;
-  return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと「${c.name}」のかけら+${BOSS_SHARD}（1日1回）`,`获胜可得「${c.name}」的碎片+${BOSS_SHARD}（每天1次）`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（1日1回・再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（每天1次，再挑战也可以）`)}</span>`}
+  return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();if(towerMode==='inf'&&!infOpen())towerMode='meister';renderTowers();renderMission();
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
@@ -972,7 +970,7 @@ function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vo
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 /* ボスキャラの入手方法 */
 const REWARD_TXT={meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
-const rewardHow=c=>{const t=REWARD_TXT[c.reward];return L(`${t[0]}。1日1回、勝つと★が1つ上がり（再挑戦でもOK）、★3のあとはかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每天1次，获胜后★提升1（再挑战也可以），★3之后可获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
+const rewardHow=c=>{const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   if(!o){el.innerHTML=`<p class="hint">${c.reward?L('まだ出会っていないボス。','尚未遇见的头目。')+rewardHow(c):L(`まだ出会っていないキャラ。ガチャ（vol.${c.vol}）で仲間にしよう。`,`尚未遇见的角色。用扭蛋（vol.${c.vol}）让它成为伙伴吧。`)}</p>`;return}
   el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br><small>${c.role}</small></div></div>
@@ -1527,12 +1525,12 @@ async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=tr
     sub:master?(ismeister?L('真・塔の主をたおした！<br>マイスターの称号を手に入れた','打倒了真·塔之主！<br>获得了「大师」称号'):L(`${tn}を制覇した！`,`制霸了${tn}！`)):opened?L('ボスをたおした！<br>上層（11〜20F）への道が開いた','打倒了头目！<br>通往上层（11〜20F）的道路开启了'):win?L(`${me.ch.name}の勝利！<br>${f}F ${FLS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`,`${me.ch.name}获胜！<br>${f}F ${FLS[f-1].n} ${RP?'再挑战通关':'通关'}`):L(`${foe.ch.name}に敗れた…`,`败给了${foe.ch.name}……`),
     hint:(unlock?unlock+'　':'')+(RP?(win?L(`再挑戦の報酬です（初回クリアは${G.floorCoins(f)}コイン）。挑戦中の階は ${T.floor}F`,`这是再挑战奖励（首次通关为${G.floorCoins(f)}金币）。当前挑战层为 ${T.floor}F`):L(`再挑戦で負けてもコインはもらえません。挑戦中の階は ${T.floor}F`,`再挑战失败不获得金币。当前挑战层为 ${T.floor}F`)):(master?L(`上層は${T.lap}周目へ。敵のレベルがさらに上がります`,`上层进入第${T.lap}轮，敌人等级将进一步提升`):opened?L('ここからは敵がレベルアップしたり人数が増えたりします。技の強化で備えよう','从这里开始敌人会升级或增员，强化技能做好准备吧'):win?L(`次は ${T.floor}F ${FLS[T.floor-1].n}`,`下一层：${T.floor}F ${FLS[T.floor-1].n}`):L(`もう一度 ${f}F に挑戦できます。ガチャや技の強化で立て直そう`,`可以再次挑战 ${f}F。用扭蛋或强化技能重整旗鼓吧`)))})}
 /* ボス撃破のごほうび：持っていなければ★1で仲間に、★3までは★+1、★3のあとはかけら */
-const BOSS_SHARD=2;/* ボスの報酬は各ボス1日1回（★1→★3で3日、そのあと全強化まで約32日＝ガチャキャラとほぼ同じ） */
-const bossDone=id=>save.bossDay.d===today()&&save.bossDay.ids.includes(id);
+const BOSS_SHARD=2;/* ★3まではボスに勝つたびに★+1。★3のあとは確率でかけら+2（10Fは15%、20Fは25%）。全強化までの手間がガチャキャラとほぼ同じになる */
+const bossRate=id=>/^(takumi|verdict)$/.test(id)?.15:.25;
+const pct=id=>Math.round(bossRate(id)*100)+'%';
 function bossReward(id){const c=byId(id),st=starOf(id);
-  if(bossDone(id))return L(`「${c.name}」の今日の報酬は受け取り済み（明日またもらえます）`,`今天已领取「${c.name}」的奖励（明天可再次领取）`);
-  if(save.bossDay.d!==today())save.bossDay={d:today(),ids:[]};save.bossDay.ids.push(id);
-  if(st>=3){save.shards[id]=(save.shards[id]||0)+BOSS_SHARD;return L(`「${c.name}」のかけら+${BOSS_SHARD}`,`获得「${c.name}」的碎片+${BOSS_SHARD}`)}
+  if(st>=3){if(Math.random()<bossRate(id)){save.shards[id]=(save.shards[id]||0)+BOSS_SHARD;return L(`「${c.name}」のかけら+${BOSS_SHARD}！`,`获得「${c.name}」的碎片+${BOSS_SHARD}！`)}
+    return L(`今回は「${c.name}」のかけらは出なかった（確率${pct(id)}）`,`这次没有获得「${c.name}」的碎片（概率${pct(id)}）`)}
   const res=grant(id,st+1);save.shards[id]=(save.shards[id]||0)+1;
   return res==='new'?L(`ボス「${c.name}」が仲間になった！（かけら+1）`,`头目「${c.name}」成为了伙伴！（碎片+1）`):L(`「${c.name}」が★${starOf(id)}になった！（かけら+1）`,`「${c.name}」升到了★${starOf(id)}！（碎片+1）`)}
 /* ================= 通信対戦 ================= */
