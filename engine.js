@@ -390,7 +390,7 @@ const ZH={
  },
  floors:['见习之间','车床室','制图室','焊接工房','电气实习室','化学室','机械工厂','信息处理室','风暴屋顶','塔主之间','试作室','锻造场','控制室','研究所','精密测量室','发电站','设计局','风暴展望台','观星回廊','天空工房'],
  floorsJ:['开庭之间','白之证言台','黑之证言台','天秤之间','镜之法庭','证据保管库','沉默之间','表里之间','法槌之间','判决栖木','陪审员席','辩论之间','镜之回廊','六法书库','封印之间','判例之间','双子证人','雷鸣大法庭','最终辩论','日蚀王座'],
- rules:{scale:'体力比例高于对方时，攻击伤害−2',mirror:'攻击方也会受到所造成伤害的1/4',silence:'恢复量减半',flip:'奇数回合奇数点数、偶数回合偶数点数的攻击+2',gavel:'回合开始时，点数为1的骰子消失',odd:'用奇数点数发动的攻击伤害+2',dice:'双方骰子+1个',even:'用偶数点数发动的攻击伤害+2',pair:'对子技能伤害+4',heal:'恢复量变为2倍',guardHalf:'获得的护盾减半',six:'用点数6发动的攻击伤害+3',storm:'回合开始时，当前行动方受到1点伤害',boss:'对方队伍攻击伤害+1'},
+ rules:{scale:'体力比例高于对方时，攻击伤害−2',mirror:'攻击方也会受到所造成伤害的1/4',silence:'恢复量减半',flip:'奇数回合奇数点数、偶数回合偶数点数的攻击+2',gavel:'点数为1的骰子会消失（重掷出的1也一样）',odd:'用奇数点数发动的攻击伤害+2',dice:'双方骰子+1个',even:'用偶数点数发动的攻击伤害+2',pair:'对子技能伤害+4',heal:'恢复量变为2倍',guardHalf:'获得的护盾减半',six:'用点数6发动的攻击伤害+3',storm:'回合开始时，当前行动方受到1点伤害',boss:'对方队伍攻击伤害+1'},
 };
 
 const FLOORS=[
@@ -426,7 +426,7 @@ const FLOORS_J=[
  {n:'証拠保管庫',rule:{k:'dice',d:'お互いサイコロ+1個'}},
  {n:'黙秘の間',rule:{k:'silence',d:'回復量が半分'}},
  {n:'表裏の間',rule:{k:'flip',d:'奇数ラウンドは奇数、偶数ラウンドは偶数の出目の攻撃+2'}},
- {n:'木槌の間',rule:{k:'gavel',d:'ターン開始時、出目1のサイコロが消える'}},
+ {n:'木槌の間',rule:{k:'gavel',d:'出目1のサイコロが消える（振り直しで出た1も）'}},
  {n:'判決の止まり木',rule:{k:'boss',d:'相手チームの攻撃ダメージ+1'}},
  {n:'陪審員席',rule:{k:'scale',d:'体力の割合が相手より多いと、攻撃ダメージ−2'}},
  {n:'弁論の間',rule:{k:'dice',d:'お互いサイコロ+1個'}},
@@ -436,7 +436,7 @@ const FLOORS_J=[
  {n:'判例の間',rule:{k:'flip',d:'奇数ラウンドは奇数、偶数ラウンドは偶数の出目の攻撃+2'}},
  {n:'双子の証人',rule:{k:'pair',d:'ゾロ目技のダメージ+4'}},
  {n:'雷鳴の大法廷',rule:{k:'storm',d:'ターン開始時、そのターンの人が1ダメージ'}},
- {n:'最終弁論',rule:{k:'gavel',d:'ターン開始時、出目1のサイコロが消える'}},
+ {n:'最終弁論',rule:{k:'gavel',d:'出目1のサイコロが消える（振り直しで出た1も）'}},
  {n:'日蝕の玉座',rule:{k:'boss',d:'相手チームの攻撃ダメージ+1'}},
 ];
 /* 塔ごとの設定：出てくる敵（vol）と10F・20Fのボス。hp20 は20Fボスの体力の上乗せ */
@@ -684,7 +684,8 @@ function useMove(S,i,mi,ks,mo){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=mo|
   if(fx.heal){const base=fx.heal+(f.ch.passive.k==='bless'?2:0),h=Math.min(f.max-f.hp,rk(S)==='heal'?base*2:rk(S)==='silence'?Math.floor(base/2):base);f.hp+=h;E(S,'heal',h?L(`${f.ch.name}は 体力を ${h} 回復した！`,`${f.ch.name} 恢复了 ${h} 点体力！`):L('しかし 体力は満タンだ！','但体力已经是满的！'),{side:i,amt:h})}
   if(fx.dUp){f.dMod+=fx.dUp;E(S,'buff',L(`${f.ch.name}の 次のターンのサイコロが +${fx.dUp}！`,`${f.ch.name} 的下回合骰子 +${fx.dUp}！`),{side:i})}
   if(fx.dDown){o.dMod-=fx.dDown;E(S,'debuff',L(`${o.ch.name}の 次のターンのサイコロが −${fx.dDown}！`,`${o.ch.name} 的下回合骰子 −${fx.dDown}！`),{side:1-i})}
-  if(fx.reroll){const nv=[];for(let q=0;q<fx.reroll;q++){const x=r6(S.R||Math.random);nv.push(x);sd.dice.push({v:x,used:false})}E(S,'roll',L('サイコロを振り直した → ','重掷了骰子 → ')+nv.join(L('・','·')),{side:i})}
+  if(fx.reroll){const nv=[];let gv=0;for(let q=0;q<fx.reroll;q++){const x=r6(S.R||Math.random);nv.push(x);if(rk(S)==='gavel'&&x===1){gv++;continue}sd.dice.push({v:x,used:false})}E(S,'roll',L('サイコロを振り直した → ','重掷了骰子 → ')+nv.join(L('・','·')),{side:i});
+    if(gv)E(S,'roll',L('木槌！ 出目1のサイコロが消えた','法槌！ 点数为1的骰子消失了'),{side:i})}
   if(fx.thornUp&&f.hp>0){f.thornUp=(f.thornUp||0)+fx.thornUp;E(S,'buff',L(`${f.ch.name}の トゲが 次の相手のターン +${fx.thornUp}！`,`${f.ch.name} 的尖刺在对方下回合 +${fx.thornUp}！`),{side:i})}
   if(fx.lowHeal&&f.hp>0&&f.hp<=f.max/2){const h=Math.min(f.max-f.hp,fx.lowHeal);f.hp+=h;E(S,'heal',L(`${f.ch.name}は 体力を ${h} 回復した！`,`${f.ch.name} 恢复了 ${h} 点体力！`),{side:i,amt:h})}
   if(fx.nineHeal&&f.nineUsed&&f.hp>0){const h=Math.min(f.max-f.hp,fx.nineHeal);f.hp+=h;E(S,'heal',L(`九つの命のあとの整備！ 体力 ${h} 回復`,`九条命后的整备！恢复体力 ${h}`),{side:i,amt:h})}
