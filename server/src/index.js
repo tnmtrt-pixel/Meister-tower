@@ -100,12 +100,13 @@ export class Room {
     }
 
     // 対戦中の行動は相手にそのまま中継する
-    if (this.started && (m.t === 'act' || m.t === 'end' || m.t === 'surrender' || m.t === 'emote' || m.t === 'sw' || m.t === 'pick')) {
+    if (this.started && (m.t === 'act' || m.t === 'end' || m.t === 'surrender' || m.t === 'emote' || m.t === 'sw' || m.t === 'pick' || m.t === 'ult')) {
       const op = this.other(me);
       if (!op) return;
       if (m.t === 'act') this.send(op, { t: 'act', mi: m.mi | 0, ks: (m.ks || []).slice(0, 2).map((n) => n | 0) });
       else if (m.t === 'sw') this.send(op, { t: 'sw', k: m.k | 0, dk: m.dk | 0 }); // Ver 3.0 交代
       else if (m.t === 'pick') this.send(op, { t: 'pick', k: m.k | 0 }); // Ver 3.0 倒れたあとのキャラ選び
+      else if (m.t === 'ult') this.send(op, { t: 'ult', ks: (m.ks || []).slice(0, 2).map((n) => n | 0) }); // Ver 3.1 超必殺技
       else this.send(op, { t: m.t, e: m.e });
     }
   }

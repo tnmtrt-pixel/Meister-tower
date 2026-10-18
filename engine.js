@@ -506,19 +506,19 @@ function raidEnemy(){const c=SORA;return{id:'sora',star:3,hp:78,lv:99,bonus:2,ra
 function rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
 function newPvP(o){/* o:{me:[{id,star,mv,lv}],opp:[...],seed,firstSide} */
   const fs=o.firstSide?1:0;
-  const S={floor:0,lap:1,rule:null,turn:0,over:-1,ev:[],pvp:true,choose:[true,true],maxRound:o.maxRound||12,firstSide:fs,R:rng(o.seed),
+  const S={floor:0,lap:1,rule:null,turn:0,over:-1,ev:[],pvp:true,choose:[true,true],ultOK:[true,true],maxRound:o.maxRound||12,firstSide:fs,R:rng(o.seed),
     sides:[{team:o.me.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===0},
            {team:o.opp.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,PLAYER_HP)),idx:0,dice:[],used:new Set(),first:fs===1}]};
   return S}
 function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,mv,hp}]} */
   const fl=towerOf(o.tower).floors[o.floor-1]||{n:'',rule:null};
-  const S={floor:o.floor,lap:o.lap||1,tower:o.tower||'meister',fl,rule:fl.rule,turn:0,over:-1,ev:[],choose:[true,false],
+  const S={floor:o.floor,lap:o.lap||1,tower:o.tower||'meister',fl,rule:fl.rule,turn:0,over:-1,ev:[],choose:[true,false],ultOK:[true,false],
     sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,p.hp||PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
            {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0,!!e.raid)),idx:0,dice:[],used:new Set(),first:false}]};
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
 const rk=S=>S.rule&&S.rule.k;
-function snap(S){return S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used],dec:S.decree}))}
+function snap(S){return S.sides.map(sd=>({idx:sd.idx,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed,ult:!!f.ultUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used],dec:S.decree}))}
 function E(S,t,msg,x){S.ev.push(Object.assign({t,msg,snap:snap(S)},x||{}))}
 const take=S=>{const e=S.ev;S.ev=[];return e};
 const r6=R=>1+Math.floor(R()*6);
@@ -611,6 +611,17 @@ function typePts(f,m,o){const ty=moveTy(f,m);if(!ty||!m.dmg)return null;const ft
 const EFF=[['かなりいまひとつ','效果很差'],['いまひとつ','效果不佳'],['ふつう','普通'],['ばつぐん','效果绝佳'],['ちょうばつぐん','效果超群']];
 const effLabel=p=>p==null?'':L(...EFF[p+2]);
 const typeName=t=>t==='wb'?L('白黒','黑白'):t==='both'?L('ひかり・やみ','光·暗'):TYPES[t]?L(TYPES[t].ja,TYPES[t].zh):'';
+/* ================= Ver 3.1：超必殺技 ================= */
+/* ★3のキャラだけ。決まった数字（1つ目のタイプで決まる）のゾロ目で、1バトル1回。技の4枠とは別。塔の敵は使わない */
+const ULT_NUM={de:6,ch:5,me:4,ma:3,ke:2,hikari:1,yami:1},ULT_DMG=22;
+const ULT={"rocker": {"n": "ラストライブ・ジュウナナ", "l": "アンコールは、ないぜ", "zn": "最终演出·十七", "zl": "没有安可了"}, "sora": {"n": "全機出撃・スカイストーム", "l": "空から、ぜんぶ見えてるよ！", "zn": "全机出击·天空风暴", "zl": "从天上，全都看得到！"}, "gorilla": {"n": "ギガボルト・ジャングル", "l": "全開の、そのまた全開だ！", "zn": "千兆伏特·丛林", "zl": "全力的全力！"}, "wolf": {"n": "アーク・ウルフバースト", "l": "合格ライン、ぶっちぎる！", "zn": "电弧·狼之爆发", "zl": "合格线，直接冲破！"}, "lionex": {"n": "天雷王・ライオネクスバースト", "l": "天よ、裁きの雷を", "zn": "天雷王·雷狮爆发", "zl": "天啊，降下审判之雷"}, "robot": {"n": "ファイナル・フルバースト", "l": "全兵装、解放", "zn": "最终·全弹发射", "zl": "全武装，解放"}, "fox": {"n": "完全分解オーバーホール", "l": "全部バラして、組み直す！", "zn": "完全拆解大修", "zl": "全部拆开，再组装！"}, "takumi": {"n": "千本鍛え・匠の極み", "l": "これが、磨き抜いた技だ！", "zn": "千锤百炼·匠之极致", "zl": "这就是磨练到极致的技艺！"}, "okajun": {"n": "工業魂・フルスロットル", "l": "工業、なめんなよ！", "zn": "工业魂·全速前进", "zl": "别小看工业啊！"}, "mouse": {"n": "ロボ完全合体・チューギガント", "l": "ロボ、いっくぞー！ チュー！", "zn": "机器人完全合体·啾巨人", "zl": "机器人，冲啊！啾！"}, "kurogane": {"n": "九生乱舞・黒猫整備", "l": "九つの命、ぜんぶ乗せにゃ！", "zn": "九命乱舞·黑猫整备", "zl": "九条命，全部加上喵！"}, "owl": {"n": "理論完成・パーフェクトデザイン", "l": "計算終了。結果は君の負けだ", "zn": "理论完成·完美设计", "zl": "计算结束。结果是你输了"}, "tsukiyo": {"n": "流星群・ミッドナイト", "l": "星よ、すべて降りそそげ", "zn": "流星群·午夜", "zl": "星星啊，全部落下吧"}, "hayate": {"n": "全力・安全第一ストレート", "l": "指差し確認、よし！ 全力！", "zn": "全力·安全第一直拳", "zl": "指认确认，好！全力！"}, "dodo": {"n": "先輩の本気・大ドスコイ", "l": "たまには本気、出しちゃうよ〜", "zn": "前辈的真本事·大相扑", "zl": "偶尔也拿出真本事吧～"}, "guardian": {"n": "レインボー・フォートレス", "l": "この盾を越えてみよ！", "zn": "彩虹·要塞", "zl": "越过这面盾牌试试！"}, "nero": {"n": "スイート・カースチェーン", "l": "甘い夢、見せてあげる", "zn": "甜蜜·诅咒锁链", "zl": "让你做个甜美的梦"}, "spino": {"n": "ジュラシック・ロア", "l": "一億年分の、ひと噛み！", "zn": "侏罗纪·咆哮", "zl": "一亿年份的，一口！"}, "hakurou": {"n": "神狼天翔・白銀嵐", "l": "風よ、我と共に", "zn": "神狼天翔·白银风暴", "zl": "风啊，与我同在"}, "onmyo": {"n": "百鬼夜行・陰陽封印", "l": "……陰も陽も、我が手に", "zn": "百鬼夜行·阴阳封印", "zl": "……阴与阳，尽在我手"}, "seraph": {"n": "ヘブンズゲート", "l": "光よ、みんなを包んで", "zn": "天堂之门", "zl": "光啊，包围大家吧"}, "libra": {"n": "運命の天秤・ファイナルジャッジ", "l": "運命も、ひとつの選択……", "zn": "命运天秤·最终审判", "zl": "命运也是一种选择……"}, "verdict": {"n": "双翼の最終判決", "l": "判決を言い渡す", "zn": "双翼的最终判决", "zl": "宣判"}, "eclipse": {"n": "皆既日食・陰陽終焉", "l": "光も闇も、ここで終わる", "zn": "日全食·阴阳终焉", "zl": "光与暗，在此终结"}};
+const ultNum=ch=>ULT_NUM[(ch.types||[])[0]]||0;
+function ultOf(ch){const u=ULT[ch.id];if(!u)return null;const boss=(ch.types||[])[0]==='hikari';return{n:L(u.n,u.zn),line:L(u.l,u.zl),num:ultNum(ch),c:{t:'pair'},dmg:{b:ULT_DMG},ty:boss?'both':(ch.types||[])[0],ult:1}}
+/* 使えるサイコロ（決まった数字が2個）。なければnull */
+function ultDice(S,i){const sd=S.sides[i],f=act(S,i);if(!S.ultOK||!S.ultOK[i]||S.over>=0||S.turn!==i||f.star<3||f.ultUsed||f.hp<=0||f.raid)return null;if(S.need&&(S.need[0]||S.need[1]))return null;
+  const n=ultNum(f.ch),ks=sd.dice.map((d,k)=>!d.used&&d.v===n?k:-1).filter(k=>k>=0);return ULT[f.ch.id]&&ks.length>=2?ks.slice(0,2):null}
+function useUlt(S,i,ks){const f=act(S,i),u=ultOf(f.ch);ks=ks||ultDice(S,i);if(!u||!ks||!ultDice(S,i))return null;f.ultUsed=true;
+  E(S,'ult',u.n,{side:i,id:f.ch.id,name:u.n,line:u.line,num:u.num});return useMove(S,i,-1,ks,u)}
 /* 攻撃ダメージ（ガード前） */
 function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=[];
   let d=(m.dmg.b||0)+(m.dmg.m||0)*v;if(m.fx&&m.fx.gdmg&&f.guard)d+=f.guard;
@@ -638,9 +649,9 @@ function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=
   if(o.ch.passive.k==='fossil'&&d>0&&d<=4)add(-d,o.ch.passive.n);
   return{d:Math.max(0,d),notes,tp}}
 
-function useMove(S,i,mi,ks){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=f.moves[mi],v=sd.dice[ks[0]].v;
-  ks.forEach(k=>sd.dice[k].used=true);sd.used.add(mi);
-  E(S,'cast',L(`${f.ch.name}の ${m.n}！（出目 `,`${f.ch.name} 使出 ${m.n}！（点数 `)+`${ks.map(k=>sd.dice[k].v).join(L('・','·'))}）`,{side:i,mi,vals:ks.map(k=>sd.dice[k].v)});
+function useMove(S,i,mi,ks,mo){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=mo||f.moves[mi],v=sd.dice[ks[0]].v;
+  ks.forEach(k=>sd.dice[k].used=true);if(mi>=0)sd.used.add(mi);
+  E(S,'cast',L(`${f.ch.name}の ${m.n}！（出目 `,`${f.ch.name} 使出 ${m.n}！（点数 `)+`${ks.map(k=>sd.dice[k].v).join(L('・','·'))}）`,{side:i,mi,ult:!!m.ult,mn:m.n,vals:ks.map(k=>sd.dice[k].v)});
   const fx=m.fx||{};
   if(fx.self&&f.hp>1){const a=Math.min(fx.self,f.hp-1);f.hp-=a;E(S,'hit',L(`${f.ch.name}は 自分も ${a} ダメージ`,`${f.ch.name} 自身也受到 ${a} 点伤害`),{side:i,amt:a,src:-1})}
   if(fx.gclr&&o.guard){o.guard=0;E(S,'debuff',L(`${o.ch.name}の ガードが消えた！`,`${o.ch.name} 的护盾消失了！`),{side:1-i})}
@@ -692,7 +703,7 @@ function cpuChoose(S,i,R=Math.random){const sd=S.sides[i],f=act(S,i),o=act(S,1-i
 /* 完全自動（シミュレーション用） */
 function simulate(o,R=Math.random){const S=newBattle(o);let i=0,guard=0;
   const fix=()=>{for(const k of [0,1])if(needPick(S,k))pickNext(S,k,bestPick(S,k),R)};
-  while(S.over<0&&guard++<200){startTurn(S,i,R);fix();let c;while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R))){useMove(S,i,c.mi,c.ks);fix()}endTurn(S,i);take(S);i=1-i}
+  while(S.over<0&&guard++<200){startTurn(S,i,R);fix();let c;if(ultDice(S,i)){useUlt(S,i);fix()}while(S.over<0&&S.turn===i&&(c=cpuChoose(S,i,R))){useMove(S,i,c.mi,c.ks);fix()}endTurn(S,i);take(S);i=1-i}
   return S.over}
 
 /* プロフィール名の単語（前・中・後）。番号はサーバーに保存されるので、並びは変えずに後ろへ足すこと。3つ目は解放条件 */
@@ -746,6 +757,6 @@ function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
 const API={TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg,
-  TYPES,BEATS,TMULT,typePts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo};
+  TYPES,BEATS,TMULT,typePts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
