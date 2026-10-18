@@ -543,6 +543,14 @@ h2{font-weight:400;letter-spacing:.02em;color:#fff;text-shadow:0 2px 0 rgba(0,0,
 .toast{background:#0D1838;color:#fff;border:1px solid var(--gold);box-shadow:0 6px 20px rgba(0,0,0,.5)}
 details summary{color:#B9CBEE}
 hr{border-color:var(--line)!important}
+.cup-list{display:flex;flex-direction:column;gap:6px}
+.cup-row{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:inherit;font:inherit;cursor:pointer}
+.cup-row .cr-r{text-align:right;flex:none}.cup-row .cr-go{color:var(--gold-hi,#FFE08A)}
+.bd-p{border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:6px;display:flex;flex-direction:column;gap:6px}
+.bd-p .medal{font-size:20px;flex:none;width:30px}
+.bd-c{display:flex;gap:8px;align-items:center}.bd-mv{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+.bd-mv span{font-size:11px;padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line)}.bd-mv i{font-style:normal;color:var(--gold-hi,#FFE08A);margin-left:2px}
+.bd-use{display:flex;flex-direction:column;gap:4px}.bd-u{display:flex;align-items:center;gap:8px}.bd-u span{flex:1}.bd-u small{width:70px;text-align:right}
 </style>
 </head>
 <body>
@@ -677,7 +685,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=1e1cca06"></script>
 <script>
-const VERSION='2.1.1';
+const VERSION='2.1.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1291,12 +1299,23 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   on('cup-claim',async()=>{sfx('tap');try{const r=await api('/api/cup/claim',auth());if(r.coins>0){save.coins+=r.coins;persist();updCoins();sfx('reveal',3);toast(L(`コイン +${r.coins}`,`金币 +${r.coins}`))}syncCupFlags(r.flags);if(CUP.data.rew)CUP.data.rew.coins=0;renderCup()}catch(e){toast(L('サーバーにつながりませんでした','无法连接服务器'))}})}
 function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)||[],hall=(d&&d.hall)||[];
   if(!hist.length&&!hall.length){el.hidden=true;return}el.hidden=false;
-  const champs=hist.filter(h=>h.champ).length;
-  el.innerHTML=`${hist.length?`<h2>${L('大会の戦績','大赛战绩')}</h2><div class="hint">${L(`出場 ${hist.length}回／優勝 ${champs}回`,`参赛 ${hist.length}次／夺冠 ${champs}次`)}</div>
-    <div class="cup-hist">${hist.map(h=>`<div><span>${cupT(h.name)}<br><small>${cupT(h.sub)}</small></span><b>${h.champ?'🏆 '+L('優勝','冠军'):L(`${h.n}位/${h.of}人`,`第${h.n}名/${h.of}人`)}<br><small>${L(`${h.w}勝${h.l}敗`,`${h.w}胜${h.l}负`)}</small></b></div>`).join('')}</div>`:''}
-    ${hall.length?`<details class="hallbox" style="margin-top:12px"${CUP.hallOpen?' open':''}><summary><b>🏛 ${L('殿堂','殿堂')}</b>（${L(`${hall.length}大会・タップで見る`,`${hall.length}场大赛·点击查看`)}）</summary>${hall.map(e=>`<div class="hall"><div class="label">${cupT(e.name)}　${cupT(e.sub)}　${cupDate(e.date)}</div>
-      ${e.top.map((p,k)=>`<div class="hall-p"><span class="medal">${k?'🥈':'🥇'}</span><div style="flex:1;min-width:0">${whoHTML(p)}${partyHTML(p.party)}</div></div>`).join('')}</div>`).join('')}</details>`:''}`;
-  const hb=el.querySelector('.hallbox');if(hb)hb.ontoggle=()=>{CUP.hallOpen=hb.open}}
+  const champs=hist.filter(h=>h.champ).length,mine=tid=>tid&&hist.find(h=>h.tid===tid);
+  /* 大会の一覧（開かれた大会すべて）。自分が出た大会は順位も出す */
+  const rows=hall.map((e,ix)=>{const h=mine(e.tid),w=e.top&&e.top[0];
+    return`<button type="button" class="cup-row" data-ci="${ix}"><span><b>${cupT(e.name)}</b><br><small>${cupT(e.sub)}　${cupDate(e.date)}　${e.n||''}${L('人','人')}</small>${w?`<br><small>🏆 ${nameOf(w.w,w.tag)}</small>`:''}</span>
+      <span class="cr-r">${h?(h.champ?'🏆 '+L('優勝','冠军'):L(`${h.n}位`,`第${h.n}名`))+`<br><small>${L(`${h.w}勝${h.l}敗`,`${h.w}胜${h.l}负`)}</small>`:`<small>${L('不参加','未参加')}</small>`}<br><small class="cr-go">${L('構築を見る ›','查看阵容 ›')}</small></span></button>`}).join('');
+  /* 一覧にない古い記録（自分の戦績だけ） */
+  const old=hist.filter(h=>!h.tid||!hall.some(e=>e.tid===h.tid)).map(h=>`<div class="cup-row"><span>${cupT(h.name)}<br><small>${cupT(h.sub)}</small></span><span class="cr-r">${h.champ?'🏆 '+L('優勝','冠军'):L(`${h.n}位/${h.of}人`,`第${h.n}名/${h.of}人`)}<br><small>${L(`${h.w}勝${h.l}敗`,`${h.w}胜${h.l}负`)}</small></span></div>`).join('');
+  el.innerHTML=`<h2>${L('大会の記録','大赛记录')}</h2>${hist.length?`<div class="hint">${L(`あなた：出場 ${hist.length}回／優勝 ${champs}回`,`你：参赛 ${hist.length}次／夺冠 ${champs}次`)}</div>`:''}
+    <p class="hint">${L('大会名をタップすると、優勝・準優勝のパーティ（キャラと技）が見られます。','点击大赛名称，可以查看冠军·亚军的队伍（角色与技能）。')}</p><div class="cup-list">${rows}${old}</div>`;
+  el.querySelectorAll('[data-ci]').forEach(b=>b.onclick=()=>{sfx('tap');cupDetail(hall[+b.dataset.ci])})}
+/* 大会の詳細：上位の構築と、よく使われたキャラ */
+function buildHTML(pt){return(pt||[]).map(x=>{const c=byId(x.id);if(!c)return'';const lv=x.lv||{};
+  return`<div class="bd-c"><div style="width:44px;flex:none">${crest(c)}</div><div style="min-width:0"><b>${c.name}</b> <span class="rar">${stars(x.star)}</span><div class="bd-mv">${(x.mv||[]).map(k=>c.moves[k]?`<span>${c.moves[k].n}${lv[k]?`<i>+${lv[k]}</i>`:''}</span>`:'').join('')}</div></div></div>`}).join('')}
+function cupDetail(e){if(!e)return;
+  const top=(e.top||[]).slice(0,2).map((p,i)=>`<div class="bd-p"><div class="row between"><span class="medal">${i?'🥈':'🥇'}</span>${whoHTML(p)}<b style="flex:none">${p.wl?L(`${p.wl[0]}勝${p.wl[1]}敗`,`${p.wl[0]}胜${p.wl[1]}负`):''}</b></div>${buildHTML(p.party)}</div>`).join('');
+  openSheet(`<h2>${cupT(e.name)}</h2><div class="hint">${cupT(e.sub)}　📅 ${cupDate(e.date)}${e.n?`　👥 ${e.n}${L('人','人')}`:''}</div>
+    <div class="label" style="margin-top:8px">${L('優勝・準優勝のパーティ','冠军·亚军的队伍')}</div>${top||`<p class="hint">${L('記録がありません','暂无记录')}</p>`}`,L('閉じる','关闭'))}
 
 /* ================= 無限の塔 ================= */
 /* 負けるまで登る。体力は生き残ったキャラだけ毎階全回復、たおれたキャラはボス（10階ごと）を倒すと半分で復活 */
