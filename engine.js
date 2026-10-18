@@ -136,7 +136,7 @@ const CHARS=[
   {n:'グラインダー',c:{t:'min',n:5},dmg:{b:8},t:2},
   {n:'実習の成果',c:{t:'pair'},dmg:{b:15},t:3}]},
  {id:'kurogane',vol:2,no:16,name:'クロガネ',img:'img/kurogane.webp',color:'#3D4A63',role:'粘り型・しぶとい',
-  passive:{k:'nine',n:'九つの命',d:'1回だけ、たおれる攻撃を受けても体力5で耐える'},
+  passive:{k:'nine',n:'九つの命',d:'1回だけ、たおれるダメージを受けても体力5で耐える（攻撃・トゲ・疲れなど何でも）'},
   lines:['にゃっ！整備はまかせて！','ピース！にゃはは！','……しっぽ、ふまれた…'],moves:[
   {n:'ねこパンチ',c:{t:'any'},dmg:{b:1,m:1}},
   {n:'スパナひっかき',c:{t:'even'},dmg:{b:1,m:1}},
@@ -273,7 +273,7 @@ const ZH={
   nero:{name:'尼禄',role:'干扰型·甜蜜陷阱',pn:'锁链之誓',pd:'「对方下次攻击−」的效果再−2',lines:['甜的只有糖果。我可不一样哦','多谢款待♪','……糖果，掉了']},
   okajun:{name:'冈纯',role:'反击型·以牙还牙',pn:'工业魂',pd:'受到5点以上伤害的攻击时，下次攻击+2',lines:['别小看工业啊','整备完毕','……今天引擎发动不起来']},
   hayate:{name:'疾风',role:'速攻型·第一击',pn:'安全确认完毕',pd:'每回合第一次攻击伤害+2',lines:['安全第一，但也要全力以赴！','和实习时一样！','下次……我会重新检查步骤']},
-  kurogane:{name:'黑铁',role:'顽强型·打不倒',pn:'九条命',pd:'仅限1次，受到致命攻击时以体力5撑住',lines:['喵！整备就交给我吧！','耶！喵哈哈！','……尾巴，被踩到了…']},
+  kurogane:{name:'黑铁',role:'顽强型·打不倒',pn:'九条命',pd:'仅限1次，受到致命伤害时以体力5撑住（攻击、尖刺、疲劳等皆可）',lines:['喵！整备就交给我吧！','耶！喵哈哈！','……尾巴，被踩到了…']},
   lionex:{name:'雷狮王',role:'攻击型·雷之大招',pn:'雷鸣',pd:'对子攻击无视对方护盾',lines:['……聆听雷鸣吧','这是上天的裁决','雷……停了吗']},
   seraph:{name:'炽天使',role:'回复型·祝福',pn:'祝福',pd:'回复技能的回复量+2',lines:['过来吧。你在迷茫吧？','你很努力了呢','……光芒，稍微暗淡了些吗']},
   hakurou:{name:'白狼',role:'防守型·神兽',pn:'天衣',pd:'护盾在回合开始时不会消失，可以保留（最多8）。用护盾完全挡住攻击时，回复挡下的体力',lines:['……风正在考验你','回归天上吧','……这件衣裳，还会被弄脏吗']},
@@ -468,8 +468,8 @@ function startTurn(S,i,R=S.R||Math.random){if(S.over>=0)return take(S);
     const w=a!==b?(a>b?0:1):hp(0)!==hp(1)?(hp(0)>hp(1)?0:1):1-(S.firstSide||0);
     E(S,'judge',L(`${S.maxRound}ラウンド終了！ 残り体力 ${Math.round(a*100)}% 対 ${Math.round(b*100)}% で判定`,`${S.maxRound}回合结束！剩余体力 ${Math.round(a*100)}% 对 ${Math.round(b*100)}%，进行判定`),{side:w});
     S.over=w;E(S,'over','',{winner:w});return take(S)}
-  if(S.round>=FATIGUE){const d=S.round-FATIGUE+1;f.hp=Math.max(0,f.hp-d);E(S,'hit',L(`長期戦の疲れ！ ${f.ch.name}に ${d} ダメージ`,`持久战的疲劳！ ${f.ch.name} 受到 ${d} 点伤害`),{side:i,amt:d,src:-1})}
-  if(rk(S)==='storm'){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`嵐で ${f.ch.name}に 1ダメージ`,`风暴使 ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1})}
+  if(S.round>=FATIGUE){const d=S.round-FATIGUE+1;f.hp=Math.max(0,f.hp-d);E(S,'hit',L(`長期戦の疲れ！ ${f.ch.name}に ${d} ダメージ`,`持久战的疲劳！ ${f.ch.name} 受到 ${d} 点伤害`),{side:i,amt:d,src:-1});nineSave(S,i,f)}
+  if(rk(S)==='storm'){f.hp=Math.max(0,f.hp-1);E(S,'hit',L(`嵐で ${f.ch.name}に 1ダメージ`,`风暴使 ${f.ch.name} 受到1点伤害`),{side:i,amt:1,src:-1});nineSave(S,i,f)}
   if(pk==='gamble'&&f.hp>0){f.hp=Math.max(0,f.hp-2);E(S,'hit',L(`ロックンロール！ ${f.ch.name}は 2ダメージ`,`摇滚！ ${f.ch.name} 受到2点伤害`),{side:i,amt:2,src:-1})}
   checkKO(S);if(S.over>=0)return take(S);
   const g=act(S,i),gk=g.ch.passive.k;
@@ -485,6 +485,8 @@ function startTurn(S,i,R=S.R||Math.random){if(S.over>=0)return take(S);
   if(gk==='guardStart'){const gg=gain(S,g,4);E(S,'guard',L(`ふかふか羽毛で ガード${gg}`,`蓬松羽毛：护盾${gg}`),{side:i,amt:gg})}
   if(gk==='pairPow'){const vs=sd.dice.map(d=>d.v);if(vs.some((v,k)=>vs.indexOf(v)!==k)){g.pow+=3;E(S,'buff',L('星降る夜！ ゾロ目で 次の攻撃+3','星降之夜！ 掷出对子，下次攻击+3'),{side:i})}}
   return take(S)}
+/* 九つの命：攻撃でもトゲ・鏡・疲れ・嵐でも、たおれたら1回だけ体力5で耐える */
+function nineSave(S,side,f){if(f.hp>0||f.nineUsed||f.ch.passive.k!=='nine')return false;f.nineUsed=true;f.hp=Math.min(f.max,5);E(S,'heal',L(`九つの命！ ${f.ch.name}は 体力5で耐えた！`,`九条命！ ${f.ch.name} 以体力5撑住了！`),{side,amt:0});return true}
 function gain(S,f,g){if(rk(S)==='guardHalf')g=Math.floor(g/2);if(f.ch.passive.k==='master')g+=1;f.guard+=g;return g}
 
 /* 使えるサイコロ（index配列）を返す */
@@ -540,8 +542,8 @@ function useMove(S,i,mi,ks){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=f.move
     if(saved)E(S,'heal',L(`九つの命！ ${o.ch.name}は 体力5で耐えた！`,`九条命！ ${o.ch.name} 以体力5撑住了！`),{side:1-i,amt:0});
     if(ok==='veil'&&blocked>0&&d===0&&o.hp>0&&o.hp<o.max){const h=Math.min(o.max-o.hp,blocked);o.hp+=h;E(S,'heal',L(`天衣！ 防いだ分 ${o.ch.name}は 体力${h}回復`,`天衣！ ${o.ch.name} 回复挡下的体力${h}`),{side:1-i,amt:h})}
     if(ok==='revenge'&&d>=5&&o.hp>0){o.pow+=2;E(S,'buff',L(`工業魂！ ${o.ch.name}の 次の攻撃+2`,`工业魂！ ${o.ch.name} 的下次攻击+2`),{side:1-i})}
-    if(ok==='thorn'&&r.d>0&&f.hp>0){f.hp=Math.max(0,f.hp-2);E(S,'hit',L(`七色のトゲ！ ${f.ch.name}に 2ダメージ`,`七色之刺！ ${f.ch.name} 受到2点伤害`),{side:i,amt:2,src:1-i})}
-    if(rk(S)==='mirror'&&d>=4&&f.hp>0){const b=Math.floor(d/4);f.hp=Math.max(0,f.hp-b);E(S,'hit',L(`鏡の反射！ ${f.ch.name}に ${b}ダメージ`,`镜面反射！ ${f.ch.name} 受到${b}点伤害`),{side:i,amt:b,src:-1})}}
+    if(ok==='thorn'&&r.d>0&&f.hp>0){f.hp=Math.max(0,f.hp-2);E(S,'hit',L(`七色のトゲ！ ${f.ch.name}に 2ダメージ`,`七色之刺！ ${f.ch.name} 受到2点伤害`),{side:i,amt:2,src:1-i});nineSave(S,i,f)}
+    if(rk(S)==='mirror'&&d>=4&&f.hp>0){const b=Math.floor(d/4);f.hp=Math.max(0,f.hp-b);E(S,'hit',L(`鏡の反射！ ${f.ch.name}に ${b}ダメージ`,`镜面反射！ ${f.ch.name} 受到${b}点伤害`),{side:i,amt:b,src:-1});nineSave(S,i,f)}}
   if(fx.guard){const g=gain(S,f,fx.guard);E(S,'guard',L(`${f.ch.name}は ガード${g}を得た！`,`${f.ch.name} 获得护盾${g}！`),{side:i,amt:g})}
   if(fx.pow){const p=fx.pow+(f.ch.passive.k==='powBonus'?1:0);f.pow+=p;E(S,'buff',L(`${f.ch.name}の 次の攻撃が +${p}！`,`${f.ch.name} 的下次攻击 +${p}！`),{side:i})}
   if(fx.weak){const w=fx.weak+(f.ch.passive.k==='chainW'?2:0);o.weak+=w;E(S,'debuff',L(`${o.ch.name}の 次の攻撃が −${w}！`,`${o.ch.name} 的下次攻击 −${w}！`),{side:1-i})}

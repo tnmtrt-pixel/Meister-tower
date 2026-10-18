@@ -133,12 +133,20 @@ export class Room {
  *
  *  POST /api/profile {id, sec, w:[a,b,c], icon, title, on}
  *  POST /api/score   {id, sec, now, floor, wins, pvp, dex}   now=今の到達階(1-20) floor=総踏破
- *  GET  /api/rank?type=floor|week|pvp|dex&id=
+ *  GET  /api/rank?type=inf|infw|infd&id=   inf=無限の塔トータル infw=ウィークリー infd=デイリー
+ *  POST /api/score   {…, run}   run=無限の塔でクリアした階（デイリー・ウィークリー用）
+ *  POST /api/rank/claim {id, sec}  デイリー・ウィークリー上位の報酬コインを受け取る
  *  POST /api/admin   {key, id, hide}   ※ Cloudflareの環境変数 ADMIN_KEY を設定したときだけ使える
  */
 const ID_RE = /^[0-9a-f]{16,32}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
-const TYPES = { inf: 'inf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const TYPES = { inf: 'inf', infw: 'winf', infd: 'dinf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+/* 期間ランキング（無限の塔）：デイリーは毎日15:00、ウィークリーは毎週月曜15:00に切り替え（日本時間） */
+const PER = { infd: { col: 'dinf', key: 'dkey', last: 'dlast', fn: (t) => dayKey(t) }, infw: { col: 'winf', key: 'wkey', last: 'wlast', fn: (t) => weekKey(t) } };
+const REW = { infd: [10, 6, 3], infw: [50, 30, 15] };
+export const dayKey = (now = Date.now()) => Math.floor((now + (9 - 15) * 3600e3) / 86400e3);
+export const weekKey = (now = Date.now()) => Math.floor((dayKey(now) + 3) / 7);
+const nextReset = (type, now = Date.now()) => { const d = dayKey(now) + 1; const day = type === 'infw' ? (weekKey(now) + 1) * 7 - 3 : d; return day * 86400e3 - (9 - 15) * 3600e3; };
 /* 同点のときの並び（到達階が同じなら総踏破が多い人が上） */
 const SUB = { now: 'floor' };
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json; charset=utf-8' } });
@@ -169,6 +177,10 @@ export class Rank {
     try { this.sql.exec('ALTER TABLE u ADD COLUMN cupv INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
     /* 無限の塔の最高到達階 */
     try { this.sql.exec('ALTER TABLE u ADD COLUMN inf INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
+    /* 無限の塔のデイリー・ウィークリー（期間の番号・その期間の最高階・その階に着いた時刻） */
+    for (const c of ['dinf', 'dkey', 'dlast', 'winf', 'wkey', 'wlast']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
+    /* 上位の報酬（受け取るまで残る） */
+    this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
   }
 
   row(id) {
@@ -186,12 +198,13 @@ export class Rank {
   async fetch(request) {
     const url = new URL(request.url);
     try {
-      if (request.method === 'GET' && url.pathname === '/api/rank') return this.rank(url);
+      if (request.method === 'GET' && url.pathname === '/api/rank') { await this.settle(); return this.rank(url); }
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
       if (url.pathname === '/api/profile') return this.profile(b);
       if (url.pathname === '/api/score') return this.score(b);
+      if (url.pathname === '/api/rank/claim') return this.claim(b);
       if (url.pathname.startsWith('/api/cup/')) return this.cupRoute(url.pathname, b, json);
       if (url.pathname === '/api/admin') return this.admin(b);
       return json({ err: 'not found' }, 404);
@@ -217,7 +230,9 @@ export class Rank {
     if (a.err) return json({ err: a.err }, 403);
     if (!a.r) return json({ err: 'no profile' }, 404);
     const r = a.r, now = Date.now();
-    if (now - r.last < 1500) return json({ ok: true, skip: true });
+    await this.settle(now);
+    const run = int(b.run, 0, 9999);
+    if (now - r.last < 1500 && !run) return json({ ok: true, skip: true });
     /* ありえない数字は切り捨てる */
     const nowF = Math.max(r.now || 0, int(b.now, 0, 20));
     const inf = Math.min(Math.max(r.inf || 0, int(b.inf, 0, 9999)), (r.inf || 0) + 60); /* 1回で伸ばせるのは60階まで */
@@ -228,30 +243,63 @@ export class Rank {
     const gain = r.last ? Math.min(Math.max(0, wins - r.wins), 300) : 0; /* 初回送信は今週分に数えない */
     const wk = weekNo(now), wkv = (r.wk === wk ? r.wkv : 0) + gain;
     this.sql.exec('UPDATE u SET inf=?, now=?, floor=?, dex=?, pvp=?, wins=?, wk=?, wkv=?, last=? WHERE id=?', inf, nowF, floor, dex, pvp, wins, wk, wkv, now, b.id);
+    /* デイリー・ウィークリー：この期間にクリアした最高階（トータルの最高階より上にはならない） */
+    if (run > 0) {
+      const f = Math.min(run, inf);
+      for (const p of Object.values(PER)) {
+        const k = p.fn(now), cur = r[p.key] === k ? r[p.col] : 0;
+        if (r[p.key] !== k || f > cur) this.sql.exec(`UPDATE u SET ${p.col}=?, ${p.key}=?, ${p.last}=? WHERE id=?`, Math.max(cur, f), k, f > cur ? now : r[p.last], b.id);
+      }
+    }
     return json({ ok: true });
   }
 
   rank(url) {
     const type = TYPES[url.searchParams.get('type')] ? url.searchParams.get('type') : 'floor';
-    const col = TYPES[type], sub = SUB[type], wk = weekNo();
-    const where = `ison=1 AND hidden=0 AND ${col} > 0` + (type === 'week' ? ` AND wk=${wk}` : '');
-    const top = this.sql.exec(`SELECT id, w, icon, title, ${col} AS v${sub ? `, ${sub} AS s` : ''} FROM u WHERE ${where} ORDER BY ${col} DESC${sub ? `, ${sub} DESC` : ''}, last ASC LIMIT 50`).toArray()
+    const col = TYPES[type], sub = SUB[type], wk = weekNo(), P = PER[type], tl = P ? P.last : 'last';
+    const where = `ison=1 AND hidden=0 AND ${col} > 0` + (type === 'week' ? ` AND wk=${wk}` : '') + (P ? ` AND ${P.key}=${P.fn(Date.now())}` : '');
+    const top = this.sql.exec(`SELECT id, w, icon, title, ${col} AS v${sub ? `, ${sub} AS s` : ''} FROM u WHERE ${where} ORDER BY ${col} DESC${sub ? `, ${sub} DESC` : ''}, ${tl} ASC LIMIT 50`).toArray()
       .map((r, i) => ({ n: i + 1, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, v: r.v, s: r.s }));
     let me = null;
     const id = url.searchParams.get('id') || '';
     if (ID_RE.test(id)) {
       const r = this.row(id);
       if (r) {
-        const v = type === 'week' && r.wk !== wk ? 0 : r[col];
+        const v = (type === 'week' && r.wk !== wk) || (P && r[P.key] !== P.fn(Date.now())) ? 0 : r[col];
         const ok = r.ison && !r.hidden && v > 0;
         const n = !ok ? 0 : sub
           ? this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND (${sub} > ? OR (${sub} = ? AND last < ?))))`, v, v, r[sub], r[sub], r.last).toArray()[0].c + 1
-          : this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND last < ?))`, v, v, r.last).toArray()[0].c + 1;
+          : this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND ${tl} < ?))`, v, v, r[tl]).toArray()[0].c + 1;
         me = { n, v, s: sub ? r[sub] : undefined, hidden: !!r.hidden };
       }
     }
     const total = this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where}`).toArray()[0].c;
-    return json({ type, top, me, total, wk });
+    return json({ type, top, me, total, wk, reset: P ? nextReset(type) : 0, rew: REW[type] || null });
+  }
+
+  /* 期間が切り替わったら、前の期間の1〜3位に報酬を記録する（だれかがアクセスしたときに行う） */
+  async settle(now = Date.now()) {
+    for (const [type, p] of Object.entries(PER)) {
+      const K = p.fn(now), sk = 'set_' + type, done = await this.store.get(sk);
+      if (done === undefined) { await this.store.put(sk, K); continue; }
+      if (done >= K) continue;
+      const prev = this.sql.exec(`SELECT MAX(${p.key}) AS k FROM u WHERE ${p.key} < ? AND ${p.col} > 0`, K).toArray()[0].k;
+      if (prev != null && prev >= done) {
+        const top = this.sql.exec(`SELECT id FROM u WHERE ison=1 AND hidden=0 AND ${p.key}=? AND ${p.col} > 0 ORDER BY ${p.col} DESC, ${p.last} ASC LIMIT 3`, prev).toArray();
+        top.forEach((x, i) => this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', x.id, type, prev, i + 1, REW[type][i]));
+      }
+      await this.store.put(sk, K);
+    }
+  }
+
+  async claim(b) {
+    const a = await this.auth(b);
+    if (a.err) return json({ err: a.err }, 403);
+    if (!a.r) return json({ coins: 0, items: [] });
+    await this.settle();
+    const items = this.sql.exec('SELECT kind, pkey, rank, coins FROM rw WHERE id=? AND got=0 ORDER BY pkey', b.id).toArray();
+    if (items.length) this.sql.exec('UPDATE rw SET got=1 WHERE id=? AND got=0', b.id);
+    return json({ coins: items.reduce((t, x) => t + x.coins, 0), items });
   }
 
   async admin(b) {
