@@ -694,7 +694,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=959fdd58"></script>
 <script>
-const VERSION='3.0.0';
+const VERSION='3.0.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -706,7 +706,9 @@ const W=ms=>sleep(RM?ms*.5:ms);
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2300)}
 const nmc=n=>(n||'').length>=6?'nm long':'nm';/* 長い名前は小さく1行で */
 const stars=n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
-const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${ch.color}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${ch.color}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
+/* Ver 3.0.1：キャラの背景はタイプの色（2タイプはななめに2色） */
+const bgOf=ch=>{const c=(ch.types||[]).map(t=>G.TYPES[t]&&G.TYPES[t].c).filter(Boolean);return!c.length?ch.color:c.length===1?c[0]:`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`};
+const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${bgOf(ch)}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${bgOf(ch)}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
