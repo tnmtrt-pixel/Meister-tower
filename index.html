@@ -677,7 +677,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=1e1cca06"></script>
 <script>
-const VERSION='2.1.0';
+const VERSION='2.1.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1294,8 +1294,9 @@ function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)|
   const champs=hist.filter(h=>h.champ).length;
   el.innerHTML=`${hist.length?`<h2>${L('大会の戦績','大赛战绩')}</h2><div class="hint">${L(`出場 ${hist.length}回／優勝 ${champs}回`,`参赛 ${hist.length}次／夺冠 ${champs}次`)}</div>
     <div class="cup-hist">${hist.map(h=>`<div><span>${cupT(h.name)}<br><small>${cupT(h.sub)}</small></span><b>${h.champ?'🏆 '+L('優勝','冠军'):L(`${h.n}位/${h.of}人`,`第${h.n}名/${h.of}人`)}<br><small>${L(`${h.w}勝${h.l}敗`,`${h.w}胜${h.l}负`)}</small></b></div>`).join('')}</div>`:''}
-    ${hall.length?`<h2 style="margin-top:12px">🏛 ${L('殿堂','殿堂')}</h2>${hall.map(e=>`<div class="hall"><div class="label">${cupT(e.name)}　${cupT(e.sub)}　${cupDate(e.date)}</div>
-      ${e.top.map((p,k)=>`<div class="hall-p"><span class="medal">${k?'🥈':'🥇'}</span><div style="flex:1;min-width:0">${whoHTML(p)}${partyHTML(p.party)}</div></div>`).join('')}</div>`).join('')}`:''}`}
+    ${hall.length?`<details class="hallbox" style="margin-top:12px"${CUP.hallOpen?' open':''}><summary><b>🏛 ${L('殿堂','殿堂')}</b>（${L(`${hall.length}大会・タップで見る`,`${hall.length}场大赛·点击查看`)}）</summary>${hall.map(e=>`<div class="hall"><div class="label">${cupT(e.name)}　${cupT(e.sub)}　${cupDate(e.date)}</div>
+      ${e.top.map((p,k)=>`<div class="hall-p"><span class="medal">${k?'🥈':'🥇'}</span><div style="flex:1;min-width:0">${whoHTML(p)}${partyHTML(p.party)}</div></div>`).join('')}</div>`).join('')}</details>`:''}`;
+  const hb=el.querySelector('.hallbox');if(hb)hb.ontoggle=()=>{CUP.hallOpen=hb.open}}
 
 /* ================= 無限の塔 ================= */
 /* 負けるまで登る。体力は生き残ったキャラだけ毎階全回復、たおれたキャラはボス（10階ごと）を倒すと半分で復活 */
