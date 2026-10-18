@@ -93,20 +93,31 @@ export class Room {
         mv: (Array.isArray(x.mv) ? x.mv : []).slice(0, 4).map((n) => n | 0),
         lv: Object.fromEntries(Object.entries(x.lv || {}).slice(0, 8).map(([k, v]) => [k | 0, Math.min(2, Math.max(0, v | 0))])),
       }));
-      me.hello = { party, name: String(m.name || '').slice(0, 16) };
+      me.hello = { party, name: String(m.name || '').slice(0, 16), v: m.v | 0 };
       const op = this.other(me);
       if (op && op.hello) this.start();
       return;
     }
 
     // 対戦中の行動は相手にそのまま中継する
-    if (this.started && (m.t === 'act' || m.t === 'end' || m.t === 'surrender' || m.t === 'emote')) {
+    if (this.started && (m.t === 'act' || m.t === 'end' || m.t === 'surrender' || m.t === 'emote' || m.t === 'sw' || m.t === 'pick')) {
       const op = this.other(me);
-      if (op) this.send(op, m.t === 'act' ? { t: 'act', mi: m.mi | 0, ks: (m.ks || []).slice(0, 2).map((n) => n | 0) } : { t: m.t, e: m.e });
+      if (!op) return;
+      if (m.t === 'act') this.send(op, { t: 'act', mi: m.mi | 0, ks: (m.ks || []).slice(0, 2).map((n) => n | 0) });
+      else if (m.t === 'sw') this.send(op, { t: 'sw', k: m.k | 0, dk: m.dk | 0 }); // Ver 3.0 交代
+      else if (m.t === 'pick') this.send(op, { t: 'pick', k: m.k | 0 }); // Ver 3.0 倒れたあとのキャラ選び
+      else this.send(op, { t: m.t, e: m.e });
     }
   }
 
   start() {
+    // バージョンがちがう同士は対戦できない（技やルールが変わるため）。新しい方には理由を、古い方には「満員」を返す
+    const [a, b] = this.players;
+    if (a && b && (a.hello.v | 0) !== (b.hello.v | 0)) {
+      for (const p of [a, b]) { this.send(p, p.hello.v >= 3 ? { t: 'ver' } : { t: 'full' }); try { p.ws.close(1000, 'version'); } catch (e) { /* 切断済み */ } }
+      this.players = [];
+      return;
+    }
     this.started = true;
     const seed = crypto.getRandomValues(new Uint32Array(1))[0];
     const first = crypto.getRandomValues(new Uint8Array(1))[0] % 2; // 0か1の人が先攻
