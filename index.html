@@ -619,7 +619,7 @@ hr{border-color:var(--line)!important}
     <details class="panel"><summary class="label" data-zh="故事与玩法">ストーリーとあそびかた</summary>
       <p class="hint" data-zh="耸立在工业之城的「迈斯特之塔」。下层10层的每个房间都有高手等待，10楼有传说中的工匠「塔之主」。再往上，是只有被选中的人才能前往的上层（11〜20层）。用扭蛋收集伙伴，组成3人队伍向塔顶前进吧。">工業の街にそびえる「マイスターの塔」。全10階の各部屋には腕自慢たちが待ちかまえ、10階には伝説の職人「塔の主」がいるという。その先には、選ばれた者だけが進める上層（11〜20階）が続いている。ガチャで仲間を集め、3人のパーティで最上階を目指そう。</p>
       <p class="hint" data-zh="轮到自己时掷骰子，把符合条件的点数用在技能上就能发动技能。技能每回合各1次。首位角色倒下后换下一位伙伴，打倒对方全员即获胜。每层都有特殊规则。">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。先頭のキャラがたおれたら次の仲間に交代し、相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
-      <p class="hint" data-zh="【Ver 3.2】角色和技能有属性（电·机械·力量·野兽·幻影）。属性之间没有克制关系。★3角色掷出指定数字的对子时，可以使用1次超必杀技。">【Ver 3.2】キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があります。タイプの相性はありません。★3のキャラは、決まった数字のゾロ目で「超必殺技」を1回使えます。</p>
+      <p class="hint" data-zh="【Ver 2.2】角色和技能有属性（电·机械·力量·野兽·幻影）。属性之间没有克制关系。★3角色掷出指定数字的对子时，可以使用1次超必杀技。">【Ver 2.2】キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があります。タイプの相性はありません。★3のキャラは、決まった数字のゾロ目で「超必殺技」を1回使えます。</p>
       <p class="hint" data-zh="角色分为★1〜★3，★越多能学会越强的技能。扭蛋抽到同一角色更高的★时★提升；★相同或更低则获得「碎片」，可用来强化技能。">キャラには★1〜★3があり、★が多いほど強い技を覚えます。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
       <button class="btn small" id="tut-again" style="margin-top:8px" data-zh="下次对战时再看一次教学">次のバトルでチュートリアルをもう一度</button></details>
     <div class="row startbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
@@ -720,7 +720,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f360b3d4"></script>
 <script>
-const VERSION='3.2.0';
+const VERSION='2.2.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
