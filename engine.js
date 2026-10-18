@@ -490,7 +490,8 @@ function autoPick(ch,star,jitter=0,R=Math.random,lvMap={}){
 
 /* ---- バトル ---- */
 function mkFighter(id,star,mv,lvMap,hp,elv=0,bonus=0,raid=false){const ch=byId(id);
-  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0,lv:elv,bonus,raid}}
+  const spk=ch.moves.findIndex(m=>m.c.t==='pair'&&!m.ult);
+  return{ch,star,moves:mv.map(k=>applyLv(ch.moves[k],(lvMap||{})[k]||0)),hp,max:hp,guard:0,pow:0,weak:0,dMod:0,lv:elv,bonus,raid,spLv:spk>=0?((lvMap||{})[spk]||0):0}}
 function enemiesFor(f,lap,R=Math.random,avoid=[],tw='meister'){const T=towerOf(tw),n=floorCount(f),st=f>TOP?3:floorStar(f),lv=enemyLv(f,lap),out=[],pool=CHARS.filter(c=>c.vol===T.vol).map(c=>c.id);
   for(let i=0;i<n;i++){
     if((f===TOP||f===TOP2)&&i===n-1){out.push({id:f===TOP?T.b10:T.b20,star:3,hp:bossHP(f,lap,tw),lv:f===TOP2?lv+1:0,bonus:f===TOP2?lvBonus(lv):0,boss:true});break}
@@ -619,14 +620,16 @@ const effLabel=q=>{if(!q)return'';const a=[];if(q.rel>0)a.push(L('ばつぐん�
 const typeName=t=>t==='wb'?L('白黒','黑白'):t==='both'?L('ひかり・やみ','光·暗'):TYPES[t]?L(TYPES[t].ja,TYPES[t].zh):'';
 /* ================= Ver 3.1：超必殺技 ================= */
 /* ★3のキャラだけ。決まった数字（1つ目のタイプで決まる）のゾロ目で、1バトル1回。技の4枠とは別。塔の敵は使わない */
-const ULT_NUM={de:6,ch:5,me:4,ma:3,ke:2,hikari:1,yami:1},ULT_DMG=22;
+const ULT_NUM={de:6,ch:5,me:4,ma:3,ke:2,hikari:1,yami:1},ULT_DMG=22;let ULT_MUL=+(globalThis.ULTMUL||1),ULT_PLUS=+(globalThis.ULTPLUS!=null?globalThis.ULTPLUS:10);
 const ULT={"rocker": {"n": "ラストライブ・ジュウナナ", "l": "アンコールは、ないぜ", "zn": "最终演出·十七", "zl": "没有安可了"}, "sora": {"n": "全機出撃・スカイストーム", "l": "空から、ぜんぶ見えてるよ！", "zn": "全机出击·天空风暴", "zl": "从天上，全都看得到！"}, "gorilla": {"n": "ギガボルト・ジャングル", "l": "全開の、そのまた全開だ！", "zn": "千兆伏特·丛林", "zl": "全力的全力！"}, "wolf": {"n": "アーク・ウルフバースト", "l": "合格ライン、ぶっちぎる！", "zn": "电弧·狼之爆发", "zl": "合格线，直接冲破！"}, "lionex": {"n": "天雷王・ライオネクスバースト", "l": "天よ、裁きの雷を", "zn": "天雷王·雷狮爆发", "zl": "天啊，降下审判之雷"}, "robot": {"n": "ファイナル・フルバースト", "l": "全兵装、解放", "zn": "最终·全弹发射", "zl": "全武装，解放"}, "fox": {"n": "完全分解オーバーホール", "l": "全部バラして、組み直す！", "zn": "完全拆解大修", "zl": "全部拆开，再组装！"}, "takumi": {"n": "千本鍛え・匠の極み", "l": "これが、磨き抜いた技だ！", "zn": "千锤百炼·匠之极致", "zl": "这就是磨练到极致的技艺！"}, "okajun": {"n": "工業魂・フルスロットル", "l": "工業、なめんなよ！", "zn": "工业魂·全速前进", "zl": "别小看工业啊！"}, "mouse": {"n": "ロボ完全合体・チューギガント", "l": "ロボ、いっくぞー！ チュー！", "zn": "机器人完全合体·啾巨人", "zl": "机器人，冲啊！啾！"}, "kurogane": {"n": "九生乱舞・黒猫整備", "l": "九つの命、ぜんぶ乗せにゃ！", "zn": "九命乱舞·黑猫整备", "zl": "九条命，全部加上喵！"}, "owl": {"n": "理論完成・パーフェクトデザイン", "l": "計算終了。結果は君の負けだ", "zn": "理论完成·完美设计", "zl": "计算结束。结果是你输了"}, "tsukiyo": {"n": "流星群・ミッドナイト", "l": "星よ、すべて降りそそげ", "zn": "流星群·午夜", "zl": "星星啊，全部落下吧"}, "hayate": {"n": "全力・安全第一ストレート", "l": "指差し確認、よし！ 全力！", "zn": "全力·安全第一直拳", "zl": "指认确认，好！全力！"}, "dodo": {"n": "先輩の本気・大ドスコイ", "l": "たまには本気、出しちゃうよ〜", "zn": "前辈的真本事·大相扑", "zl": "偶尔也拿出真本事吧～"}, "guardian": {"n": "レインボー・フォートレス", "l": "この盾を越えてみよ！", "zn": "彩虹·要塞", "zl": "越过这面盾牌试试！"}, "nero": {"n": "スイート・カースチェーン", "l": "甘い夢、見せてあげる", "zn": "甜蜜·诅咒锁链", "zl": "让你做个甜美的梦"}, "spino": {"n": "ジュラシック・ロア", "l": "一億年分の、ひと噛み！", "zn": "侏罗纪·咆哮", "zl": "一亿年份的，一口！"}, "hakurou": {"n": "神狼天翔・白銀嵐", "l": "風よ、我と共に", "zn": "神狼天翔·白银风暴", "zl": "风啊，与我同在"}, "onmyo": {"n": "百鬼夜行・陰陽封印", "l": "……陰も陽も、我が手に", "zn": "百鬼夜行·阴阳封印", "zl": "……阴与阳，尽在我手"}, "seraph": {"n": "ヘブンズゲート", "l": "光よ、みんなを包んで", "zn": "天堂之门", "zl": "光啊，包围大家吧"}, "libra": {"n": "運命の天秤・ファイナルジャッジ", "l": "運命も、ひとつの選択……", "zn": "命运天秤·最终审判", "zl": "命运也是一种选择……"}, "verdict": {"n": "双翼の最終判決", "l": "判決を言い渡す", "zn": "双翼的最终判决", "zl": "宣判"}, "eclipse": {"n": "皆既日食・陰陽終焉", "l": "光も闇も、ここで終わる", "zn": "日全食·阴阳终焉", "zl": "光与暗，在此终结"}};
 const ultNum=ch=>ULT_NUM[(ch.types||[])[0]]||0;
-function ultOf(ch){const u=ULT[ch.id];if(!u)return null;const boss=(ch.types||[])[0]==='hikari';return{n:L(u.n,u.zn),line:L(u.l,u.zl),num:ultNum(ch),c:{t:'pair'},dmg:{b:ULT_DMG},ty:boss?'both':(ch.types||[])[0],ult:1}}
+/* 超必殺技のダメージ＝そのキャラの必殺技（ゾロ目の技）＋ULT_PLUS。必殺技を強化すると一緒に上がる */
+const ultDmg=(ch,spLv=0)=>{const sp=ch.moves.find(m=>m.c.t==='pair');return Math.round((sp&&sp.dmg?sp.dmg.b:ULT_DMG)*ULT_MUL)+ULT_PLUS+2*spLv};
+function ultOf(ch,spLv=0){const u=ULT[ch.id];if(!u)return null;const boss=(ch.types||[])[0]==='hikari';return{n:L(u.n,u.zn),line:L(u.l,u.zl),num:ultNum(ch),c:{t:'pair'},dmg:{b:ultDmg(ch,spLv)},ty:boss?'both':(ch.types||[])[0],ult:1}}
 /* 使えるサイコロ（決まった数字が2個）。なければnull */
 function ultDice(S,i){const sd=S.sides[i],f=act(S,i);if(!S.ultOK||!S.ultOK[i]||S.over>=0||S.turn!==i||f.star<3||f.ultUsed||f.hp<=0||f.raid)return null;if(S.need&&(S.need[0]||S.need[1]))return null;
   const n=ultNum(f.ch),ks=sd.dice.map((d,k)=>!d.used&&d.v===n?k:-1).filter(k=>k>=0);return ULT[f.ch.id]&&ks.length>=2?ks.slice(0,2):null}
-function useUlt(S,i,ks){const f=act(S,i),u=ultOf(f.ch);ks=ks||ultDice(S,i);if(!u||!ks||!ultDice(S,i))return null;f.ultUsed=true;
+function useUlt(S,i,ks){const f=act(S,i),u=ultOf(f.ch,f.spLv||0);ks=ks||ultDice(S,i);if(!u||!ks||!ultDice(S,i))return null;f.ultUsed=true;
   E(S,'ult',u.n,{side:i,id:f.ch.id,name:u.n,line:u.line,num:u.num});return useMove(S,i,-1,ks,u)}
 /* 攻撃ダメージ（ガード前） */
 function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=[];
@@ -762,6 +765,6 @@ function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
 const API={TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg,
-  TYPES,BEATS,TMULT,typePts,typeParts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG};
+  TYPES,BEATS,TMULT,typePts,typeParts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG,ultDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

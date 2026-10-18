@@ -720,9 +720,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=f360b3d4"></script>
+<script src="engine.js?v=0c3300df"></script>
 <script>
-const VERSION='2.2.2';
+const VERSION='2.2.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -943,7 +943,7 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
   const st=starOf(id),l=loadout(id),pi=save.party.indexOf(id),sh=save.shards[id]||0;
   el.innerHTML=`<div class="who">${crest(ch,'big')}<div><b>${ch.name}</b><span class="rar" style="font-size:16px">${stars(st)}</span><br>${typesHTML(ch)} <small>${nick(ch)}</small> <button class="btn small" data-tychart>${L('タイプ','属性')}</button></div></div>
   <div class="passive"><b>${L('能力','特性')}「${ch.passive.n}」</b><br>${ch.passive.d}</div>
-  ${(u=>u?`<div class="ultcard"><b>${L('超必殺','超必杀')}「${u.n}」</b> ${tyHTML(u.ty)}<br>${L(`${u.num}・${u.num}のゾロ目で使える（1バトル1回・${G.ULT_DMG}ダメージ・技の4つとは別）`,`掷出${u.num}·${u.num}对子时可用（每场1次·${G.ULT_DMG}伤害·不占4个技能栏）`)}${st<3?`<br><span class="hint">${L('★3になると使えます','★3后可使用')}</span>`:''}</div>`:'')(G.ultOf(ch))}
+  ${(u=>u?`<div class="ultcard"><b>${L('超必殺','超必杀')}「${u.n}」</b> ${tyHTML(u.ty)}<br>${L(`${u.num}・${u.num}のゾロ目で使える（1バトル1回・${u.dmg.b}ダメージ・技の4つとは別）`,`掷出${u.num}·${u.num}对子时可用（每场1次·${u.dmg.b}伤害·不占4个技能栏）`)}${st<3?`<br><span class="hint">${L('★3になると使えます','★3后可使用')}</span>`:''}</div>`:'')(G.ultOf(ch,lvOf(id,ch.moves.findIndex(m=>m.c.t==='pair'))))}
   <div class="row">${pi<0?`<button class="btn small" id="p-add" ${save.party.length>=3?'disabled':''}>${L('パーティに入れる','加入队伍')}</button>`:`<button class="btn small" id="p-rem" ${save.party.length<=1?'disabled':''}>${L('パーティから外す','移出队伍')}</button>${pi>0?`<button class="btn small" id="p-first">${L('先頭にする','设为首位')}</button>`:''}`}
     <span class="hint">${pi<0&&save.party.length>=3?L('パーティは3人まで。誰かを外してください','队伍最多3人，请先移出一人'):''}</span></div>
   <div class="row between hprow"><span>${L('体力','体力')} <b>${hpOf(id)}</b><small class="hint">（${L('塔と無限の塔で有効','仅在塔与无限之塔中有效')}）</small></span>${(save.hpLv[id]||0)>=HP_MAX_LV?`<button class="up" disabled>${L('体力<br>MAX','体力<br>MAX')}</button>`:`<button class="up" id="hp-up" ${sh<HP_COST[save.hpLv[id]||0]?'disabled':''}>${L(`体力+2<br>かけら${HP_COST[save.hpLv[id]||0]}`,`体力+2<br>碎片${HP_COST[save.hpLv[id]||0]}`)}</button>`}</div>
@@ -1568,11 +1568,11 @@ function showUlt(e){return new Promise(res=>{const f=B.S.sides[e.side].team[B.vi
   document.body.append(ov);let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(t);ov.remove();const fl=document.createElement('div');fl.className='uflash';document.body.append(fl);setTimeout(()=>fl.remove(),400);
     const a=$('#arena');a.classList.remove('quake');void a.offsetWidth;a.classList.add('quake');res()};
   ov.onclick=fin;const t=setTimeout(fin,RM?500:1300)})}
-function ultHTML(){if(!B||TUT.on)return'';const sd=B.S.sides[0],f=sd.team[sd.idx],u=G.ultOf(f.ch);if(!u)return'';
+function ultHTML(){if(!B||TUT.on)return'';const sd=B.S.sides[0],f=sd.team[sd.idx],u=G.ultOf(f.ch,f.spLv||0);if(!u)return'';
   if(f.star<3)return`<p class="ultinfo">${L(`超必殺「${u.n}」：★3で使えるようになる`,`超必杀「${u.n}」：★3后可使用`)}</p>`;
   if(f.ultUsed)return`<p class="ultinfo">${L(`超必殺「${u.n}」：このバトルではもう使った`,`超必杀「${u.n}」：本场对战已使用`)}</p>`;
   const ks=!B.busy&&G.ultDice(B.S,0);
-  return ks?`<button class="ultbtn" id="ult">${L('超必殺','超必杀')} ${u.n}<small>${u.num}・${u.num} ${L('のゾロ目がそろった！ タップで発動','对子齐了！点击发动')}</small></button>`:`<p class="ultinfo">${L(`超必殺「${u.n}」：${u.num}・${u.num}のゾロ目で使える（1バトル1回）`,`超必杀「${u.n}」：掷出${u.num}·${u.num}对子时可用（每场1次）`)}</p>`}
+  return ks?`<button class="ultbtn" id="ult">${L('超必殺','超必杀')} ${u.n}（${u.dmg.b}）<small>${u.num}・${u.num} ${L('のゾロ目がそろった！ タップで発動','对子齐了！点击发动')}</small></button>`:`<p class="ultinfo">${L(`超必殺「${u.n}」：${u.num}・${u.num}のゾロ目で使える（1バトル1回）`,`超必杀「${u.n}」：掷出${u.num}·${u.num}对子时可用（每场1次）`)}</p>`}
 async function doUlt(){if(!B||B.busy)return;const ks=G.ultDice(B.S,0);if(!ks)return;B.busy=true;B.sel=null;renderControl();if(B.online)onlineSend({t:'ult',ks});
   await play(G.useUlt(B.S,0,ks)||[]);if(!B)return;if(B.S.over>=0)return finish();B.busy=false;renderControl()}
 /* Ver 3.0 交代：サイコロ1個を使って控えと入れかわる（1ターン1回）。選んでいるサイコロがあればそれを、なければ一番小さい目を使う */
@@ -1704,7 +1704,7 @@ function onlineConnect(code,host,cup){ac();ON.err='';fixParty();ON.cup=cup||null
   onlineClose();ON.code=code;ON.state='connecting';renderOnline();
   let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/ws?room='+encodeURIComponent(code))}catch(e){ON.state='idle';ON.err=L('接続できませんでした','无法连接');renderOnline();return}
   ON.ws=ws;
-  ws.onopen=()=>{onlineSend({t:'hello',v:5,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
+  ws.onopen=()=>{onlineSend({t:'hello',v:6,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}onlineMsg(m)};
   ws.onerror=()=>{if(ON.state!=='battle'){ON.state='idle';ON.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');renderOnline()}};
   ws.onclose=()=>{if(ON.ws!==ws)return;ON.ws=null;if(ON.state==='battle'&&B&&B.online&&!B.done){toast(L('通信が切れました','连接已断开'));onlineQueue(async()=>{B.S.over=1;B.cut=true;await finish()})}else if(ON.state!=='battle'){ON.state='idle';renderOnline()}}}
