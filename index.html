@@ -722,7 +722,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=83e1088c"></script>
 <script>
-const VERSION='2.2.4';
+const VERSION='2.2.5';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -736,7 +736,12 @@ const nmc=n=>(n||'').length>=6?'nm long':'nm';/* 長い名前は小さく1行で
 const stars=n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
 /* Ver 3.0.1：キャラの背景はタイプの色（2タイプはななめに2色） */
 const bgOf=ch=>{const c=(ch.types||[]).map(t=>G.TYPES[t]&&G.TYPES[t].c).filter(Boolean);return!c.length?ch.color:c.length===1?c[0]:`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`};
-const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${bgOf(ch)}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${bgOf(ch)}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
+/* 画像の読みこみに失敗したとき（通信が不安定など）：少し待って2回まで読みこみ直す。だめなら名前を表示 */
+function imgRetry(im){const n=+(im.dataset.r||0);if(n<2){im.dataset.r=n+1;setTimeout(()=>{im.src=im.src.split('?')[0]+'?r='+Date.now()},600*(n+1));return}
+  im.onerror=null;const c=im.parentElement;if(c){c.classList.add('k');c.innerHTML=`<span style="font-size:18cqw">${im.alt}</span>`}}
+/* バトルに出るキャラの画像を先に読みこんでおく（交代したときに表示されないのを防ぐ） */
+const PRE=new Set();function preImg(team){(team||[]).forEach(t=>{const ch=t.ch||t;if(ch&&ch.img&&!PRE.has(ch.img)){PRE.add(ch.img);const im=new Image();im.src=ch.img}})}
+const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${bgOf(ch)}"><img src="${ch.img}" alt="${ch.name}" onerror="imgRetry(this)"></div>`:`<div class="crest k ${cls}" style="--c:${bgOf(ch)}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
@@ -1447,7 +1452,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
     if(TUT.on)await coach(L('バトルの見かた','对战画面'),L('ようこそ、はじめてのバトルへ！ <em>上が相手</em>、<em>下があなた</em>のキャラです。緑のバーが体力で、0になるとたおれます。相手チームを全員たおせば勝ち！','欢迎来到第一场对战！<em>上方是对手</em>，<em>下方是你</em>的角色。绿色条是体力，降到0就会倒下。打倒对方全员就获胜！'),'#f1, #f0');
     runTurn(0)})()}
 function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,dec:B.S.decree,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
-function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);
+function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);preImg(sd.team);
   el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?L('相手','对手'):L('あなた','你')}<span class="pips" aria-label="${i?L('相手の残り人数','对手剩余人数'):L('パーティの残り人数','队伍剩余人数')}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">${L('能力と技','特性与技能')}</button>${i?`<button class="info-btn" data-hist="1">${L('行動の記録','行动记录')}</button>`:''}</span>
   <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${typesHTML(f.ch)}${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
   el.querySelector('.crest').onclick=()=>infoSheet(i);el.querySelector('[data-info]').onclick=()=>infoSheet(i);
