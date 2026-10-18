@@ -720,9 +720,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=0c3300df"></script>
+<script src="engine.js?v=83e1088c"></script>
 <script>
-const VERSION='2.2.3';
+const VERSION='2.2.4';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1704,7 +1704,7 @@ function onlineConnect(code,host,cup){ac();ON.err='';fixParty();ON.cup=cup||null
   onlineClose();ON.code=code;ON.state='connecting';renderOnline();
   let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/ws?room='+encodeURIComponent(code))}catch(e){ON.state='idle';ON.err=L('接続できませんでした','无法连接');renderOnline();return}
   ON.ws=ws;
-  ws.onopen=()=>{onlineSend({t:'hello',v:6,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
+  ws.onopen=()=>{onlineSend({t:'hello',v:7,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}onlineMsg(m)};
   ws.onerror=()=>{if(ON.state!=='battle'){ON.state='idle';ON.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');renderOnline()}};
   ws.onclose=()=>{if(ON.ws!==ws)return;ON.ws=null;if(ON.state==='battle'&&B&&B.online&&!B.done){toast(L('通信が切れました','连接已断开'));onlineQueue(async()=>{B.S.over=1;B.cut=true;await finish()})}else if(ON.state!=='battle'){ON.state='idle';renderOnline()}}}

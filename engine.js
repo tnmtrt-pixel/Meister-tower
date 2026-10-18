@@ -323,7 +323,7 @@ function buildV3(){const byId0=id=>[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE].find(c
   /* Ver 3.2：相性の倍率（タイプ一致×1.25）をなくした分、タイプのある攻撃技のダメージを最初から上げておく */
   for(const c of [...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE])c.moves.forEach(m=>{if(!m.dmg||!m.ty)return;if(m.dmg.m)m.dmg.b=(m.dmg.b||0)+1;else m.dmg.b=Math.round(m.dmg.b*1.25)});
   /* Ver 3.2：シミュレーションで決めた必殺技（ゾロ目）のダメージ */
-  const SP32={"dodo": 24, "fox": 16, "onmyo": 22, "tsukiyo": 17, "owl": 30, "robot": 15, "rocker": 10, "nero": 25, "okajun": 31, "hakurou": 32, "libra": 22, "verdict": 17, "eclipse": 25};for(const id in SP32){const m=byId0(id).moves.find(x=>x.c.t==='pair');if(m)m.dmg.b=SP32[id]}}
+  const SP32={"dodo": 24, "fox": 16, "onmyo": 22, "tsukiyo": 17, "owl": 30, "robot": 15, "rocker": 17, "nero": 25, "okajun": 31, "hakurou": 32, "libra": 22, "verdict": 17, "eclipse": 25};for(const id in SP32){const m=byId0(id).moves.find(x=>x.c.t==='pair');if(m)m.dmg.b=SP32[id]}}
 buildV3();
 CHARS.forEach(c=>c.vol=c.vol||1);
 const ALL=[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE];
