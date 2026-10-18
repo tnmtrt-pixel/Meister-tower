@@ -107,40 +107,6 @@ button{font-family:var(--f-body)}
 .mv .dmg{grid-row:span 2;font-family:var(--f-display);font-size:18px;color:var(--low);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .mv .dmg small{display:block;font:700 10px var(--f-body);color:var(--muted)}
 .mv .fx{font-size:12px;color:var(--muted);line-height:1.4}
-.ty{display:inline-block;font:700 10px/16px var(--f-body);padding:0 6px;border-radius:9px;color:#fff;background:var(--tc);vertical-align:middle;margin-left:4px;text-shadow:0 1px 0 rgba(0,0,0,.45);white-space:nowrap;letter-spacing:0}
-.ty.lt{color:#2A2238;text-shadow:none}
-.mv .tg{display:inline-block;font:700 10px/16px var(--f-body);padding:0 5px;border-radius:4px;margin-left:4px;vertical-align:middle;border:1px solid var(--gold,#F2C14E);color:var(--gold,#F2C14E)}
-.est .eff{font-weight:800}.est .eff.up{color:#FFD24A}.est .eff.dn{color:#9FB0D0}
-.bench{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-/* Ver 3.1 超必殺技 */
-.ultbtn{width:100%;margin:6px 0 2px;font:400 16px var(--f-display);letter-spacing:.05em;color:#3A2600;border:0;border-radius:10px;padding:9px 10px;background:linear-gradient(180deg,#FFE28A,#F2C14E);box-shadow:0 0 0 2px #fff6,0 0 22px #F2C14E99;animation:ultglow 1s ease-in-out infinite alternate;cursor:pointer}
-.ultbtn small{display:block;font:700 11px var(--f-body);letter-spacing:0}
-@keyframes ultglow{to{box-shadow:0 0 0 2px #fff9,0 0 34px #F2C14E}}
-.ultinfo{font-size:12px;color:#AFC2E6;margin:4px 0 0}
-.ultcard{border:1px solid #F2C14E;border-radius:8px;padding:6px 10px;background:linear-gradient(90deg,rgba(242,193,78,.16),transparent);font-size:13px}
-.ultcard b{font-family:var(--f-display);font-weight:400;color:#FFE28A}
-.ultci{position:fixed;inset:0;z-index:60;overflow:hidden;cursor:pointer}
-.ultci .dark{position:absolute;inset:0;background:rgba(2,6,18,.78);animation:uFade .15s both}
-.ultci .lines{position:absolute;inset:-20%;opacity:0;transform:rotate(-12deg);background:repeating-linear-gradient(90deg,transparent 0 22px,var(--c1) 22px 26px,transparent 26px 60px,var(--c2) 60px 63px,transparent 63px 104px);animation:uLines .9s .1s linear forwards}
-.ultci .band{position:absolute;left:-10%;right:-10%;top:32%;height:36%;transform:skewY(-8deg) scaleX(0);transform-origin:left;background:linear-gradient(100deg,var(--c1) 0 50%,var(--c2) 50% 100%);box-shadow:0 0 0 4px #fff,0 0 40px var(--c1);animation:uBand .25s .15s cubic-bezier(.2,.9,.2,1) forwards}
-.ultci .art{position:absolute;left:-2%;top:22%;height:56%;max-width:62%;object-fit:contain;opacity:0;transform:translateX(-60%);filter:drop-shadow(0 6px 0 rgba(0,0,0,.45));animation:uArt .35s .25s cubic-bezier(.2,1.2,.3,1) forwards}
-.ultci.r .art{left:auto;right:-2%;transform:translateX(60%)}
-.ultci .tag{position:absolute;left:6%;top:16%;font:400 16px var(--f-display);letter-spacing:.2em;color:#FFE28A;text-shadow:0 2px 0 #000;opacity:0;animation:uPop .25s .2s forwards}
-.ultci .num{position:absolute;right:7%;top:24%;font:400 30px var(--f-display);color:#fff;text-shadow:0 3px 0 #000;opacity:0;animation:uPop .3s .2s forwards}
-.ultci .nm{position:absolute;right:5%;left:36%;top:43%;text-align:right;font:400 clamp(22px,7vw,40px)/1.15 var(--f-display);color:#fff;text-wrap:balance;-webkit-text-stroke:6px #0B1430;paint-order:stroke fill;opacity:0;transform:scale(2.4);animation:uSlam .22s .5s cubic-bezier(.3,1.4,.4,1) forwards}
-.ultci.r .nm{left:5%;right:36%;text-align:left}.ultci.r .num{right:auto;left:7%}.ultci.r .tag{left:auto;right:6%}
-.ultci .say{position:absolute;right:5%;top:64%;max-width:62%;font:800 14px var(--f-body);background:#fff;color:#0B1430;border-radius:12px;padding:5px 10px;opacity:0;animation:uSay .2s .7s forwards}
-.ultci.r .say{right:auto;left:5%}
-.ultci .skip{position:absolute;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:11px;color:#ffffffb0}
-@keyframes uFade{from{opacity:0}}@keyframes uLines{0%{opacity:0;transform:rotate(-12deg) translateX(-30%)}15%{opacity:.55}85%{opacity:.55}100%{opacity:0;transform:rotate(-12deg) translateX(30%)}}
-@keyframes uBand{to{transform:skewY(-8deg) scaleX(1)}}@keyframes uArt{to{opacity:1;transform:none}}@keyframes uPop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
-@keyframes uSlam{to{opacity:1;transform:scale(1)}}@keyframes uSay{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.uflash{position:fixed;inset:0;z-index:61;background:#fff;pointer-events:none;animation:uFlash .35s ease-out forwards}@keyframes uFlash{0%{opacity:.9}100%{opacity:0}}
-#arena.quake{animation:uQuake .35s}@keyframes uQuake{25%{transform:translate(4px,-3px)}50%{transform:translate(-4px,3px)}75%{transform:translate(2px,2px)}}
-@media (prefers-reduced-motion: reduce){.ultci .lines{display:none}.ultci *{animation-duration:.01s!important;animation-delay:0s!important}#arena.quake{animation:none}}
-.bench button{display:flex;align-items:center;gap:6px;padding:4px 8px}
-.bench .crest{width:34px;height:34px}
-.tychart{width:100%;border-collapse:collapse;font-size:12px;text-align:center}.tychart th,.tychart td{border:1px solid var(--line);padding:3px 2px}
 .mv[aria-pressed="true"]{border-color:var(--ink);background:var(--accent-soft);box-shadow:3px 3px 0 var(--ink)}
 .mv.ready{border-color:var(--ink);box-shadow:3px 3px 0 var(--accent)}
 .mv.used,.mv.cant{opacity:.45;cursor:default}
@@ -618,8 +584,7 @@ hr{border-color:var(--line)!important}
     </div>
     <details class="panel"><summary class="label" data-zh="故事与玩法">ストーリーとあそびかた</summary>
       <p class="hint" data-zh="耸立在工业之城的「迈斯特之塔」。下层10层的每个房间都有高手等待，10楼有传说中的工匠「塔之主」。再往上，是只有被选中的人才能前往的上层（11〜20层）。用扭蛋收集伙伴，组成3人队伍向塔顶前进吧。">工業の街にそびえる「マイスターの塔」。全10階の各部屋には腕自慢たちが待ちかまえ、10階には伝説の職人「塔の主」がいるという。その先には、選ばれた者だけが進める上層（11〜20階）が続いている。ガチャで仲間を集め、3人のパーティで最上階を目指そう。</p>
-      <p class="hint" data-zh="轮到自己时掷骰子，把符合条件的点数用在技能上就能发动技能。技能每回合各1次。角色倒下后选择下一位伙伴出场，打倒对方全员即获胜。每层都有特殊规则。">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。キャラがたおれたら、次に出す仲間を選びます。相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
-      <p class="hint" data-zh="【Ver 3.0】角色和技能有属性（电·机械·力量·野兽·幻影）。幻影＞力量＞机械＞电＞野兽＞幻影。用对方弱点属性的技能，伤害会更高。在自己的回合可以使用1个骰子换人（每回合1次）。">【Ver 3.0】キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があります。まぼろし＞ちから＞メカ＞でんき＞けもの＞まぼろし。相手の苦手なタイプの技で攻めると、ダメージが大きくなります。自分のターンには、サイコロ1個を使って控えと交代できます（1ターン1回）。</p>
+      <p class="hint" data-zh="轮到自己时掷骰子，把符合条件的点数用在技能上就能发动技能。技能每回合各1次。首位角色倒下后换下一位伙伴，打倒对方全员即获胜。每层都有特殊规则。">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。先頭のキャラがたおれたら次の仲間に交代し、相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
       <p class="hint" data-zh="角色分为★1〜★3，★越多能学会越强的技能。扭蛋抽到同一角色更高的★时★提升；★相同或更低则获得「碎片」，可用来强化技能。">キャラには★1〜★3があり、★が多いほど強い技を覚えます。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
       <button class="btn small" id="tut-again" style="margin-top:8px" data-zh="下次对战时再看一次教学">次のバトルでチュートリアルをもう一度</button></details>
     <div class="row startbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
@@ -627,7 +592,7 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-party" hidden>
     <div class="panel">
-      <div class="row between"><h2 data-zh="队伍">パーティ</h2><span class="hint" data-zh="最多3人。首位最先出场，之后可以换人">最大3人。先頭から出て、バトル中に交代できます</span></div>
+      <div class="row between"><h2 data-zh="队伍">パーティ</h2><span class="hint" data-zh="最多3人，从首位开始依次出战">最大3人。先頭から順に戦います</span></div>
       <div class="psets" id="psets-p"></div>
       <div class="party-strip" id="slots"></div>
     </div>
@@ -718,9 +683,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=fbf91171"></script>
+<script src="engine.js?v=1e1cca06"></script>
 <script>
-const VERSION='3.1.1';
+const VERSION='2.1.4';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -732,12 +697,12 @@ const W=ms=>sleep(RM?ms*.5:ms);
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2300)}
 const nmc=n=>(n||'').length>=6?'nm long':'nm';/* 長い名前は小さく1行で */
 const stars=n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
-/* Ver 3.0.1：キャラの背景はタイプの色（2タイプはななめに2色） */
-const bgOf=ch=>{const c=(ch.types||[]).map(t=>G.TYPES[t]&&G.TYPES[t].c).filter(Boolean);return!c.length?ch.color:c.length===1?c[0]:`linear-gradient(135deg,${c[0]} 50%,${c[1]} 50%)`};
-const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${bgOf(ch)}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${bgOf(ch)}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
+const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" style="--c:${ch.color}"><img src="${ch.img}" alt="${ch.name}"></div>`:`<div class="crest k ${cls}" style="--c:${ch.color}" role="img" aria-label="${ch.name}"><span>${ch.crest}</span></div>`;
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
+/* Ver 3（3.0.0〜3.1.1）の技番号 → Ver 2 の技番号（-1 は Ver 3 で増えた技） */
+const V3TO2={"dodo": [0, 4, -1, 5, 2, 3, 1, 6], "fox": [0, 5, 2, 1, 4, -1, 3, 6], "wolf": [5, 4, -1, 2, 1, 3, 0, 6], "onmyo": [3, 4, 0, -1, 1, 2, 5, 6], "tsukiyo": [0, 1, 2, -1, 3, 5, 4, 6], "mouse": [0, 1, 2, -1, 5, 3, 4, 6], "owl": [5, 2, -1, 3, 1, 4, 0, 6], "gorilla": [0, 4, -1, 5, 2, 1, 3, 6], "robot": [0, 1, -1, 5, 3, 4, 2, 6], "rocker": [2, 4, 0, 5, -1, 1, 3, 6], "nero": [0, 1, 4, 5, 3, -1, 2, 6], "okajun": [0, 5, 1, -1, 2, 3, 4, 6], "hayate": [0, 5, 4, 1, 2, -1, 3, 6], "kurogane": [0, 1, 3, -1, 2, 5, 4, 6], "lionex": [1, 4, -1, 0, 2, 3, 5, 6], "seraph": [0, 5, -1, 1, 2, 3, 4, 6], "hakurou": [0, 5, 2, -1, 3, 4, 1, 6], "guardian": [1, 5, 0, -1, 2, 3, 4, 6], "libra": [0, 4, 1, 5, 3, -1, 2, 6], "spino": [0, 5, 4, -1, 2, 3, 1, 6], "takumi": [0, 3, 4, -1, 1, 2, 5, 6], "sora": [0, 2, 5, -1, 1, 3, 4, 6], "verdict": [0, 1, 2, 3, 4, 5, 6], "eclipse": [0, 1, 2, 3, 4, 5, 6]};
 function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
@@ -767,11 +732,11 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
   for(const k in o)if(byId(k))s.owned[k]=Math.min(3,Math.max(1,Math.floor(+o[k]||1)));
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
-  /* Ver 3.0：技を作り直したので、古いセーブの技番号（強化・選んだ技）を、同じ名前の新しい技の番号へ移す */
-  const MIG=!v.mv3;s.mv3=true;const mapI=(k,m)=>{if(!MIG)return +m;const o=(G.OLDMOVES[k]||[])[+m];return o==null?-1:byId(k).moves.findIndex(x=>x.jn===o)};
-  for(const k in (v.lv||{}))if(byId(k)&&v.lv[k]&&typeof v.lv[k]==='object'){s.lv[k]={};let maxed=0;for(const m in v.lv[k]){const n=Math.min(2,Math.max(0,Math.floor(+v.lv[k][m]||0)));if(n===2)maxed++;const j=mapI(k,m);if(j>=0&&byId(k).moves[j]&&n)s.lv[k][j]=n}
-    if(MIG&&maxed>=7&&s.owned[k]!=null)s.shards[k]=(s.shards[k]||0)+6}/* 全部強化していたキャラには、新しい技1つ分のかけら */
-  for(const k in (v.load||{}))if(byId(k)&&Array.isArray(v.load[k]))s.load[k]=v.load[k].map(m=>mapI(k,m)).filter(m=>m>=0&&byId(k).moves[m]!=null).slice(0,4);
+  /* Ver 3 から戻したセーブ（mv3）：技の番号を Ver 2 の番号へ戻す。Ver 3 で増えた技の強化は、使ったかけらを返す */
+  const R3=!!v.mv3,mapB=(k,m)=>R3?((V3TO2[k]||[])[+m]??-1):+m;
+  for(const k in (v.lv||{}))if(byId(k)&&v.lv[k]&&typeof v.lv[k]==='object'){s.lv[k]={};for(const m in v.lv[k]){const n=Math.min(2,Math.max(0,Math.floor(+v.lv[k][m]||0)));const j=mapB(k,m);
+    if(j<0){if(n&&R3)s.shards[k]=(s.shards[k]||0)+(n>=2?6:2);continue}if(byId(k).moves[j]&&n)s.lv[k][j]=n}}
+  for(const k in (v.load||{}))if(byId(k)&&Array.isArray(v.load[k])){const l=v.load[k].map(m=>mapB(k,m)).filter(m=>m>=0&&byId(k).moves[m]!=null).slice(0,4);if(!R3||l.length===4)s.load[k]=l}
   s.party=(Array.isArray(v.party)?v.party:[]).filter(id=>s.owned[id]).slice(0,3);
   return s}
 try{const v2=localStorage.getItem(SKEY);if(v2)save=sanitize(JSON.parse(v2));else{const v1=JSON.parse(localStorage.getItem('okc-save')||'null');if(v1)save=sanitize(v1)}}catch(e){}
@@ -808,7 +773,6 @@ function noise(d,vol=.15,when=0,hp=800){const a=ac();if(!a||!save.se)return;cons
 const N=n=>440*Math.pow(2,(n-69)/12);
 const SFX={
   tap(){tone(1300,.03,'square',.05)},
-  ult(){tone(220,.5,'sawtooth',.1,880);noise(.4,.16,.05,300);[72,76,79,84].forEach((n,i)=>tone(N(n),.16,'square',.1,0,.35+i*.07));tone(110,.5,'sawtooth',.14,40,.95);noise(.35,.25,.95,150)},
   roll(){for(let i=0;i<6;i++)noise(.03,.12,i*.05+Math.random()*.02,2000)},
   hit(a){tone(180,.18,'square',.14,50);noise(.1,.18,0,600);if(a>=10){tone(90,.3,'sawtooth',.12,40,.02);noise(.2,.2,.03,200)}},
   heal(){[76,79,84].forEach((n,i)=>tone(N(n),.12,'sine',.12,0,i*.07))},
@@ -837,22 +801,8 @@ $('#snd-se').onclick=()=>{save.se=!save.se;persist();setSnd();sfx('tap')};
 $('#snd-bgm').onclick=()=>{save.bgm=!save.bgm;persist();setSnd();if(!save.bgm){BGM.stop();TBGM.stop()}else if(document.getElementById('title'))TBGM.start();else if(B&&!B.done)BGM.start()};
 
 /* ================= 共通表示 ================= */
-/* Ver 3.0：タイプのマーク。二つ名＝前の「○○型」を除いた部分 */
-function tyHTML(t){if(!t)return'';const T=G.TYPES[t],c=t==='wb'?'linear-gradient(90deg,#E9DFA8 50%,#4A3D5C 50%)':t==='both'?'linear-gradient(90deg,#E9DFA8 50%,#4A3D5C 50%)':T?T.c:'#888';
-  return`<span class="ty${t==='hikari'?' lt':''}" style="--tc:${c}">${G.typeName(t)}</span>`}
-const typesHTML=ch=>(ch.types||[]).map(tyHTML).join('');
-const nick=ch=>String(ch.role||'').split(/[・·]/).pop();
-/* タイプ相性の説明 */
-function typeChart(){sfx('tap');const R=['ma','ch','me','de','ke'];
-  const cell=(a,d)=>{const p=(G.BEATS[a]===d?1:0)-(G.BEATS[d]===a?1:0);return p>0?'<b style="color:#FFD24A">◎</b>':p<0?'<span style="color:#9FB0D0">△</span>':''};
-  openSheet(`<div class="label">${L('タイプ相性','属性相克')}</div>
-  <p style="font-size:14px;line-height:1.9;text-align:center">${R.map(t=>tyHTML(t)).join(' ＞ ')} ＞ ${tyHTML('ma')}</p>
-  <p class="hint">${L('矢印の左が右に強い。ひかり⇔やみはお互いに強く、ほかのタイプとは有利も不利もありません。','左边克制右边。光⇔暗互相克制，与其他属性无克制关系。')}</p>
-  <table class="tychart"><tr><th>${L('技＼相手','技能＼对手')}</th>${R.map(t=>`<th>${tyHTML(t)}</th>`).join('')}</tr>${R.map(a=>`<tr><th>${tyHTML(a)}</th>${R.map(d=>`<td>${cell(a,d)}</td>`).join('')}</tr>`).join('')}</table>
-  <p class="hint">${L('「ばつぐん！」＝相手の弱点のタイプで攻撃（×1.25）。「タイプ一致」＝自分と同じタイプの技（×1.25）。両方そろうと×1.5。「いまひとつ」＝相手が強いタイプ（×0.75）。タイプ一致といまひとつが重なると×1です。ガード・回復などの技にはタイプがありません。','「效果绝佳！」＝用对方弱点属性攻击（×1.25）。「属性一致」＝与自身相同属性的技能（×1.25）。两者同时成立×1.5。「效果不佳」＝对方抗性属性（×0.75）。属性一致与效果不佳重叠时为×1。护盾、回复等技能没有属性。')}</p>
-  <p class="hint">${L('交代：自分のターンにサイコロ1個を使って控えと入れかわれます（1ターン1回。ガードや「次の攻撃+」は消えます）。たおれたあとは、次に出すキャラを選べます。','换人：在自己的回合使用1个骰子与替补交换（每回合1次，护盾和「下次攻击+」会消失）。角色倒下后可以选择下一个出场的角色。')}</p>`,L('とじる','关闭'))}
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
-  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.ty?tyHTML(m.ty):''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:m.tk?`<span class="tg">${L('得意','拿手')}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
+  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
 function updCoins(){$('#coin').textContent=save.coins}
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
@@ -942,9 +892,8 @@ function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!ow
   renderDetail()}
 function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.innerHTML='';return}
   const st=starOf(id),l=loadout(id),pi=save.party.indexOf(id),sh=save.shards[id]||0;
-  el.innerHTML=`<div class="who">${crest(ch,'big')}<div><b>${ch.name}</b><span class="rar" style="font-size:16px">${stars(st)}</span><br>${typesHTML(ch)} <small>${nick(ch)}</small> <button class="btn small" data-tychart>${L('タイプ相性','属性相克')}</button></div></div>
+  el.innerHTML=`<div class="who">${crest(ch,'big')}<div><b>${ch.name}</b><span class="rar" style="font-size:16px">${stars(st)}</span><br><small>${ch.role}</small></div></div>
   <div class="passive"><b>${L('能力','特性')}「${ch.passive.n}」</b><br>${ch.passive.d}</div>
-  ${(u=>u?`<div class="ultcard"><b>${L('超必殺','超必杀')}「${u.n}」</b> ${tyHTML(u.ty)}<br>${L(`${u.num}・${u.num}のゾロ目で使える（1バトル1回・${G.ULT_DMG}ダメージ・技の4つとは別）`,`掷出${u.num}·${u.num}对子时可用（每场1次·${G.ULT_DMG}伤害·不占4个技能栏）`)}${st<3?`<br><span class="hint">${L('★3になると使えます','★3后可使用')}</span>`:''}</div>`:'')(G.ultOf(ch))}
   <div class="row">${pi<0?`<button class="btn small" id="p-add" ${save.party.length>=3?'disabled':''}>${L('パーティに入れる','加入队伍')}</button>`:`<button class="btn small" id="p-rem" ${save.party.length<=1?'disabled':''}>${L('パーティから外す','移出队伍')}</button>${pi>0?`<button class="btn small" id="p-first">${L('先頭にする','设为首位')}</button>`:''}`}
     <span class="hint">${pi<0&&save.party.length>=3?L('パーティは3人まで。誰かを外してください','队伍最多3人，请先移出一人'):''}</span></div>
   <div class="row between hprow"><span>${L('体力','体力')} <b>${hpOf(id)}</b><small class="hint">（${L('塔と無限の塔で有効','仅在塔与无限之塔中有效')}）</small></span>${(save.hpLv[id]||0)>=HP_MAX_LV?`<button class="up" disabled>${L('体力<br>MAX','体力<br>MAX')}</button>`:`<button class="up" id="hp-up" ${sh<HP_COST[save.hpLv[id]||0]?'disabled':''}>${L(`体力+2<br>かけら${HP_COST[save.hpLv[id]||0]}`,`体力+2<br>碎片${HP_COST[save.hpLv[id]||0]}`)}</button>`}</div>
@@ -952,8 +901,7 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
   <div class="moves">${ch.moves.map((m0,k)=>{const m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
     return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?L('で解放','解锁'):''}</span>`:'')}</button>
     <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?L('強化<br>MAX','强化<br>MAX'):L(`強化+${lv+1}<br>かけら${cost}`,`强化+${lv+1}<br>碎片${cost}`)}</button></div>`}).join('')}</div>
-  <p class="hint">${L('強化（最大+2）：攻撃は、出しやすい技（なんでも・偶数・奇数・4以上・3以下）が+2、出しにくい技（5以上・2以下・6のみ・ゾロ目）が+3ずつ上がります。サイコロを増減させる攻撃と連続攻撃は+1（1回ごと）。ガード・回復は+2、「次の攻撃+」「相手の次の攻撃−」は+1。ほかの変化技はガードが付きます。かけらはガチャで同じキャラが出るか、ボスを倒すと手に入ります。','强化（最多+2）：攻击技能中，容易发动的（任意·偶数·奇数·4以上·3以下）每级+2，难以发动的（5以上·2以下·仅6·对子）每级+3。增减骰子的攻击与连续攻击每级+1（每次）。护盾·回复+2，「下次攻击+」「对方下次攻击−」+1。其他变化技能附加护盾。在扭蛋中抽到重复角色或打倒头目可获得碎片。')}</p>`;
-  el.querySelector('[data-tychart]').onclick=()=>typeChart();
+  <p class="hint">${L('強化すると、ダメージ・ガード・回復が+2ずつ上がります（「次の攻撃+」「相手の次の攻撃−」と、サイコロを増減させる攻撃は+1ずつ。ほかの変化技はガードが付きます）。最大+2。かけらはガチャで同じキャラが出るか、ボスを倒すと手に入ります。','强化后伤害·护盾·回复每级+2（「下次攻击+」「对方下次攻击−」以及增减骰子的攻击每级+1，其他变化技能附加护盾），最多+2。在扭蛋中抽到重复角色或打倒头目可获得碎片。')}</p>`;
   const HU=$('#hp-up');if(HU)HU.onclick=()=>{const lv=save.hpLv[id]||0,c=HP_COST[lv];if(lv>=HP_MAX_LV||(save.shards[id]||0)<c)return;save.shards[id]-=c;save.hpLv[id]=lv+1;persist();sfx('buff');toast(L(`${ch.name}の体力が ${hpOf(id)} になった`,`${ch.name}的体力变为 ${hpOf(id)}`));renderDetail()};
   const A=$('#p-add'),Rm=$('#p-rem'),F=$('#p-first');
   if(A)A.onclick=()=>{save.party.push(id);persist();renderParty()};
@@ -1011,7 +959,7 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
   if(n===1){const {st:s1,c,before,res}=rs[0];
     const m=res==='new'?L('NEW！ 仲間になった','NEW！ 成为伙伴'):res==='up'?L(`★アップ！ ★${before} → ★${s1}`,`★提升！ ★${before} → ★${s1}`):L(`もう★${before}で持っています。かけら+${s1===3?2:1}`,`已拥有★${before}。碎片+${s1===3?2:1}`);
     box.innerHTML=`${s1>=2?'<div class="rays"></div>':''}${crest(c)}<span class="rar">${stars(s1)}</span><b>${c.name}</b><span class="label" style="color:#fff">${m}</span>
-    <span class="hint" style="color:#c9d2e6">${typesHTML(c)} ${nick(c)}　${L('能力','特性')}「${c.passive.n}」</span>${again}`;
+    <span class="hint" style="color:#c9d2e6">${c.role}　${L('能力','特性')}「${c.passive.n}」</span>${again}`;
     $('#gacha-msg').textContent=`${c.name}　${stars(s1).replace(/<\/?i>/g,'')}`}
   else{const nNew=rs.filter(r=>r.res==='new').length,n3=rs.filter(r=>r.st===3).length;
     box.innerHTML=`${st>=2?'<div class="rays"></div>':''}<b>${L('11連の結果','11连结果')}</b>
@@ -1038,7 +986,7 @@ const REWARD_TXT={meister10:['マイスターの塔 10Fのボス','迈斯特之�
 const rewardHow=c=>{const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   if(!o){el.innerHTML=`<p class="hint">${c.reward?L('まだ出会っていないボス。','尚未遇见的头目。')+rewardHow(c):L(`まだ出会っていないキャラ。ガチャ（vol.${c.vol}）で仲間にしよう。`,`尚未遇见的角色。用扭蛋（vol.${c.vol}）让它成为伙伴吧。`)}</p>`;return}
-  el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br>${typesHTML(c)} <small>${nick(c)}</small></div></div>
+  el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br><small>${c.role}</small></div></div>
   <div class="passive"><b>${L('能力','特性')}「${c.passive.n}」</b><br>${c.passive.d}</div>
   ${c.reward?`<p class="hint">${rewardHow(c)}</p>`:''}
   <div><div class="label">${L('セリフ','台词')}</div><ul class="lines"><li>${L('登場','登场')}：「${c.lines[0]}」</li><li>${L('勝利','胜利')}：「${c.lines[1]}」</li><li>${L('敗北','失败')}：「${c.lines[2]}」</li></ul></div>
@@ -1367,12 +1315,10 @@ function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)|
     <p class="hint">${L('大会名をタップすると、優勝・準優勝のパーティ（キャラと技）が見られます。','点击大赛名称，可以查看冠军·亚军的队伍（角色与技能）。')}</p><div class="cup-list">${rows}${old}</div>`;
   el.querySelectorAll('[data-ci]').forEach(b=>b.onclick=()=>{sfx('tap');cupDetail(hall[+b.dataset.ci])})}
 /* 大会の詳細：上位の構築と、よく使われたキャラ */
-/* old＝Ver 3.0より前の大会（技の番号が古い）。同じ名前の新しい技で表示する */
-function buildHTML(pt,old){return(pt||[]).map(x=>{const c=byId(x.id);if(!c)return'';const lv=x.lv||{};
-  const mv=k=>{if(!old)return c.moves[k];const o=(G.OLDMOVES[c.id]||[])[k];return o==null?null:c.moves.find(m=>m.jn===o)};
-  return`<div class="bd-c"><div style="width:44px;flex:none">${crest(c)}</div><div style="min-width:0"><b>${c.name}</b> <span class="rar">${stars(x.star)}</span><div class="bd-mv">${(x.mv||[]).map(k=>mv(k)?`<span>${mv(k).n}${lv[k]?`<i>+${lv[k]}</i>`:''}</span>`:'').join('')}</div></div></div>`}).join('')}
+function buildHTML(pt){return(pt||[]).map(x=>{const c=byId(x.id);if(!c)return'';const lv=x.lv||{};
+  return`<div class="bd-c"><div style="width:44px;flex:none">${crest(c)}</div><div style="min-width:0"><b>${c.name}</b> <span class="rar">${stars(x.star)}</span><div class="bd-mv">${(x.mv||[]).map(k=>c.moves[k]?`<span>${c.moves[k].n}${lv[k]?`<i>+${lv[k]}</i>`:''}</span>`:'').join('')}</div></div></div>`}).join('')}
 function cupDetail(e){if(!e)return;
-  const top=(e.top||[]).slice(0,2).map((p,i)=>`<div class="bd-p"><div class="row between"><span class="medal">${i?'🥈':'🥇'}</span>${whoHTML(p)}<b style="flex:none">${p.wl?L(`${p.wl[0]}勝${p.wl[1]}敗`,`${p.wl[0]}胜${p.wl[1]}负`):''}</b></div>${buildHTML(p.party,String(e.date||'')<'2026-10-19')}</div>`).join('');
+  const top=(e.top||[]).slice(0,2).map((p,i)=>`<div class="bd-p"><div class="row between"><span class="medal">${i?'🥈':'🥇'}</span>${whoHTML(p)}<b style="flex:none">${p.wl?L(`${p.wl[0]}勝${p.wl[1]}敗`,`${p.wl[0]}胜${p.wl[1]}负`):''}</b></div>${buildHTML(p.party)}</div>`).join('');
   openSheet(`<h2>${cupT(e.name)}</h2><div class="hint">${cupT(e.sub)}　📅 ${cupDate(e.date)}${e.n?`　👥 ${e.n}${L('人','人')}`:''}</div>
     <div class="label" style="margin-top:8px">${L('優勝・準優勝のパーティ','冠军·亚军的队伍')}</div>${top||`<p class="hint">${L('記録がありません','暂无记录')}</p>`}`,L('閉じる','关闭'))}
 
@@ -1450,7 +1396,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
 function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,dec:B.S.decree,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
 function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);
   el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?L('相手','对手'):L('あなた','你')}<span class="pips" aria-label="${i?L('相手の残り人数','对手剩余人数'):L('パーティの残り人数','队伍剩余人数')}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">${L('能力と技','特性与技能')}</button>${i?`<button class="info-btn" data-hist="1">${L('行動の記録','行动记录')}</button>`:''}</span>
-  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${typesHTML(f.ch)}${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
+  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
   el.querySelector('.crest').onclick=()=>infoSheet(i);el.querySelector('[data-info]').onclick=()=>infoSheet(i);
   const h=el.querySelector('[data-hist]');if(h)h.onclick=histSheet;
   el.querySelector('.pips').onclick=()=>toast(i?L('相手の控えは、出てくるまで分からない','对手的替补在登场前是未知的'):L('パーティの残り人数','队伍剩余人数'));
@@ -1480,8 +1426,7 @@ async function play(evs){for(const e of evs){if(!B)return;const prevIdx=B.view.m
   switch(e.t){
     case'turn':if(e.side===0)B.round=(B.round||0)+1;renderControl();await say(e.msg,400);break;
     case'roll':sfx('roll');if(e.side===1)B.hist.push({r:B.round,t:'roll',msg:e.msg.replace(/^サイコロ/,'サイコロ')});renderControl(true);await say(e.msg,550);break;
-    case'ult':await showUlt(e);break;
-    case'cast':if(e.side===1){const f=B.S.sides[1].team[B.view[1].idx];B.hist.push({r:B.round,t:'cast',who:f.ch.name,m:e.ult?G.ultOf(f.ch):f.moves[e.mi],vals:e.vals})}burst(e.side,colorOf(e.side));sfx('buff');renderControl();await say(e.msg,450);break;
+    case'cast':if(e.side===1){const f=B.S.sides[1].team[B.view[1].idx];B.hist.push({r:B.round,t:'cast',who:f.ch.name,m:f.moves[e.mi],vals:e.vals})}burst(e.side,colorOf(e.side));sfx('buff');renderControl();await say(e.msg,450);break;
     case'hit':{const src=e.src>=0?colorOf(e.src):'#8893AA';
       if(e.amt>0){shake(e.side);burst(e.side,src);sfx('hit',e.amt);if(e.amt>=10){const a=$('#arena');a.classList.remove('flash');void a.offsetWidth;a.classList.add('flash')}}else sfx('guard');
       floatText(e.side,e.amt>0?'-'+e.amt:'0','var(--low)',e.amt>=10);await say(e.msg);break}
@@ -1492,26 +1437,8 @@ async function play(evs){for(const e of evs){if(!B)return;const prevIdx=B.view.m
     case'ko':sfx('ko');await say(e.msg,800);break;
     case'switch':{const f=B.S.sides[e.side].team[B.view[e.side].idx];if(e.side===1)B.hist.push({r:B.round,t:'sw',msg:L(`${f.ch.name}（★${f.star}）が登場`,`${f.ch.name}（★${f.star}）登场`)});bubble(e.side,e.side===1?f.ch.lines[0]:L('まかせて！','交给我吧！'));await say(e.msg,900);break}
     case'over':break;
-    case'need':break;/* 次のキャラ選び：play の最後にまとめて行う */
-    case'eff':floatText(e.side,e.msg,e.tp>0?'#FFD24A':'#9FB0D0',e.tp>1);await say(e.msg,450);break;
     default:await say(e.msg)}}
-  renderControl();await resolveNeeds()}
-/* Ver 3.0：倒れたあと、次に出すキャラを選ぶ（自分）／相手が選ぶのを待つ（通信対戦） */
-async function resolveNeeds(){if(!B||B.done||B.S.over>=0)return;
-  if(G.needPick(B.S,0)){const k=await askPick();if(!B||B.done)return;if(B.online)onlineSend({t:'pick',k});await play(G.pickNext(B.S,0,k));return}
-  if(G.needPick(B.S,1)){let k=B.oppPick;B.oppPick=null;if(k==null)k=await new Promise(res=>{if(B.oppPick!=null){const x=B.oppPick;B.oppPick=null;res(x);return}B.pickWait=res;say(L('相手が 次のキャラを選んでいます…','对方正在选择下一个角色……'),200)});
-    if(!B||B.done)return;B.pickWait=null;const ev=G.pickNext(B.S,1,k);if(ev)await play(ev);else await play(G.pickNext(B.S,1,G.bestPick(B.S,1))||[])}}
-function askPick(){return new Promise(res=>{const sd=B.S.sides[0],o=G.act(B.S,1);
-  const auto=()=>G.bestPick(B.S,0);if(save.auto&&!B.online){res(auto());return}
-  const list=sd.team.map((f,k)=>({f,k})).filter(x=>x.f.hp>0&&x.k!==sd.idx);
-  const vs=x=>{const sc=G.matchScore(x.f,o);return sc>0?`<span class="chip up">${L('相性◎','相性◎')}</span>`:sc<0?`<span class="chip down">${L('相性△','相性△')}</span>`:''};
-  document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
-  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="label">${L('次に出すキャラを選んでください','请选择下一个出场的角色')}</div>
-    <p class="hint">${L('相手：','对手：')}${o.ch.name} ${typesHTML(o.ch)}</p>
-    <div class="moves">${list.map(x=>`<button class="mv ready" data-pk="${x.k}" style="grid-template-columns:auto 1fr"><span>${crest(x.f.ch)}</span><span class="nm">${x.f.ch.name}${typesHTML(x.f.ch)} ${vs(x)}<br><small>${L('体力','体力')} ${x.f.hp} / ${x.f.max}</small></span></button>`).join('')}</div></div>`;
-  document.body.append(bg);let done=false;const fin=k=>{if(done)return;done=true;clearTimeout(t);bg.remove();sfx('tap');res(k)};
-  const t=B.online?setTimeout(()=>{toast(L('時間切れ！ 自動で選びました','时间到！已自动选择'));fin(auto())},20000):null;
-  bg.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>fin(+b.dataset.pk))})}
+  renderControl()}
 
 async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;if(B.online)B.deadline=Date.now()+TURN_MS;
   await play(G.startTurn(B.S,i));if(!B)return;if(B.S.over>=0)return finish();
@@ -1523,10 +1450,10 @@ async function runTurn(i){if(!B||B.done)return;B.busy=true;B.sel=null;if(B.onlin
   await say(L('相手は ターンを終えた。','对方结束了回合。'),350);await play(G.endTurn(B.S,1));runTurn(0)}
 
 /* 使える技が1つもなくなったら、自動でターン終了 */
-const canAct=()=>{const sd=B.S.sides[0],f=sd.team[sd.idx];return !!G.ultDice(B.S,0)||f.moves.some((m,mi)=>!sd.used.has(mi)&&G.diceFor(B.S,0,mi,null))};
+const canAct=()=>{const sd=B.S.sides[0],f=sd.team[sd.idx];return f.moves.some((m,mi)=>!sd.used.has(mi)&&G.diceFor(B.S,0,mi,null))};
 /* オートモード：技とサイコロを自動で選ぶ（ON/OFFは保存される）。チュートリアル中は使わない */
 function autoEndCheck(human){clearTimeout(B.autoT);if(!human||B.busy||B.done||TUT.on||B.S.over>=0)return;
-  if(save.auto){B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||!save.auto)return;if(G.ultDice(B.S,0)){doUlt();return}const c=G.cpuChoose(B.S,0);if(c)doMove(c.mi,c.ks);else endMyTurn()},550);return}
+  if(save.auto){B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||!save.auto)return;const c=G.cpuChoose(B.S,0);if(c)doMove(c.mi,c.ks);else endMyTurn()},550);return}
   if(canAct())return;
   B.autoT=setTimeout(()=>{if(!B||B.busy||B.done||B.S.turn!==0||canAct())return;endMyTurn()},900)}
 async function doMove(mi,ks){if(!B||B.busy)return;const sd=B.S.sides[0],m=sd.team[sd.idx].moves[mi];
@@ -1542,10 +1469,10 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
   const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],f=sd.team[v.idx],human=i===0;
   const html=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${TUT.on?(human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO ${save.auto?'ON':'OFF'}</button>`}</div>
   <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
-  ${human?`${ultHTML()}<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
-    let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),fx=m.fx||{},gd=fx.gclr?0:Math.max(0,o.guard-(fx.pierce||0)-(f.ch.passive.k==='sky'?2:0)),after=Math.max(0,(r.d+((fx.gbonus&&o.guard)?fx.gbonus:0))*(m.hits||1)-gd);
-      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}${r.q&&(r.q.rel||r.q.stab)?` <span class="eff ${r.q.rel<0?'dn':'up'}">${G.effLabel(r.q)}</span>`:''}</span>${(()=>{const ns=r.notes.filter(n=>!/^(ばつぐん|いまひとつ|タイプ一致|效果|属性一致)/.test(n));return ns.length?'（'+ns.join('、')+(gd?'、'+GD+Math.min(gd,r.d):'')+'）':gd?'（'+GD+Math.min(gd,r.d)+'）':''})()}</span>`}
-    return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>${swHTML()}`:''}`;
+  ${human?`<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
+    let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),after=Math.max(0,r.d-o.guard);
+      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}</span>${r.notes.length?'（'+r.notes.join('、')+(o.guard?'、'+GD+Math.min(o.guard,r.d):'')+'）':o.guard?'（'+GD+Math.min(o.guard,r.d)+'）':''}</span>`}
+    return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>`:''}`;
   autoEndCheck(human);
   if(html===B.ctlHTML&&!rolled)return;/* 中身が同じなら描き直さない（ちらつき防止） */
   B.ctlHTML=html;el.innerHTML=html;
@@ -1559,33 +1486,7 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
     const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
     if(B.sel!=null&&!ks.includes(B.sel))toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`));
     doMove(mi,ks)});
-  el.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>doSwitch(+b.dataset.sw));
-  const UB=$('#ult');if(UB)UB.onclick=()=>doUlt();
   const E=$('#end');if(E)E.onclick=()=>endMyTurn();}
-/* Ver 3.1 超必殺技：カットイン（約1.3秒・タップで飛ばせる） */
-function showUlt(e){return new Promise(res=>{const f=B.S.sides[e.side].team[B.view[e.side].idx],ch=f.ch,cs=(ch.types||[]).map(t=>G.TYPES[t].c);
-  sfx('ult');const ov=document.createElement('div');ov.className='ultci'+(e.side===1?' r':'');ov.style.setProperty('--c1',cs[0]||ch.color);ov.style.setProperty('--c2',cs[1]||cs[0]||ch.color);
-  ov.innerHTML=`<div class="dark"></div><div class="lines"></div><div class="band"></div><img class="art" src="${ch.img}" alt=""><div class="tag">${L('超必殺','超必杀')}</div><div class="num">${e.num}・${e.num}</div><div class="nm">${e.name}</div><div class="say">「${e.line}」</div><div class="skip">${L('タップでスキップ','点击跳过')}</div>`;
-  document.body.append(ov);let done=false;const fin=()=>{if(done)return;done=true;clearTimeout(t);ov.remove();const fl=document.createElement('div');fl.className='uflash';document.body.append(fl);setTimeout(()=>fl.remove(),400);
-    const a=$('#arena');a.classList.remove('quake');void a.offsetWidth;a.classList.add('quake');res()};
-  ov.onclick=fin;const t=setTimeout(fin,RM?500:1300)})}
-function ultHTML(){if(!B||TUT.on)return'';const sd=B.S.sides[0],f=sd.team[sd.idx],u=G.ultOf(f.ch);if(!u)return'';
-  if(f.star<3)return`<p class="ultinfo">${L(`超必殺「${u.n}」：★3で使えるようになる`,`超必杀「${u.n}」：★3后可使用`)}</p>`;
-  if(f.ultUsed)return`<p class="ultinfo">${L(`超必殺「${u.n}」：このバトルではもう使った`,`超必杀「${u.n}」：本场对战已使用`)}</p>`;
-  const ks=!B.busy&&G.ultDice(B.S,0);
-  return ks?`<button class="ultbtn" id="ult">${L('超必殺','超必杀')} ${u.n}<small>${u.num}・${u.num} ${L('のゾロ目がそろった！ タップで発動','对子齐了！点击发动')}</small></button>`:`<p class="ultinfo">${L(`超必殺「${u.n}」：${u.num}・${u.num}のゾロ目で使える（1バトル1回）`,`超必杀「${u.n}」：掷出${u.num}·${u.num}对子时可用（每场1次）`)}</p>`}
-async function doUlt(){if(!B||B.busy)return;const ks=G.ultDice(B.S,0);if(!ks)return;B.busy=true;B.sel=null;renderControl();if(B.online)onlineSend({t:'ult',ks});
-  await play(G.useUlt(B.S,0,ks)||[]);if(!B)return;if(B.S.over>=0)return finish();B.busy=false;renderControl()}
-/* Ver 3.0 交代：サイコロ1個を使って控えと入れかわる（1ターン1回）。選んでいるサイコロがあればそれを、なければ一番小さい目を使う */
-function swHTML(){if(!B||TUT.on)return'';const sd=B.S.sides[0],o=G.act(B.S,1),bench=sd.team.map((f,k)=>({f,k})).filter(x=>x.k!==sd.idx&&x.f.hp>0);if(!bench.length)return'';
-  const ok=!B.busy&&G.canSwitch(B.S,0),dk=swDie();
-  return`<div class="label" style="margin-top:6px">${L('交代（サイコロ1個を使う・1ターン1回）','换人（使用1个骰子·每回合1次）')}</div><div class="bench">${bench.map(x=>{const sc=G.matchScore(x.f,o);
-    return`<button class="btn small" data-sw="${x.k}" ${ok?'':'disabled'}>${crest(x.f.ch)}<span>${x.f.ch.name}<br><small>${L('体力','体力')}${x.f.hp}${sc>0?' '+L('相性◎','相性◎'):sc<0?' '+L('相性△','相性△'):''}</small></span></button>`}).join('')}</div>
-    ${ok&&dk!=null?`<p class="hint" style="margin:2px 0 0">${L(`交代すると 出目${sd.dice[dk].v}を使います`,`换人将使用点数${sd.dice[dk].v}`)}</p>`:sd.swUsed?`<p class="hint" style="margin:2px 0 0">${L('このターンはもう交代しました','本回合已经换过人了')}</p>`:''}`}
-function swDie(){const sd=B.S.sides[0];if(B.sel!=null&&sd.dice[B.sel]&&!sd.dice[B.sel].used)return B.sel;let k=null;sd.dice.forEach((d,i)=>{if(!d.used&&(k==null||d.v<sd.dice[k].v))k=i});return k}
-async function doSwitch(k){if(!B||B.busy||!G.canSwitch(B.S,0))return;const dk=swDie();if(dk==null)return;
-  B.busy=true;B.sel=null;renderControl();sfx('tap');if(B.online)onlineSend({t:'sw',k,dk});
-  await play(G.switchTo(B.S,0,k,dk)||[]);if(!B)return;if(B.S.over>=0)return finish();B.busy=false;renderControl()}
 
 /* ================= 対戦中の情報 ================= */
 function openSheet(html,close){document.querySelector('.sheet-bg')?.remove();const bg=document.createElement('div');bg.className='sheet-bg';
@@ -1594,11 +1495,11 @@ function openSheet(html,close){document.querySelector('.sheet-bg')?.remove();con
 function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].team[v.idx],t=v.team[v.idx],fl=B.S.fl||{n:'',rule:null};
   const st=[];if(t.guard)st.push(`${L('ガード','护盾')} ${t.guard}`);if(t.pow)st.push(`${L('次の攻撃','下次攻击')} +${t.pow}`);if(t.weak)st.push(`${L('次の攻撃','下次攻击')} −${t.weak}`);if(t.dMod)st.push(`${L('次のサイコロ','下回合骰子')} ${t.dMod>0?'+':'−'}${Math.abs(t.dMod)}`);
   openSheet(`<div class="label">${i?L('相手のキャラ','对手的角色'):L('あなたのキャラ','你的角色')}</div>
-  <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br>${typesHTML(f.ch)} <small>${nick(f.ch)}　${L('体力','体力')} ${t.hp} / ${t.max}</small></div></div>
+  <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br><small>${f.ch.role}　${L('体力','体力')} ${t.hp} / ${t.max}</small></div></div>
   <div class="passive"><b>${L('能力','特性')}「${f.ch.passive.n}」</b><br>${f.ch.passive.d}</div>
   ${st.length?`<p class="hint">${L('いまの状態：','当前状态：')}${st.join('、')}</p>`:''}
   <div class="label">${L('技（1ターンに1回ずつ）','技能（每回合各1次）')}</div><div class="moves">${f.moves.map(m=>`<div class="mv" style="cursor:default">${mvHTML(m)}</div>`).join('')}</div>
-  ${fl.rule?`<p class="hint">${L('この階のルール：','本层规则：')}${fl.rule.d}</p>`:''}<button class="btn small" data-tychart>${L('タイプ相性','属性相克')}</button>`);const tc=document.querySelector('.sheet [data-tychart]');if(tc)tc.onclick=()=>typeChart()}
+  ${fl.rule?`<p class="hint">${L('この階のルール：','本层规则：')}${fl.rule.d}</p>`:''}`)}
 function histSheet(){if(!B)return;sfx('tap');
   const rows=B.hist.slice().reverse().map(h=>h.t==='cast'?`<li><span class="tn">${L(h.r+'ターン','第'+h.r+'回合')}</span><span><b>${h.who}</b>${L('の','：')} <b>${h.m.n}</b>（${L('出目','点数')} ${h.vals.join(L('・','·'))}）<br><span class="hint">${G.condLabel(h.m.c)}${L('・','·')}${G.dmgLabel(h.m.dmg)?G.dmgLabel(h.m.dmg)+L('ダメージ','伤害'):L('変化技','变化技能')}${G.fxLabel(h.m.fx).length?L('・','·')+G.fxLabel(h.m.fx).join(L('・','·')):''}</span></span></li>`
     :`<li><span class="tn">${L(h.r+'ターン','第'+h.r+'回合')}</span><span class="hint">${h.msg}</span></li>`).join('');
@@ -1697,18 +1598,14 @@ function onlineConnect(code,host,cup){ac();ON.err='';fixParty();ON.cup=cup||null
   onlineClose();ON.code=code;ON.state='connecting';renderOnline();
   let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/ws?room='+encodeURIComponent(code))}catch(e){ON.state='idle';ON.err=L('接続できませんでした','无法连接');renderOnline();return}
   ON.ws=ws;
-  ws.onopen=()=>{onlineSend({t:'hello',v:4,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
+  ws.onopen=()=>{onlineSend({t:'hello',party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}onlineMsg(m)};
   ws.onerror=()=>{if(ON.state!=='battle'){ON.state='idle';ON.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');renderOnline()}};
   ws.onclose=()=>{if(ON.ws!==ws)return;ON.ws=null;if(ON.state==='battle'&&B&&B.online&&!B.done){toast(L('通信が切れました','连接已断开'));onlineQueue(async()=>{B.S.over=1;B.cut=true;await finish()})}else if(ON.state!=='battle'){ON.state='idle';renderOnline()}}}
 function onlineMsg(m){
   if(m.t==='full'){ON.state='idle';ON.err=L('その部屋は満員か、対戦中です','该房间已满或正在对战');onlineClose();renderOnline();return}
-  if(m.t==='ver'){ON.state='idle';ON.err=L('相手とゲームのバージョンがちがいます。2人ともページを読みこみ直して、同じバージョンにしてね','与对方的游戏版本不同。请两人都重新载入页面，使用相同版本');onlineClose();renderOnline();return}
   if(m.t==='start'){ON.state='battle';beginOnline(m);if(ON.cup)B.cup=ON.cup;return}
   if(!B||!B.online)return;
-  if(m.t==='pick'){if(B.pickWait){const r=B.pickWait;B.pickWait=null;r(m.k|0)}else B.oppPick=m.k|0;return}
-  if(m.t==='ult')onlineQueue(()=>play(G.useUlt(B.S,1,m.ks)||[]).then(()=>{if(B.S.over>=0)return finish()}));
-  if(m.t==='sw')onlineQueue(()=>play(G.switchTo(B.S,1,m.k|0,m.dk|0)||[]).then(()=>{if(B.S.over>=0)return finish()}));
   if(m.t==='act')onlineQueue(()=>play(G.useMove(B.S,1,m.mi,m.ks)).then(()=>{if(B.S.over>=0)return finish()}));
   else if(m.t==='end')onlineQueue(async()=>{await play(G.endTurn(B.S,1));if(B.S.over>=0)return finish();await runTurn(0)});
   else if(m.t==='left'&&!B.done){toast(L('相手が退出しました','对方已退出'));onlineQueue(async()=>{B.S.over=0;B.left=true;await finish()})}}
@@ -1842,11 +1739,11 @@ const TBGM={timer:null,step:0,next:0,out:null,
     howto(){open(L(`<h2>あそびかた</h2><ol class="lines" style="font-size:14px;line-height:1.7">
       <li>ガチャで仲間を集める（最初の1回は無料）</li><li>編成で3人のパーティと、それぞれの技4つを決める</li>
       <li>塔に挑戦。自分のターンにサイコロが振られる</li><li>条件に合う出目を技に使う（技は1ターン1回ずつ）</li>
-      <li>技のタイプで相性あり。苦手なタイプを突くと大ダメージ。サイコロ1個で控えと交代もできる</li><li>相手チームを全員たおせば次の階へ。コインがもらえる</li><li>コインでガチャ、かけらで技を強化して最上階を目指そう</li></ol>
+      <li>相手チームを全員たおせば次の階へ。コインがもらえる</li><li>コインでガチャ、かけらで技を強化して最上階を目指そう</li></ol>
       <p class="hint">はじめてのバトルでは、チュートリアルが案内してくれます。</p>`,`<h2>玩法</h2><ol class="lines" style="font-size:14px;line-height:1.7">
       <li>用扭蛋收集伙伴（第一次免费）</li><li>在编队中决定3人队伍，以及每人的4个技能</li>
       <li>挑战塔。轮到自己时会自动掷骰子</li><li>把符合条件的点数用在技能上（技能每回合各1次）</li>
-      <li>技能有属性相克，攻击对方弱点伤害更高。也可以用1个骰子换人</li><li>打倒对方全员即可前往下一层，并获得金币</li><li>用金币扭蛋、用碎片强化技能，向塔顶前进吧</li></ol>
+      <li>打倒对方全员即可前往下一层，并获得金币</li><li>用金币扭蛋、用碎片强化技能，向塔顶前进吧</li></ol>
       <p class="hint">第一场对战时，教学会为你引导。</p>`))}};
   $('#t-start').onclick=e=>{e.stopPropagation();go()};
   t.querySelectorAll('[data-ts]').forEach(b=>b.onclick=e=>{e.stopPropagation();wake();sfx('tap');P[b.dataset.ts]()});
