@@ -718,9 +718,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=57437d77"></script>
+<script src="engine.js?v=fbf91171"></script>
 <script>
-const VERSION='3.1.0';
+const VERSION='3.1.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -849,7 +849,7 @@ function typeChart(){sfx('tap');const R=['ma','ch','me','de','ke'];
   <p style="font-size:14px;line-height:1.9;text-align:center">${R.map(t=>tyHTML(t)).join(' ＞ ')} ＞ ${tyHTML('ma')}</p>
   <p class="hint">${L('矢印の左が右に強い。ひかり⇔やみはお互いに強く、ほかのタイプとは有利も不利もありません。','左边克制右边。光⇔暗互相克制，与其他属性无克制关系。')}</p>
   <table class="tychart"><tr><th>${L('技＼相手','技能＼对手')}</th>${R.map(t=>`<th>${tyHTML(t)}</th>`).join('')}</tr>${R.map(a=>`<tr><th>${tyHTML(a)}</th>${R.map(d=>`<td>${cell(a,d)}</td>`).join('')}</tr>`).join('')}</table>
-  <p class="hint">${L('技の点数：自分と同じタイプの技（一致）+1、相手が弱いタイプ+1、相手が強いタイプ−1。<br>+2 ちょうばつぐん×1.5／+1 ばつぐん×1.25／0 ふつう／−1 いまひとつ×0.75／−2 かなりいまひとつ×0.5。ガード・回復などの技にはタイプがありません。','技能点数：与自身相同属性的技能（一致）+1，对方弱点属性+1，对方抗性属性−1。<br>+2 效果超群×1.5／+1 效果绝佳×1.25／0 普通／−1 效果不佳×0.75／−2 效果很差×0.5。护盾、回复等技能没有属性。')}</p>
+  <p class="hint">${L('「ばつぐん！」＝相手の弱点のタイプで攻撃（×1.25）。「タイプ一致」＝自分と同じタイプの技（×1.25）。両方そろうと×1.5。「いまひとつ」＝相手が強いタイプ（×0.75）。タイプ一致といまひとつが重なると×1です。ガード・回復などの技にはタイプがありません。','「效果绝佳！」＝用对方弱点属性攻击（×1.25）。「属性一致」＝与自身相同属性的技能（×1.25）。两者同时成立×1.5。「效果不佳」＝对方抗性属性（×0.75）。属性一致与效果不佳重叠时为×1。护盾、回复等技能没有属性。')}</p>
   <p class="hint">${L('交代：自分のターンにサイコロ1個を使って控えと入れかわれます（1ターン1回。ガードや「次の攻撃+」は消えます）。たおれたあとは、次に出すキャラを選べます。','换人：在自己的回合使用1个骰子与替补交换（每回合1次，护盾和「下次攻击+」会消失）。角色倒下后可以选择下一个出场的角色。')}</p>`,L('とじる','关闭'))}
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
   return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.ty?tyHTML(m.ty):''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:m.tk?`<span class="tg">${L('得意','拿手')}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
@@ -1544,7 +1544,7 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
   <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
   ${human?`${ultHTML()}<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
     let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),fx=m.fx||{},gd=fx.gclr?0:Math.max(0,o.guard-(fx.pierce||0)-(f.ch.passive.k==='sky'?2:0)),after=Math.max(0,(r.d+((fx.gbonus&&o.guard)?fx.gbonus:0))*(m.hits||1)-gd);
-      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}${r.tp?` <span class="eff ${r.tp>0?'up':'dn'}">${G.effLabel(r.tp)}</span>`:''}</span>${(()=>{const ns=r.notes.filter(n=>!/^(ちょう)?ばつぐん|^(かなり)?いまひとつ|^效果/.test(n));return ns.length?'（'+ns.join('、')+(gd?'、'+GD+Math.min(gd,r.d):'')+'）':gd?'（'+GD+Math.min(gd,r.d)+'）':''})()}</span>`}
+      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}${r.q&&(r.q.rel||r.q.stab)?` <span class="eff ${r.q.rel<0?'dn':'up'}">${G.effLabel(r.q)}</span>`:''}</span>${(()=>{const ns=r.notes.filter(n=>!/^(ばつぐん|いまひとつ|タイプ一致|效果|属性一致)/.test(n));return ns.length?'（'+ns.join('、')+(gd?'、'+GD+Math.min(gd,r.d):'')+'）':gd?'（'+GD+Math.min(gd,r.d)+'）':''})()}</span>`}
     return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>${swHTML()}`:''}`;
   autoEndCheck(human);
   if(html===B.ctlHTML&&!rolled)return;/* 中身が同じなら描き直さない（ちらつき防止） */

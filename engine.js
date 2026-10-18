@@ -604,12 +604,14 @@ function diceFor(S,i,mi,prefer){const sd=S.sides[i],f=act(S,i),m=f.moves[mi];if(
 
 /* Ver 3.0 相性：一致+1、相手のタイプが弱い+1、強い−1（一致しない技は0）→ 5段階の倍率 */
 const moveTy=(f,m)=>m.ty==='wb'?(f.white?'hikari':'yami'):m.ty;
-function typePts(f,m,o){const ty=moveTy(f,m);if(!ty||!m.dmg)return null;const ft=f.ch.types||[],ot=o.ch.types||[];let p=(ty==='both'||ft.includes(ty))?1:0;
-  for(const t of ot){if(BEATS[ty]===t)p++;if(BEATS[t]===ty)p--}
-  if(((ty==='hikari'||ty==='both')&&ot.includes('yami'))||(ty==='yami'&&ot.includes('hikari')))p++;
-  return Math.max(-2,Math.min(2,p))}
-const EFF=[['かなりいまひとつ','效果很差'],['いまひとつ','效果不佳'],['ふつう','普通'],['ばつぐん','效果绝佳'],['ちょうばつぐん','效果超群']];
-const effLabel=p=>p==null?'':L(...EFF[p+2]);
+/* 相性の内わけ：stab＝タイプ一致（+1）、rel＝相手との相性（弱点+1／相手が強い−1） */
+function typeParts(f,m,o){const ty=moveTy(f,m);if(!ty||!m.dmg)return null;const ft=f.ch.types||[],ot=o.ch.types||[];const stab=(ty==='both'||ft.includes(ty))?1:0;let rel=0;
+  for(const t of ot){if(BEATS[ty]===t)rel++;if(BEATS[t]===ty)rel--}
+  if(((ty==='hikari'||ty==='both')&&ot.includes('yami'))||(ty==='yami'&&ot.includes('hikari')))rel++;
+  return{stab,rel,tp:Math.max(-2,Math.min(2,stab+rel))}}
+function typePts(f,m,o){const q=typeParts(f,m,o);return q?q.tp:null}
+/* 表示：相手の弱点を突いたときだけ「ばつぐん！」、自分と同じタイプの技は「タイプ一致」、相手が強いタイプは「いまひとつ」 */
+const effLabel=q=>{if(!q)return'';const a=[];if(q.rel>0)a.push(L('ばつぐん！','效果绝佳！'));if(q.rel<0)a.push(L('いまひとつ','效果不佳'));if(q.stab)a.push(L('タイプ一致','属性一致'));return a.join(L('＋','＋'))};
 const typeName=t=>t==='wb'?L('白黒','黑白'):t==='both'?L('ひかり・やみ','光·暗'):TYPES[t]?L(TYPES[t].ja,TYPES[t].zh):'';
 /* ================= Ver 3.1：超必殺技 ================= */
 /* ★3のキャラだけ。決まった数字（1つ目のタイプで決まる）のゾロ目で、1バトル1回。技の4枠とは別。塔の敵は使わない */
@@ -645,9 +647,9 @@ function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=
   if(S.decree!=null&&m.c.t!=='pair'&&(f.ch.passive.k==='decree'||o.ch.passive.k==='decree'))add(v%2===S.decree?3:-3,L('宣告','宣告'));
   if(rk(S)==='scale'&&f.hp/f.max>o.hp/o.max)add(-2,S.fl.n);
   if(rk(S)==='flip'&&m.c.t!=='pair'&&(v%2===1)===((S.round||1)%2===1))add(2,S.fl.n);
-  const tp=typePts(f,m,o);if(tp!=null&&d>0){const mu=TMULT[tp+2];if(tp){d=Math.round(d*mu);notes.push(`${effLabel(tp)}×${mu}`)}}
+  const q=typeParts(f,m,o),tp=q?q.tp:null;if(q&&d>0){const mu=TMULT[tp+2];if(tp)d=Math.round(d*mu);if(q.stab||q.rel)notes.push(`${effLabel(q)}×${mu}`)}
   if(o.ch.passive.k==='fossil'&&d>0&&d<=4)add(-d,o.ch.passive.n);
-  return{d:Math.max(0,d),notes,tp}}
+  return{d:Math.max(0,d),notes,tp,q}}
 
 function useMove(S,i,mi,ks,mo){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=mo||f.moves[mi],v=sd.dice[ks[0]].v;
   ks.forEach(k=>sd.dice[k].used=true);if(mi>=0)sd.used.add(mi);
@@ -656,8 +658,7 @@ function useMove(S,i,mi,ks,mo){const sd=S.sides[i],f=act(S,i),o=act(S,1-i),m=mo|
   if(fx.self&&f.hp>1){const a=Math.min(fx.self,f.hp-1);f.hp-=a;E(S,'hit',L(`${f.ch.name}は 自分も ${a} ダメージ`,`${f.ch.name} 自身也受到 ${a} 点伤害`),{side:i,amt:a,src:-1})}
   if(fx.gclr&&o.guard){o.guard=0;E(S,'debuff',L(`${o.ch.name}の ガードが消えた！`,`${o.ch.name} 的护盾消失了！`),{side:1-i})}
   for(let hit=0;m.dmg&&hit<(m.hits||1)&&o.hp>0&&f.hp>0;hit++){const r=calcDmg(S,i,m,v);let d=r.d;f.pow=0;f.weak=0;
-    if(hit===0&&r.tp>0)E(S,'eff',r.tp>1?L('ちょうばつぐん！','效果超群！'):L('ばつぐん！','效果绝佳！'),{side:1-i,tp:r.tp});
-    if(hit===0&&r.tp<0)E(S,'eff',r.tp<-1?L('かなりいまひとつ…','效果很差……'):L('いまひとつ…','效果不佳……'),{side:1-i,tp:r.tp});
+    if(hit===0&&r.q&&(r.q.rel||r.q.stab))E(S,'eff',effLabel(r.q),{side:1-i,tp:r.q.rel>0?2:r.q.rel<0?-1:1});
     if(fx.gbonus&&o.guard&&d>0){d+=fx.gbonus;r.d+=fx.gbonus;r.notes.push(L(`ガード対策+${fx.gbonus}`,`破盾+${fx.gbonus}`))}
     f.firstHit=false;const pierce=f.raid?99:(f.ch.passive.k==='sky'?2:0)+(fx.pierce||0)+(f.ch.passive.k==='thunder'&&m.c.t==='pair'?99:0);
     if(o.guard&&d>0){const eff=Math.max(0,o.guard-pierce),g=Math.min(eff,d);if(g){o.guard-=g;d-=g;r.notes.push(L(`ガード−${g}`,`护盾−${g}`))}else r.notes.push(L('ガード貫通','穿透护盾'))}
@@ -757,6 +758,6 @@ function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
 const API={TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg,
-  TYPES,BEATS,TMULT,typePts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG};
+  TYPES,BEATS,TMULT,typePts,typeParts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
