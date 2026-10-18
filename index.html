@@ -175,6 +175,7 @@ details p{margin:6px 0 0}
 .startbar{position:sticky;bottom:0;justify-content:flex-end;background:var(--paper);padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);z-index:5}
 
 /* バトル */
+.retire-note{font-size:13px;line-height:1.7}
 .floor-tag{font:13px var(--f-display);background:var(--ink);color:var(--paper);padding:3px 12px;border-radius:12px;align-self:center;text-align:center}
 .fighter{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;position:relative}
 .fighter.foe{flex-direction:row-reverse;text-align:right}
@@ -697,6 +698,7 @@ hr{border-color:var(--line)!important}
     <div class="coach" id="coach" hidden aria-live="polite"></div>
     <div class="ttimer" id="ttimer" hidden></div>
     <div class="panel" id="control"></div>
+    <div class="row" style="justify-content:center"><button class="btn small" id="retire" type="button" hidden>リタイアする</button></div>
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -720,7 +722,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f360b3d4"></script>
 <script>
-const VERSION='2.2.1';
+const VERSION='2.2.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1391,7 +1393,7 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const boss=run.f%10===0;$('#floor-tag').textContent=L(`無限の塔 ${run.f}F${boss?'｜ボス戦':''}`,`无限之塔 ${run.f}F${boss?'｜头目战':''}`);
-  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
+  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
 async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,msg='';
   if(win){const D=save.inf.day.d===today()?save.inf.day:(save.inf.day={d:today(),c:0});
@@ -1437,7 +1439,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:B.S.fl;
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
-  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
+  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{const e=G.act(B.S,1);
     if(raid)await say(L('乱入モード：サイコロ+2・攻撃+2・ガード完全無視！','乱入模式：骰子+2·攻击+2·完全无视护盾！'),900);
     else await say(`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}`+L(`。相手は${B.S.sides[1].team.length}人！`,`。对手共${B.S.sides[1].team.length}人！`));
@@ -1630,14 +1632,22 @@ async function tutTurn(){
     await coach(L('勝つコツ','取胜诀窍'),L('「次の攻撃+」で溜めてから大技、ガードで守る、ゾロ目を狙う…と工夫しよう。階ごとの<em>特別ルール</em>（上の帯）にも注目！ チュートリアルはここまで。がんばって！','用「下次攻击+」蓄力后放大招、用护盾防守、瞄准对子……多动脑筋吧。也要留意每层的<em>特殊规则</em>（上方横条）！教学到此结束，加油！'),'.floor-tag',L('はじめる','开始'));
     tutFinish()}}
 
+/* ================= リタイア（塔・無限の塔） ================= */
+function retireBtn(on){const b=$('#retire');b.hidden=!on;b.textContent=L('リタイアする','放弃挑战');b.onclick=askRetire}
+function askRetire(){if(!B||B.done||B.online)return;sfx('tap');
+  const inf=!!B.inf;
+  openSheet(`<div class="label">${L('リタイアしますか？','要放弃挑战吗？')}</div>
+    <p class="retire-note">${inf?L('無限の塔の挑戦がここで終わります（負けと同じ）。ここまでにもらったコインはそのままです。','无限之塔的挑战将在此结束（视为失败）。之前获得的金币会保留。'):L('このバトルは負けになり、コインはもらえません。もう一度この階から挑戦できます。','本场对战视为失败，不会获得金币。可以从本层重新挑战。')}</p>
+    <div class="row" style="justify-content:center"><button class="btn primary" id="retire-ok">${L('リタイアする','放弃挑战')}</button></div>`,L('バトルを続ける','继续对战'));
+  $('#retire-ok').onclick=()=>{document.querySelector('.sheet-bg')?.remove();if(!B||B.done)return;B.retired=true;B.S.over=1;retireBtn(false);(B.chain||Promise.resolve()).then(()=>finish())}}
 /* ================= 決着 ================= */
-async function finish(){if(B.done)return;if(TUT.on){tutFinish();TUT.justEnded=true}document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
+async function finish(){if(B.done)return;retireBtn(false);if(TUT.on){tutFinish();TUT.justEnded=true}document.querySelector('.sheet-bg')?.remove();B.done=true;B.busy=true;BGM.stop();renderControl();updF(0);updF(1);
   const win=B.S.over===0,f=B.floor,RP=B.replay,me=G.act(B.S,0),foe=G.act(B.S,1);
   if(B.online)return finishOnline(win,me,foe);
   if(B.raid)return finishRaid(win,me,foe);
   if(B.inf)return finishInf(win,me,foe);
   const T=TPof(B.tower||'meister'),TW=G.towerOf(B.tower),FLS=TW.floors,tn=towerName(B.tower||'meister');
-  const coins=RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
+  const coins=B.retired?0:RP?(win?replayCoins(f):0):(win?G.floorCoins(f):1);save.coins+=coins;let clear=false,unlock='';
   let opened=false,master=false;
   if(win&&(f===TOP||f===TOP2)){clear=!RP;unlock=bossReward(f===TOP?TW.b10:TW.b20)}/* ボスは再挑戦でも仲間に／★アップ */
   if(win&&!RP){
@@ -1724,7 +1734,7 @@ function beginOnline(m){
   B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);$('#floor-tag').textContent=L('通信対戦','联机对战')+(on?' vs '+on.name:'');
-  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();
+  B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(false);
   onlineQueue(async()=>{await say(L('通信対戦スタート！','联机对战开始！'),700);await say(m.youFirst?L('あなたが先攻です','你是先攻'):L('相手が先攻です','对方是先攻'),700);
     bubble(1,G.act(B.S,1).ch.lines[0]);turnTimer();await runTurn(m.youFirst?0:1)})}
 async function finishOnline(win,me,foe){if(win){save.st.pvp=(save.st.pvp||0)+1;persist();pushScore();checkTitles()}ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
