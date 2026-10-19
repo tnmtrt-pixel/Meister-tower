@@ -722,7 +722,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=77cbdb64"></script>
 <script>
-const VERSION='2.2.7';
+const VERSION='2.2.8';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -787,9 +787,13 @@ const starOf=id=>save.owned[id]||0;
 const hasAny=()=>Object.keys(save.owned).length>0;
 const lvOf=(id,k)=>(save.lv[id]||{})[k]||0;
 const moveOf=(id,k)=>G.applyLv(byId(id).moves[k],lvOf(id,k));
+/* 技の並び（表示だけ）：攻撃 → 補助 → 固有技 → 数字の技 → 必殺技。同じ種類の中は元の順 */
+const mvRank=m=>m.sp||m.c.t==='pair'?4:m.x?3:m.tk?2:m.dmg?0:1;
+const mvSort=(ch,ks)=>ks.slice().sort((a,b)=>mvRank(ch.moves[a])-mvRank(ch.moves[b])||a-b);
+const mvOrder=ch=>mvSort(ch,ch.moves.map((m,k)=>k));
 function loadout(id){const ch=byId(id),st=starOf(id);let l=save.load[id];
   if(!l||!l.length||l.length>4||l.some(k=>!ch.moves[k]||ch.moves[k].t>st)){l=G.autoPick(ch,st,0,Math.random,save.lv[id]||{});save.load[id]=l}
-  return l}
+  return mvSort(ch,l)}
 /* パーティは3組まで。選んでいる組が save.party */
 function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
 function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
@@ -953,7 +957,7 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
     <span class="hint">${pi<0&&save.party.length>=3?L('パーティは3人まで。誰かを外してください','队伍最多3人，请先移出一人'):''}</span></div>
   <div class="row between hprow"><span>${L('体力','体力')} <b>${hpOf(id)}</b><small class="hint">（${L('塔と無限の塔で有効','仅在塔与无限之塔中有效')}）</small></span>${(save.hpLv[id]||0)>=HP_MAX_LV?`<button class="up" disabled>${L('体力<br>MAX','体力<br>MAX')}</button>`:`<button class="up" id="hp-up" ${sh<HP_COST[save.hpLv[id]||0]?'disabled':''}>${L(`体力+2<br>かけら${HP_COST[save.hpLv[id]||0]}`,`体力+2<br>碎片${HP_COST[save.hpLv[id]||0]}`)}</button>`}</div>
   <div class="row between"><span class="label">${L('技を4つ選ぶ','选择4个技能')}（${l.length} / 4）</span><span class="label">${L('かけら','碎片')} ${sh}</span></div>
-  <div class="moves">${ch.moves.map((m0,k)=>{const m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
+  <div class="moves">${mvOrder(ch).map(k=>{const m0=ch.moves[k],m=moveOf(id,k),lock=m0.t>st,lv=lvOf(id,k),cost=lv===0?2:4;
     return`<div class="mvrow"><button class="mv${lock?' locked':''}" data-m="${k}" aria-pressed="${l.includes(k)}">${mvHTML(m,m0.t>1?`<span class="tier">${'★'.repeat(m0.t)}${lock?L('で解放','解锁'):''}</span>`:'')}</button>
     <button class="up" data-u="${k}" ${lock||lv>=2||sh<cost?'disabled':''}>${lv>=2?L('強化<br>MAX','强化<br>MAX'):L(`強化+${lv+1}<br>かけら${cost}`,`强化+${lv+1}<br>碎片${cost}`)}</button></div>`}).join('')}</div>
   <p class="hint">${L('強化すると、ダメージ・ガード・回復が+2ずつ上がります（「次の攻撃+」「相手の次の攻撃−」と、サイコロを増減させる攻撃・連続攻撃は+1ずつ。ほかの変化技はガードが付きます）。最大+2。かけらはガチャで同じキャラが出るか、ボスを倒すと手に入ります。','强化后伤害·护盾·回复每级+2（「下次攻击+」「对方下次攻击−」以及增减骰子的攻击·连续攻击每级+1，其他变化技能附加护盾），最多+2。在扭蛋中抽到重复角色或打倒头目可获得碎片。')}</p>`;
@@ -1046,7 +1050,7 @@ function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   <div class="passive"><b>${L('能力','特性')}「${c.passive.n}」</b><br>${c.passive.d}</div>
   ${c.reward?`<p class="hint">${rewardHow(c)}</p>`:''}
   <div><div class="label">${L('セリフ','台词')}</div><ul class="lines"><li>${L('登場','登场')}：「${c.lines[0]}」</li><li>${L('勝利','胜利')}：「${c.lines[1]}」</li><li>${L('敗北','失败')}：「${c.lines[2]}」</li></ul></div>
-  <div class="label">${L('覚える技','可学技能')}</div><div class="moves">${c.moves.map((m,k)=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
+  <div class="label">${L('覚える技','可学技能')}</div><div class="moves">${mvOrder(c).map(k=>[c.moves[k],k]).map(([m,k])=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
 function checkDexReward2(){if(save.dexReward2||!CHARS.filter(c=>c.vol===2).every(c=>owns(c.id)))return;save.dexReward2=true;save.coins+=10;persist();updCoins();
   showOverlay({word:'COMPLETE!',ch:byId('libra'),sub:L('図鑑 vol.2 コンプリート！','图鉴 vol.2 全收集！'),coins:10,win:true})}
 function checkDexReward(){if(save.dexReward||!CHARS.filter(c=>c.vol===1).every(c=>owns(c.id)))return;save.dexReward=true;save.coins+=10;
@@ -1601,7 +1605,7 @@ function infoSheet(i){if(!B)return;sfx('tap');const v=B.view[i],f=B.S.sides[i].t
   <div class="who">${crest(f.ch,'big')}<div><b>${f.ch.name}</b><span class="rar" style="font-size:16px">${stars(f.star)}</span><br>${typesHTML(f.ch)} <small>${nick(f.ch)}　${L('体力','体力')} ${t.hp} / ${t.max}</small></div></div>
   <div class="passive"><b>${L('能力','特性')}「${f.ch.passive.n}」</b><br>${f.ch.passive.d}</div>
   ${st.length?`<p class="hint">${L('いまの状態：','当前状态：')}${st.join('、')}</p>`:''}
-  <div class="label">${L('技（1ターンに1回ずつ）','技能（每回合各1次）')}</div><div class="moves">${f.moves.map(m=>`<div class="mv" style="cursor:default">${mvHTML(m)}</div>`).join('')}</div>
+  <div class="label">${L('技（1ターンに1回ずつ）','技能（每回合各1次）')}</div><div class="moves">${f.moves.slice().sort((a,b)=>mvRank(a)-mvRank(b)).map(m=>`<div class="mv" style="cursor:default">${mvHTML(m)}</div>`).join('')}</div>
   ${fl.rule?`<p class="hint">${L('この階のルール：','本层规则：')}${fl.rule.d}</p>`:''}<button class="btn small" data-tychart>${L('タイプ','属性')}</button>`);const tc=document.querySelector('.sheet [data-tychart]');if(tc)tc.onclick=()=>typeChart()}
 function histSheet(){if(!B)return;sfx('tap');
   const rows=B.hist.slice().reverse().map(h=>h.t==='cast'?`<li><span class="tn">${L(h.r+'ターン','第'+h.r+'回合')}</span><span><b>${h.who}</b>${L('の','：')} <b>${h.m.n}</b>（${L('出目','点数')} ${h.vals.join(L('・','·'))}）<br><span class="hint">${G.condLabel(h.m.c)}${L('・','·')}${G.dmgLabel(h.m.dmg)?G.dmgLabel(h.m.dmg)+L('ダメージ','伤害'):L('変化技','变化技能')}${G.fxLabel(h.m.fx).length?L('・','·')+G.fxLabel(h.m.fx).join(L('・','·')):''}</span></span></li>`
