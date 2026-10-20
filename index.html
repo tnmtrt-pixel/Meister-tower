@@ -625,7 +625,7 @@ hr{border-color:var(--line)!important}
     <details class="panel"><summary class="label" data-zh="故事与玩法">ストーリーとあそびかた</summary>
       <p class="hint" data-zh="耸立在工业之城的「迈斯特之塔」。下层10层的每个房间都有高手等待，10楼有传说中的工匠「塔之主」。再往上，是只有被选中的人才能前往的上层（11〜20层）。用扭蛋收集伙伴，组成3人队伍向塔顶前进吧。">工業の街にそびえる「マイスターの塔」。全10階の各部屋には腕自慢たちが待ちかまえ、10階には伝説の職人「塔の主」がいるという。その先には、選ばれた者だけが進める上層（11〜20階）が続いている。ガチャで仲間を集め、3人のパーティで最上階を目指そう。</p>
       <p class="hint" data-zh="轮到自己时掷骰子，把符合条件的点数用在技能上就能发动技能。技能每回合各1次。首位角色倒下后换下一位伙伴，打倒对方全员即获胜。每层都有特殊规则。">自分のターンにサイコロを振り、条件に合う出目を技に使うと技が出ます。技は1ターンに1回ずつ。先頭のキャラがたおれたら次の仲間に交代し、相手チームを全員たおせば勝ち。階ごとに特別ルールがあります。</p>
-      <p class="hint" data-zh="角色和技能有属性（电·机械·力量·野兽·幻影），每个角色1种。属性之间没有克制关系。越难使出的技能伤害越大。回合结束时，每个未使用的骰子护盾+1。★3角色掷出属性数字的对子时，可以使用1次超必杀技。">キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があり、キャラのタイプは1つです。タイプの相性はありません。出しにくい技ほどダメージが大きくなります。ターンの終わりに、使わなかったサイコロ1個につきガード+1。★3のキャラは、タイプの数字のゾロ目で「超必殺技」を1回使えます。</p>
+      <p class="hint" data-zh="角色和技能有属性（电·机械·力量·野兽·幻影），每个角色1种。属性之间没有克制关系。越难使出的技能伤害越大。回合结束时，未使用骰子的点数合计变为护盾。★3角色掷出属性数字的对子时，可以使用1次超必杀技。">キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があり、キャラのタイプは1つです。タイプの相性はありません。出しにくい技ほどダメージが大きくなります。ターンの終わりに、使わなかったサイコロの目の合計がガードになります。★3のキャラは、タイプの数字のゾロ目で「超必殺技」を1回使えます。</p>
       <p class="hint" data-zh="角色分为★1〜★3，★2可使用专属技能，★3可使用必杀技和超必杀技。扭蛋抽到同一角色更高的★时★提升；★相同或更低则获得「碎片」，可用来强化技能。">キャラには★1〜★3があり、★2で固有技、★3で必殺技と超必殺技が使えるようになります。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
       <button class="btn small" id="tut-again" style="margin-top:8px" data-zh="下次对战时再看一次教学">次のバトルでチュートリアルをもう一度</button></details>
     <div class="row startbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
@@ -726,9 +726,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=d62b200f"></script>
+<script src="engine.js?v=35548d7a"></script>
 <script>
-const VERSION='2.4.2';
+const VERSION='2.5.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -782,12 +782,12 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
   /* Ver 3.0：技を作り直したので、古いセーブの技番号（強化・選んだ技）を、同じ名前の新しい技の番号へ移す */
   /* Ver 2.4：技を作り直したので、Ver 2.3 のセーブ（mv3）は OLD23、もっと古いセーブは OLDMOVES の名前で新しい番号へ移す */
-  const SRC=v.mv4?null:v.mv3?G.OLD23:G.OLDMOVES,REN={'連続ねこパンチ':'ねこパンチ一閃'};s.mv3=true;s.mv4=true;const mapI=(k,m)=>{if(!SRC)return +m;let o=(SRC[k]||[])[+m];if(REN[o])o=REN[o];return o==null?-1:byId(k).moves.findIndex(x=>x.jn===o)};
+  const SRC=v.mv5?null:v.mv4?G.OLD24:v.mv3?G.OLD23:G.OLDMOVES,REN={'連続ねこパンチ':'ねこパンチ一閃'};s.mv3=true;s.mv4=true;s.mv5=true;const mapI=(k,m)=>{if(!SRC)return +m;let o=(SRC[k]||[])[+m];if(REN[o])o=REN[o];return o==null?-1:byId(k).moves.findIndex(x=>x.jn===o)};
   /* Ver 2.4：技の中身が変わったので、技の強化に使ったかけらを全部返して強化を0に戻す（+1で2個、+2で6個。体力強化はそのまま） */
   s.refund=Math.max(0,+v.refund||0);
   for(const k in (v.lv||{}))if(byId(k)&&v.lv[k]&&typeof v.lv[k]==='object'){s.lv[k]={};for(const m in v.lv[k]){const n=Math.min(2,Math.max(0,Math.floor(+v.lv[k][m]||0)));
     if(!v.mv4){if(n){s.shards[k]=(s.shards[k]||0)+(n===2?6:2);s.refund+=n===2?6:2}continue}
-    const j=mapI(k,m);if(j>=0&&byId(k).moves[j]&&n)s.lv[k][j]=n}}
+    const j=mapI(k,m);if(j>=0&&byId(k).moves[j]){if(n)s.lv[k][j]=n}else if(n){s.shards[k]=(s.shards[k]||0)+(n===2?6:2);s.refund+=n===2?6:2}}}/* Ver 2.5：なくなった技（補助技）の強化はかけらで返す */
   for(const k in (v.load||{}))if(byId(k)&&Array.isArray(v.load[k]))s.load[k]=v.load[k].map(m=>mapI(k,m)).filter(m=>m>=0&&byId(k).moves[m]!=null).slice(0,4);
   s.party=(Array.isArray(v.party)?v.party:[]).filter(id=>s.owned[id]).slice(0,3);
   return s}
@@ -867,7 +867,7 @@ const nick=ch=>String(ch.role||'').split(/[・·]/).pop();
 /* Ver 3.2：タイプの説明（相性はなし）。タイプで技の特徴と超必殺技の数字が決まる */
 function typeChart(){sfx('tap');const R=[['de',L('大きな目と6で爆発する','大点数与6时爆发')],['me',L('安定してガードを抜く','稳定地穿透护盾')],['ch',L('大きな目で安定して強い','大点数时稳定强力')],['ke',L('小さい目で手数を出す','用小点数多次攻击')],['ma',L('当てながら弱らせる','攻击的同时削弱对方')],['hikari',L('ボスだけの特別なタイプ','头目专属的特殊属性')]];
   openSheet(`<div class="label">${L('タイプ','属性')}</div>
-  <p class="hint">${L('キャラのタイプは1つです。タイプの相性（有利・不利）はありません。技はタイプごとに 小（3つの数字）・中（2つの数字）・大（1つの数字）・得意（タイプの数字）があり、出しにくい技ほどダメージが大きくなります。同じタイプ・同じ段の技は同じ効果です（名前はキャラごと）。ターンの終わりに、使わなかったサイコロ1個につきガード+1。','每个角色有1种属性。属性之间没有克制关系。每种属性的技能分为 小（3个数字）·中（2个数字）·大（1个数字）·擅长（属性数字），越难使出的技能伤害越大。同属性同一级的技能效果相同（名称因角色而异）。回合结束时，每个未使用的骰子护盾+1。')}</p>
+  <p class="hint">${L('キャラのタイプは1つです。タイプの相性（有利・不利）はありません。技はタイプごとに 小（3つの数字）・中（2つの数字）・大（1つの数字）・得意（タイプの数字）があり、出しにくい技ほどダメージが大きくなります。同じタイプ・同じ段の技は同じ効果です（名前はキャラごと）。ターンの終わりに、使わなかったサイコロの目の合計がガードになります（低い目を使うタイプほど、大きい目が残って守りが固くなります）。','每个角色有1种属性。属性之间没有克制关系。每种属性的技能分为 小（3个数字）·中（2个数字）·大（1个数字）·擅长（属性数字），越难使出的技能伤害越大。同属性同一级的技能效果相同（名称因角色而异）。回合结束时，未使用骰子的点数合计变为护盾（使用小点数的属性，往往留下大点数，防御更强）。')}</p>
   <table class="tychart"><tr><th>${L('タイプ','属性')}</th><th>${L('技の特徴','技能特点')}</th><th>${L('超必殺','超必杀')}</th></tr>${R.map(([t,d])=>`<tr><th>${t==='hikari'?tyHTML('hikari')+tyHTML('yami'):tyHTML(t)}</th><td style="text-align:left">${d}</td><td>${G.ultNum({types:[t]})}${L('・','·')}${G.ultNum({types:[t]})}</td></tr>`).join('')}</table>
   <p class="hint">${L('超必殺：★3のキャラは、タイプの数字のゾロ目がそろうと、1バトルに1回だけ使えます。','超必杀：★3角色掷出由属性决定的数字对子时，每场对战可使用1次。')}</p>`,L('とじる','关闭'))}
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
@@ -1271,8 +1271,8 @@ function newDaily(d){const R=G.rng(seedOf(d)),pool=MS.filter(m=>!m.can||m.can())
 /* Ver 2.4：技の強化をリセットして返したかけらを、1回だけお知らせ */
 let refundWait=false;function refundNotice(){if(!(save.refund>0)||refundWait)return;refundWait=true;const later=fn=>document.getElementById('title')||loginPending||document.querySelector('.sheet-bg')?setTimeout(()=>later(fn),500):setTimeout(fn,300);
   later(()=>{refundWait=false;const n=save.refund;if(!(n>0))return;save.refund=0;persist();sfx('reveal',2);openSheet(`<h2 style="text-align:center">${L('技が新しくなりました','技能焕然一新')}</h2>
-    <p style="text-align:center;font-weight:800">${L(`技の強化をリセットして、使ったかけら ${n}個を返しました`,`已重置技能强化，返还了使用过的碎片 ${n}个`)}</p>
-    <p class="hint" style="text-align:center">${L('編成で技を選び直して、もう一度強化してね。体力の強化はそのままです。','请在编队中重新选择技能并再次强化。体力强化保持不变。')}</p>`,L('OK','好的'))})}
+    <p style="text-align:center;font-weight:800">${L(`技の変更にあわせて、強化に使ったかけら ${n}個を返しました`,`随技能调整，返还了用于强化的碎片 ${n}个`)}</p>
+    <p class="hint" style="text-align:center">${L('編成で技を確かめて、強化しなおしてね。体力の強化はそのままです。','请在编队中确认技能并重新强化。体力强化保持不变。')}</p>`,L('OK','好的'))})}
 function dailyCheck(){if(!hasAny())return;const d=today();
   if(save.daily.d!==d)save.daily=newDaily(d);
   if(save.login.d!==d){save.login.d=d;save.login.n=(save.login.n%7)+1;save.st.days=(save.st.days||0)+1;const c=LB[save.login.n-1];save.coins+=c;persist();updCoins();
@@ -1702,7 +1702,7 @@ async function tutTurn(){
     await coach(L('技の条件','技能条件'),L('技カードの左のラベルが<em>使える条件</em>です。「5以上」「偶数」「ゾロ目」など、条件に合う出目があると技が<em>光ります</em>。右の赤い数字がダメージ、下の行に今の出目で出る<em>予想ダメージ</em>が出ます。','技能卡左边的标签是<em>使用条件</em>。如「5以上」「偶数」「对子」，有符合条件的点数时技能会<em>发光</em>。右边的红色数字是伤害，下一行会显示当前点数的<em>预计伤害</em>。'),'#control .moves');if(!TUT.on)return;
     const ready=document.querySelector('#control .mv.ready');
     if(ready){TUT.wait='move';await coach(L('技を使う','使用技能'),L('光っている技をタップしてみよう！ 合う出目が自動で使われます。（先にサイコロをタップすると、使う出目を選べます）','点击发光的技能试试吧！会自动使用符合条件的点数。（先点击骰子，可以选择要用的点数）'),'#control .mv.ready',null);TUT.wait=null;if(!TUT.on)return;
-      TUT.wait='end';await coach(L('ターン終了','结束回合'),L('使ったサイコロは薄くなります。技は<em>1ターンに1回ずつ</em>。まだ光っている技があれば使ってOK。もう使えなくなったら<em>ターン終了</em>を押そう。使わなかったサイコロは1個につき<em>ガード+1</em>になるよ。','用过的骰子会变淡。技能<em>每回合各1次</em>。还有发光的技能就可以继续用。没有可用的了就点<em>结束回合</em>。未使用的骰子每个变成<em>护盾+1</em>。'),'#end',null);TUT.wait=null}
+      TUT.wait='end';await coach(L('ターン終了','结束回合'),L('使ったサイコロは薄くなります。技は<em>1ターンに1回ずつ</em>。まだ光っている技があれば使ってOK。もう使えなくなったら<em>ターン終了</em>を押そう。使わなかったサイコロは、<em>目の数がそのままガード</em>になるよ。','用过的骰子会变淡。技能<em>每回合各1次</em>。还有发光的技能就可以继续用。没有可用的了就点<em>结束回合</em>。未使用骰子的<em>点数会直接变成护盾</em>。'),'#end',null);TUT.wait=null}
     else{TUT.wait='end';await coach(L('ターン終了','结束回合'),L('今回は条件に合う出目がなく、使える技がありません。こんなときは<em>ターン終了</em>を押そう。','这次没有符合条件的点数，没有可用的技能。这种时候就点<em>结束回合</em>吧。'),'#end',null);TUT.wait=null}
     if(!TUT.on)return;$('#coach').hidden=true;TUT.target=null;hl();return}
   if(!TUT.second){TUT.second=true;
@@ -1765,7 +1765,7 @@ function bossReward(id){const c=byId(id),st=starOf(id);
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
 const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
 const ON={ws:null,code:'',state:'idle',err:'',lad:null,ladRes:null};
-const ENGINE_V=11;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
+const ENGINE_V=12;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}

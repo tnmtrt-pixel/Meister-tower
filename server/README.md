@@ -12,7 +12,7 @@ Cloudflare Workers + Durable Objects（SQLite）で動く、対戦部屋の中�
   `src/engine.js` はゲームの engine.js の自動コピー（build_index.py が書く）。技やルールを変えたら、`src/ladder.js` の ENGINE_V とゲームの ENGINE_V を両方上げます。
 - マッチング：`wss://<WorkerのURL>/mm`（30秒で相手がいなければゴースト戦）。ランクとシーズンは `src/ladder.js`。
 - 大会の自動進行：Durable Object のアラームで10秒ごとに `cupTick`（`src/cup.js`）。
-- 最新版が動いているかは `/health` に「meister-tower-online ok v10」と出るかで確認できます。
+- 最新版が動いているかは `/health` に「meister-tower-online ok v12」と出るかで確認できます。
 
 ## Cloudflare への取り込み
 1. Workers & Pages →「作成」→「リポジトリをインポート」でこのリポジトリを選ぶ
