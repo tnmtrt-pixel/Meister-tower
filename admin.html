@@ -68,6 +68,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <h1>🏆 マイスター杯 運営画面</h1>
     <select id="sel"></select>
     <button class="btn small" id="new">＋ 新しい大会</button>
+    <button class="btn small" id="rk-open">ランキング管理</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
@@ -76,6 +77,14 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <p class="st">Cloudflare に登録した ADMIN_KEY を入れてください。</p>
     <input id="key" type="password" style="width:300px"> <button class="btn primary" id="go">入る</button>
     <p id="lerr" class="st" style="color:var(--low);font-weight:800"></p>
+  </div>
+  <div id="rk" class="card hide">
+    <div class="big">ランキング管理</div>
+    <p class="st">消したい人の「非表示」を押すと、すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。</p>
+    <p><select id="rk-type"><option value="inf">無限の塔 トータル</option><option value="infw">ウィークリー</option><option value="infd">デイリー</option></select>
+      <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
+    <div id="rk-list"></div>
+    <div id="rk-hid"></div>
   </div>
   <div id="create" class="card hide">
     <div class="big">新しい大会を作る</div>
@@ -126,6 +135,21 @@ $('#ccancel').onclick=()=>$('#create').classList.add('hide');
 $('#cdo').onclick=async()=>{const f=new FormData($('#cf'));try{const j=await adm('create',{name:{ja:f.get('name'),zh:f.get('namezh')},sub:{ja:f.get('sub'),zh:f.get('subzh')},date:f.get('date'),place:f.get('place'),cap:+f.get('cap'),rnum:+f.get('rnum')});
   TID=j.cup.id;$('#create').classList.add('hide');toast('大会を作成しました。ゲームの「通信」タブに表示されます');await boot()}catch(e){toast(errMsg(e))}};
 $('#sel').onchange=()=>{TID=$('#sel').value;refresh()};
+/* ランキング管理：/api/rank で一覧、/api/admin で非表示（id の下4けた） */
+async function rkAdmin(body){const r=await fetch(API+'/api/admin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,...body})});const j=await r.json().catch(()=>({}));if(r.status===403)throw new Error('パスワードがちがいます');if(!r.ok)throw new Error(j.err||r.status);return j}
+const rkName=w=>(w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('');
+async function rkLoad(){const el=$('#rk-list');el.textContent='読みこんでいます…';
+  try{const t=$('#rk-type').value,j=await (await fetch(API+'/api/rank?type='+t)).json();
+    el.innerHTML='<table style="width:100%;border-collapse:collapse">'+(j.top||[]).map(x=>`<tr style="border-top:1px solid var(--line)"><td>${x.n}位</td><td>${img(x.icon)}</td><td><span class="tt">${esc(titleOf(x))}</span> <b>${esc(rkName(x.w))}</b><br><small>ID下4けた ${esc(x.id)}</small></td><td>${x.v}F</td><td><button class="btn small danger" data-hide="${esc(x.id)}">非表示</button></td></tr>`).join('')+'</table>'||'だれもいません';
+    el.querySelectorAll('[data-hide]').forEach(b=>b.onclick=async()=>{if(!confirm('この人をランキングから非表示にしますか？'))return;try{const r=await rkAdmin({id:b.dataset.hide,hide:true});toast(`${r.n}人を非表示にしました`);rkLoad()}catch(e){toast(String(e.message||e))}});
+    const h=await rkAdmin({list:true}).catch(()=>null),hid=h&&h.users?h.users.filter(u=>u.hidden):[];
+    $('#rk-hid').innerHTML=hid.length?'<div class="big" style="margin-top:14px;font-size:16px">非表示にしている人</div>'+hid.map(u=>{let w=[];try{w=JSON.parse(u.w)}catch(e){}return`<p>${esc(rkName(w))}（${esc(u.id.slice(-4))}） <button class="btn small" data-show="${esc(u.id)}">戻す</button></p>`}).join(''):'';
+    $('#rk-hid').querySelectorAll('[data-show]').forEach(b=>b.onclick=async()=>{try{await rkAdmin({id:b.dataset.show,hide:false});toast('元に戻しました');rkLoad()}catch(e){toast(String(e.message||e))}})
+  }catch(e){el.textContent='読みこめませんでした：'+(e.message||e)}}
+$('#rk-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rk').classList.remove('hide');rkLoad()};
+$('#rk-close').onclick=()=>$('#rk').classList.add('hide');
+$('#rk-load').onclick=rkLoad;$('#rk-type').onchange=rkLoad;
+
 
 async function boot(){try{const j=await adm('list');$('#login').classList.add('hide');
     const list=j.list||[];if(!TID&&list.length)TID=(list.filter(x=>x.status!=='done').pop()||list[list.length-1]).id;
