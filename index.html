@@ -728,7 +728,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=4ab2cdf4"></script>
 <script>
-const VERSION='2.4.0';
+const VERSION='2.4.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1231,10 +1231,12 @@ function renderRank(){const el=$('#rank');
   if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
   else{const myTag=p.id?p.id.slice(-4):'';
-    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${ladTxt(r)}</span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${ladTxt(d.me)}）`:L('まだ対戦していません','还没有对战')}</b></div>`}
-  el.innerHTML=`<div class="row between"><h2>${L('ランキング','排行榜')}</h2><button class="btn small" id="r-re">${L('更新','刷新')}</button></div>
-    <p class="hint">${L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')}${d&&d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):''}</p>${body}`;
+    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${rtype==='inf'?`${r.v}F`:ladTxt(r)}</span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
+    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rtype==='inf'?`${d.me.v}F`:ladTxt(d.me)}）`:(rtype==='inf'?L('圏外','未上榜'):L('まだ対戦していません','还没有对战'))}</b></div>`}
+  const tabs=`<div class="rtabs">${[['lad',L('ランクバトル','排位赛')],['inf',L('無限の塔','无限之塔')]].map(([k,t])=>`<button type="button" data-rt="${k}" aria-pressed="${rtype===k}">${t}</button>`).join('')}</div>`;
+  el.innerHTML=`<div class="row between"><h2>${L('ランキング','排行榜')}</h2><button class="btn small" id="r-re">${L('更新','刷新')}</button></div>${tabs}
+    <p class="hint">${rtype==='inf'?L('無限の塔の最高到達階（これまでの記録）です。','无限之塔的最高到达层（历来记录）。'):L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')+(d&&d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):'')}</p>${body}`;
+  el.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{sfx('tap');rtype=b.dataset.rt;renderRank();if(!rdata[rtype])loadRank()});
   $('#r-re').onclick=()=>{sfx('tap');loadRank()}}
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
