@@ -246,6 +246,11 @@ details p{margin:6px 0 0}
 .rk .v{font:800 15px var(--f-body);color:#FFE08A}
 .rk.me{background:rgba(255,224,138,.1);border-radius:8px}
 .rlist{max-height:420px;overflow-y:auto}
+.lad h2{margin:0}.lad-rank{display:flex;align-items:center;gap:12px;margin:8px 0}.lad-badge{flex:none;min-width:86px;text-align:center;padding:8px 10px;border-radius:12px;border:2px solid #D9AE45;background:linear-gradient(180deg,#2A3D78,#18244A);font:900 20px var(--f-display);color:#FFE08A;line-height:1.1}
+.lad-badge small{display:block;font:700 11px var(--f-body);color:#CFE2FF}.lad-badge.m{border-color:#FF8AD8;color:#FFC2EC;box-shadow:0 0 14px rgba(255,138,216,.4)}
+.lad-stars{font-size:22px;letter-spacing:2px;color:#F4BA1C}.lad-stars i{font-style:normal;color:#3A4A78}.lad-streak{font:800 12px var(--f-body);color:#FF9F5A}
+.lad-wait{text-align:center;font:800 15px var(--f-body);color:#CFE2FF;padding:6px 0}.lad-wait b{display:block;font:400 34px var(--f-display);color:#FFE08A}
+.lad-chg{font:800 16px var(--f-body);color:#FFE08A;margin-top:4px}.lad-chg.dn{color:#FF8A80}
 /* お知らせ */
 .news-btn{position:relative}
 .news-btn i{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#E5484D;color:#fff;font:800 11px/18px var(--f-body);font-style:normal;border:2px solid #0B1730}
@@ -679,6 +684,7 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-online" hidden>
     <div class="panel cup" id="cup" hidden></div>
+    <div class="panel lad" id="lad"></div>
     <div class="panel" id="prof"></div>
     <div class="panel" id="rank"></div>
     <div class="panel" id="cuprec" hidden></div>
@@ -722,7 +728,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=77cbdb64"></script>
 <script>
-const VERSION='2.2.8';
+const VERSION='2.3.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -865,7 +871,7 @@ function updCoins(){$('#coin').textContent=save.coins}
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
-  if(v!=='online')onlineClose();
+  if(v!=='online'){onlineClose();ladCancel()}
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
   dailyCheck();
   ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[v]();window.scrollTo(0,0)}
@@ -1206,32 +1212,31 @@ function renderProf(){const el=$('#prof'),p=ensureProf();if(!p.icon||!owns(p.ico
     persist();try{await pushProfile();toast(L('プロフィールを保存しました','已保存个人资料'));pedit=false;renderProf();renderRank()}
     catch(err){b.disabled=false;toast(L('サーバーにつながりませんでした。通信できる場所でもう一度試してください','无法连接服务器，请在网络良好的地方再试一次'))}}}
 
-/* ================= ランキング画面 ================= */
-const RT={inf:['トータル','总榜'],infw:['ウィークリー','周榜'],infd:['デイリー','日榜']};
-const rval=(t,v)=>t==='inf'||t==='infw'||t==='infd'||t==='now'?`${v}F`:t==='floor'?`${v}<small>${L('階','层')}</small>`:t==='cup'?`${v>=1000?`🏆${Math.floor(v/1000)} `:''}${v%1000}<small>${L('勝','胜')}</small>`:`${v}<small>${L('勝','胜')}</small>`;
-let rtype='inf',rdata={};
+/* ================= ランキング画面（Ver 2.3：ランクバトルの順位） ================= */
+const MASTER=11;
+const rankName=rk=>rk>=MASTER?L('マスター','大师'):L(`ランク${rk}`,`等级${rk}`);
+const starsHTML=(n,need)=>`<span class="lad-stars">${'★'.repeat(Math.max(0,n))}<i>${'★'.repeat(Math.max(0,need-n))}</i></span>`;
+const ladTxt=x=>x.rank>=MASTER?`${rankName(x.rank)} <small>${x.rate}</small>`:`${rankName(x.rank)} <small>${'★'.repeat(x.stars)}</small>`;
+const leftTxt=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),h=Math.floor(m/60);return h>=24?L(`${Math.floor(h/24)}日${h%24}時間`,`${Math.floor(h/24)}天${h%24}小时`):h?L(`${h}時間${m%60}分`,`${h}小时${m%60}分`):L(`${m}分`,`${m}分钟`)};
+let rtype='lad',rdata={};
 function renderRank(){const el=$('#rank');
-  const tabs=`<div class="rtabs">${Object.keys(RT).map(k=>`<button type="button" data-rt="${k}" aria-pressed="${rtype===k}">${L(RT[k][0],RT[k][1])}</button>`).join('')}</div>`;
-  const note={inf:L('無限の塔の最高到達階（これまでの記録）','无限之塔的最高到达层（历来记录）'),infw:L('今週、無限の塔でたどり着いた最高の階。毎週月曜15:00にリセット','本周在无限之塔到达的最高层。每周一15:00重置'),infd:L('今日、無限の塔でたどり着いた最高の階。毎日15:00にリセット','今天在无限之塔到达的最高层。每天15:00重置'),now:L('今たどり着いている一番上の階（同じ階なら総踏破が多い人が上）','目前到达的最高楼层（同层时总踏破多者排前）'),floor:L('これまでに踏破した階の合計（周回もふくむ）','至今踏破的楼层总数（含多轮）'),cup:L('大会での優勝回数（🏆）と、大会で勝った試合の数','大赛夺冠次数（🏆）与大赛中获胜的场数')}[rtype];
   const d=rdata[rtype],p=save.prof;
-  const left=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),h=Math.floor(m/60);return h>=24?L(`${Math.floor(h/24)}日${h%24}時間`,`${Math.floor(h/24)}天${h%24}小时`):h?L(`${h}時間${m%60}分`,`${h}小时${m%60}分`):L(`${m}分`,`${m}分钟`)};
-  const extra=d&&d.reset?`<div class="t-rec" style="margin:4px 0"><span>${L('リセットまで','距离重置')}</span><b>${left(d.reset-Date.now())}</b><span>${L('1〜3位の報酬','第1〜3名奖励')}</span><b>${(d.rew||[]).map((c,i)=>['🥇','🥈','🥉'][i]+c).join(' ')}</b></div><p class="hint">${L('報酬のコインは、リセットのあとに「通信」タブを開くと受け取れます（ランキング登録が必要）。','奖励金币在重置后打开「联机」页即可领取（需登记排行榜）。')}</p>`:'';
   let body;
   if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
   else{const myTag=p.id?p.id.slice(-4):'';
-    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${rval(rtype,r.v)}</span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。一番乗りをねらおう！','还没有人上榜。争取第一个上榜吧！')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rval(rtype,d.me.v)}）`:L('圏外','未上榜')}</b></div>`}
-  el.innerHTML=`<div class="row between"><h2>${L('ランキング','排行榜')}</h2><button class="btn small" id="r-re">${L('更新','刷新')}</button></div>${tabs}<p class="hint">${note}</p>${extra}${body}`;
-  el.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{sfx('tap');rtype=b.dataset.rt;renderRank();if(!rdata[rtype])loadRank()});
+    body=`<div class="rlist">${d.top.map(r=>`<div class="rk${p.reg&&r.id===myTag?' me':''}"><span class="n">${r.n}</span><span>${byId(r.icon)?crest(byId(r.icon)):''}</span><span class="nm">${r.title?`<span class="ptitle">${titleTxt(r.title)}</span><br>`:''}${nameOf(r.w,r.id)}</span><span class="v">${ladTxt(r)}</span></div>`).join('')||`<p class="hint">${L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
+    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${ladTxt(d.me)}）`:L('まだ対戦していません','还没有对战')}</b></div>`}
+  el.innerHTML=`<div class="row between"><h2>${L('ランキング','排行榜')}</h2><button class="btn small" id="r-re">${L('更新','刷新')}</button></div>
+    <p class="hint">${L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')}${d&&d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):''}</p>${body}`;
   $('#r-re').onclick=()=>{sfx('tap');loadRank()}}
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
 async function claimRank(){const p=save.prof;if(!p.reg||claimBusy)return;claimBusy=true;
   try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec});if(j.coins>0){save.coins+=j.coins;persist();updCoins();sfx('reveal',3);
     const nm={infd:L('デイリー','日榜'),infw:L('ウィークリー','周榜')};
-    showOverlay({word:'RANK IN!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:j.coins,noCoin:false,
-      sub:L('無限の塔ランキングの報酬！','无限之塔排行榜奖励！')+'<br>'+j.items.map(x=>`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`).join('<br>'),
+    showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:j.coins,noCoin:false,
+      sub:L('ランキングの報酬！','排行榜奖励！')+'<br>'+j.items.map(x=>x.kind==='lad'?L(`ランクバトル シーズン${x.pkey}（最高 ${rankName(x.rank)}）：+${x.coins}`,`排位赛 第${x.pkey}赛季（最高 ${rankName(x.rank)}）：+${x.coins}`):`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`).join('<br>'),
       go:[['online',L('ランキングを見る','查看排行榜')],['tower',L('タワーへ','前往塔')]]})}}
   catch(e){}finally{claimBusy=false}}
 async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-online').hidden)renderRank()}
@@ -1306,17 +1311,61 @@ function newsPop(){if(newsPopped||!hasAny()||!unread().some(n=>n.pop))return;
   newsPopped=true;showNews()}
 $('#news-btn').onclick=showNews;
 
+/* ================= ランクバトル ================= */
+/* マッチングボタン → サーバーの待合室（/mm）で近いランクの人と組む。30秒だれもいなければゴースト（ほかの人のパーティをCPUが動かす）。
+   対戦の勝ち負けはサーバーが計算して決める */
+const LAD={me:null,ws:null,state:'idle',t0:0,tick:null,err:'',ghostMs:30000};
+function ladChange(r){const a=r.before,b=r.after;
+  if(b.rank>=MASTER&&a.rank>=MASTER)return`<span class="lad-chg${r.delta<0?' dn':''}">${L('レート','积分')} ${a.rate} → ${b.rate}（${r.delta>=0?'+':''}${r.delta}）</span>`;
+  if(b.rank>a.rank)return`<span class="lad-chg">🎉 ${rankName(a.rank)} → ${rankName(b.rank)}${L(' に昇格！',' 晋级！')}</span>`;
+  if(b.rank<a.rank)return`<span class="lad-chg dn">${rankName(a.rank)} → ${rankName(b.rank)}</span>`;
+  return`<span class="lad-chg${r.gain<0?' dn':''}">${rankName(b.rank)} ${starsHTML(b.stars,b.need)} ${r.gain>0?'★+'+r.gain:r.gain<0?'★'+r.gain:'±0'}</span>`}
+async function ladLoad(){if(!save.prof.reg)return;try{const j=await api('/api/lad/me',auth());LAD.me=j.me;LAD.sv=j.v}catch(e){LAD.me=LAD.me||null}if(!$('#v-online').hidden&&!(B&&!B.done))renderLad()}
+function ladCancel(){const ws=LAD.ws;LAD.ws=null;LAD.state='idle';clearInterval(LAD.tick);if(ws){try{ws.close()}catch(e){}}}
+function ladQueue(){ac();LAD.err='';fixParty();
+  if(!save.party.length){LAD.err=L('先にパーティを組んでください','请先组建队伍');renderLad();return}
+  const short=save.party.find(id=>loadout(id).length!==4);if(short){LAD.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderLad();return}
+  ladCancel();LAD.state='connect';renderLad();
+  let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/mm')}catch(e){LAD.state='idle';LAD.err=L('接続できませんでした','无法连接');renderLad();return}
+  LAD.ws=ws;
+  ws.onopen=()=>ws.send(JSON.stringify({t:'q',...auth(),v:ENGINE_V,party:onlineParty()}));
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
+    if(m.t==='wait'){LAD.state='queue';LAD.t0=Date.now();LAD.ghostMs=m.ghostMs||30000;clearInterval(LAD.tick);LAD.tick=setInterval(()=>{if(LAD.state!=='queue'||$('#v-online').hidden){clearInterval(LAD.tick);return}const w=$('#lad-sec');if(w)w.textContent=Math.floor((Date.now()-LAD.t0)/1000)},500);renderLad();return}
+    if(m.t==='match'){LAD.ws=null;clearInterval(LAD.tick);try{ws.close()}catch(e){}LAD.state='idle';sfx('reveal',2);
+      toast(m.ghost?L('ゴーストと対戦します！','与幽灵对战！'):L('対戦相手が見つかりました！','找到对手了！'));onlineConnect(m.room,false,null,{ticket:m.ticket,ghost:m.ghost});renderLad();return}
+    LAD.err=m.t==='ver'?L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面'):m.t==='dup'?L('別の画面でマッチングを始めたので、こちらは止めました','已在其他画面开始匹配，这里已停止'):m.e==='auth'?L('プロフィールの登録が必要です','需要登记个人资料'):L('マッチングできませんでした','无法匹配');
+    ladCancel();renderLad()};
+  ws.onerror=()=>{if(LAD.ws!==ws)return;LAD.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');ladCancel();renderLad()};
+  ws.onclose=()=>{if(LAD.ws!==ws)return;LAD.err=L('接続が切れました','连接已断开');ladCancel();renderLad()}}
+function renderLad(){const el=$('#lad');if(!el)return;const p=save.prof,me=LAD.me;
+  const head=`<div class="row between"><h2>⚔️ ${L('ランクバトル','排位赛')}</h2>${me?`<span class="hint">${L(`シーズン${me.season}・あと${leftTxt(me.end-Date.now())}`,`第${me.season}赛季·还剩${leftTxt(me.end-Date.now())}`)}</span>`:''}</div>`;
+  if(!p.reg){el.innerHTML=head+`<p class="hint">${L('ランクバトルに参加するには、下のプロフィールで名前を決めて「登録」してください。','参加排位赛前，请先在下方个人资料中决定名字并「登记」。')}</p><button class="btn" id="lad-reg">${L('プロフィールを登録する','登记个人资料')}</button>`;
+    $('#lad-reg').onclick=()=>{sfx('tap');pedit=true;renderProf();$('#prof').scrollIntoView({behavior:'smooth'})};return}
+  const rk=me?`<div class="lad-rank"><div class="lad-badge${me.rank>=MASTER?' m':''}">${me.rank>=MASTER?L('マスター','大师'):me.rank}<small>${me.rank>=MASTER?L('レート ','积分 ')+me.rate:L('ランク','等级')}</small></div>
+    <div>${me.rank>=MASTER?'':starsHTML(me.stars,me.need)}${me.streak>=2?`<div class="lad-streak">🔥 ${L(`${me.streak}連勝中`,`${me.streak}连胜中`)}</div>`:''}<div class="hint">${L(`今シーズン ${me.wins}勝${me.games-me.wins}敗・最高 ${rankName(me.best)}`,`本赛季 ${me.wins}胜${me.games-me.wins}负·最高 ${rankName(me.best)}`)}</div></div></div>`:`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
+  let act;
+  if(LAD.state==='connect')act=`<p class="lad-wait">${L('サーバーにつないでいます…','正在连接服务器…')}</p>`;
+  else if(LAD.state==='queue')act=`<div class="lad-wait">${L('相手をさがしています…','正在寻找对手…')}<b><span id="lad-sec">${Math.floor((Date.now()-LAD.t0)/1000)}</span>${L('秒','秒')}</b><small class="hint">${L(`${Math.round(LAD.ghostMs/1000)}秒たっても見つからないときは、ゴーストと対戦します`,`${Math.round(LAD.ghostMs/1000)}秒后仍找不到对手时，将与幽灵对战`)}</small></div><div class="row" style="justify-content:center"><button class="btn" id="lad-cancel">${L('やめる','取消')}</button></div>`;
+  else if(ON.lad&&(ON.state==='connecting'||ON.state==='waiting'))act=`<p class="lad-wait">${L('対戦相手とつないでいます…','正在连接对手…')}</p>`;
+  else act=`${LAD.err?`<p class="cup-warn">${LAD.err}</p>`:''}<div class="label">${L('出場するパーティ（今のパーティ）','出战队伍（当前队伍）')}</div>${partyHTML(onlineParty())}
+    <div class="row" style="justify-content:center"><button class="btn primary" id="lad-go">${L('マッチング開始','开始匹配')}</button></div>`;
+  el.innerHTML=head+rk+act+`<details class="hint" style="margin-top:6px"><summary>${L('ルール','规则')}</summary>${L('勝つと★+1（3連勝目からは★+2）。★がたまるとランクが上がり、ランク10の上はマスター（レート）。ランク5から、負けると★−1（ランク5と8より下には下がりません）。30秒で相手が見つからないときは、ほかの人のパーティをCPUが動かす「ゴースト」と対戦（負けても★は減りません）。★や強化はそのままで戦います。シーズンは2週間で、終わると最高ランクに応じてコインがもらえ、次のシーズンは3つ下のランクから始まります。','获胜★+1（第3连胜起★+2）。★集满后等级提升，等级10之上为大师（积分）。等级5起，输了★−1（不会降到等级5和8以下）。30秒内找不到对手时，将与由CPU操作他人队伍的「幽灵」对战（输了也不会减少★）。★和强化保持原样对战。赛季为2周，结束时按最高等级获得金币，下个赛季从低3级的等级开始。')}</details>`;
+  const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f};
+  on('lad-go',()=>{sfx('tap');ladQueue()});on('lad-cancel',()=>{sfx('tap');ladCancel();renderLad()})}
+
 /* ================= マイスター杯（大会） ================= */
 const CUP={data:null,poll:null,busy:false};
 const cupT=o=>o?L(o.ja,o.zh||o.ja):'';
 function cupDate(d){const m=/^(\d+)-(\d+)-(\d+)T(\d+):(\d+)/.exec(d||'');if(!m)return d||'';const w=new Date(+m[1],m[2]-1,+m[3]).getDay();
   return`${+m[2]}/${+m[3]}(${L('日月火水木金土'[w],'日一二三四五六'[w])}) ${m[4]}:${m[5]}`}
 const auth=()=>({id:save.prof.id,sec:save.prof.sec});
+const cupClock=t=>{if(!t)return'';const d=new Date(t+9*3600e3);return`${d.getUTCMonth()+1}/${d.getUTCDate()} ${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2,'0')}`};
 function syncCupFlags(f){if(!f)return;let ch=false;for(const k of ['entered','win1','final','champ','meister'])if(f[k]&&!save.cup[k]){save.cup[k]=true;ch=true}if(ch){persist();checkTitles()}}
-async function cupLoad(){try{CUP.data=save.prof.reg?await api('/api/cup/me',auth()):await api('/api/cup/pub');if(CUP.data.rew)syncCupFlags(CUP.data.rew.flags)}
+async function cupLoad(){try{CUP.data=save.prof.reg?await api('/api/cup/me',auth()):await api('/api/cup/pub');CUP.data._got=Date.now();if(CUP.data.rew)syncCupFlags(CUP.data.rew.flags)}
   catch(e){if(!CUP.data)CUP.data={err:1}}
+  {const m=CUP.data&&CUP.data.me&&CUP.data.me.match;if(ON.cup&&ON.state!=='battle'&&(!m||m.win)){ON.cup=null;onlineClose();ON.state='idle'}}
   if(!$('#v-online').hidden&&!(B&&!B.done)){renderCup();renderCupRec()}
-  const c=CUP.data&&CUP.data.cup,live=c&&(c.status==='checkin'||c.status==='play');
+  const c=CUP.data&&CUP.data.cup,live=c&&(c.status==='checkin'||c.status==='play'||(c.status==='open'&&c.checkinAt&&c.checkinAt-(c.now||Date.now())<20*60000));
   clearInterval(CUP.poll);if(live&&!$('#v-online').hidden)CUP.poll=setInterval(()=>{if($('#v-online').hidden){clearInterval(CUP.poll);return}if(!(B&&!B.done))cupLoad()},4000)}
 async function cupAct(path,extra){if(CUP.busy)return;CUP.busy=true;try{CUP.data=await api(path,{...auth(),...extra});if(CUP.data.rew)syncCupFlags(CUP.data.rew.flags)}
   catch(e){const m=String(e.message||e);toast(m==='code'?L('受付コードがちがいます','签到码不正确'):m==='full'?L('定員に達しています','名额已满'):m==='closed'?L('受付は終わっています','报名已截止'):L('サーバーにつながりませんでした','无法连接服务器'))}
@@ -1330,10 +1379,12 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   let body='';
   if(!reg&&c.status!=='done')body=`<p class="hint">${L('参加するには、下のプロフィールで名前を決めて「登録」してください。','参加前请先在下方个人资料中决定名字并「登记」。')}</p><button class="btn" id="cup-reg">${L('プロフィールを登録する','登记个人资料')}</button>`;
   else if(c.status==='open'){
-    body=me.entered?`<p class="cup-ok">✓ ${L('エントリー済み！ 当日は受付コードを入力して受付してね','已报名！当天请输入签到码完成签到')}</p><button class="btn small" id="cup-cancel">${L('エントリーを取り消す','取消报名')}</button>`
+    body=me.entered?`<p class="cup-ok">✓ ${c.online?L(`エントリー済み！ 当日、開始15分前（${cupClock(c.checkinAt)}）からこの画面で「受付する」を押してね。受付しないと出場できません`,`已报名！当天开始前15分钟（${cupClock(c.checkinAt)}）起请在此画面点击「签到」。未签到将无法出场`):L('エントリー済み！ 当日は受付コードを入力して受付してね','已报名！当天请输入签到码完成签到')}</p><button class="btn small" id="cup-cancel">${L('エントリーを取り消す','取消报名')}</button>`
       :`<p class="hint">${L('参加するだけで30コイン（11連1回分）。優勝すると称号「チャンピオン」！','参加即可获得30金币（11连1次）。夺冠可获得称号「冠军」！')}</p><button class="btn primary" id="cup-entry" ${c.entries>=c.cap?'disabled':''}>${c.entries>=c.cap?L('定員に達しました','名额已满'):L('参加する','参加')}</button>`}
   else if(c.status==='checkin'){
-    body=me.checked?`<p class="cup-ok">✓ ${L('受付完了！ 開始までお待ちください','签到完成！请等待比赛开始')}</p><div class="label">${L('出場パーティ（固定）','出战队伍（已锁定）')}</div>${partyHTML(me.party)}`
+    body=me.checked?`<p class="cup-ok">✓ ${c.online?L(`受付完了！ ${cupClock(c.startAt)}に自動で始まります。この画面を開いたまま待っていてね`,`签到完成！将于${cupClock(c.startAt)}自动开始。请保持此画面打开等待`):L('受付完了！ 開始までお待ちください','签到完成！请等待比赛开始')}</p><div class="label">${L('出場パーティ（固定）','出战队伍（已锁定）')}</div>${partyHTML(me.party)}`
+      :c.online?`<p class="hint">${L(`受付中！ ${cupClock(c.startAt)}に自動で始まります。今のパーティで出場します（受付後は変更できません）。`,`签到中！将于${cupClock(c.startAt)}自动开始。将以当前队伍出战（签到后无法更改）。`)}</p>${partyHTML(onlineParty())}
+        <div class="row" style="justify-content:center"><button class="btn primary" id="cup-chk">${L('受付する','签到')}</button></div>`
       :`<p class="hint">${L('スクリーンに出ている4けたの受付コードを入れてください。今のパーティで出場します（受付後は変更できません）。','请输入屏幕上显示的4位签到码。将以当前队伍出战（签到后无法更改）。')}</p>${partyHTML(onlineParty())}
         <div class="row"><input id="cup-code" class="code-out" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000" style="height:auto;flex:1;min-width:0;font:800 24px var(--f-body);letter-spacing:.3em;text-align:center"><button class="btn primary" id="cup-chk">${L('受付する','签到')}</button></div>`}
   else if(c.status==='play'){const m=me.match,rec=me.rec?`<div class="hint">${L(`いまの成績：${me.rec.w}勝${me.rec.l}敗（${me.rec.n}位）`,`当前成绩：${me.rec.w}胜${me.rec.l}负（第${me.rec.n}名）`)}</div>`:'';
@@ -1341,7 +1392,12 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
     else if(!m)body=`<p class="cup-ok">${L('決勝戦を見守ろう！','一起观看决赛吧！')}</p>${rec}`;
     else{const lab=m.final?L('決勝','决赛'):L(`第${m.r+1}回戦`,`第${m.r+1}轮`);
       if(m.bye)body=`<div class="cup-round">${lab}</div><p class="cup-ok">${L('不戦勝（1勝）！ 次の回戦を待とう','轮空晋级（记1胜）！等待下一轮吧')}</p>${rec}`;
-      else if(m.win)body=`<div class="cup-round">${lab}</div><p class="cup-ok">${m.win==='me'?L('勝利！','胜利！'):L('敗北…','落败……')} ${m.final?L('大会終了を待っています','等待比赛结束'):L('次の組み合わせを待っています','等待下一轮对阵')}</p>${rec}`;
+      else if(m.win)body=`<div class="cup-round">${lab}</div><p class="cup-ok">${m.win==='me'?L('勝利！','胜利！'):m.win==='none'?L('両者不戦敗','双方弃权判负'):L('敗北…','落败……')} ${m.final?L('大会終了を待っています','等待比赛结束'):L('次の組み合わせを待っています','等待下一轮对阵')}</p>${rec}`;
+      else if(c.online){const wait=ON.cup&&(ON.state==='connecting'||ON.state==='waiting'),dl=Math.max(0,m.deadline-((c.now||Date.now())+(Date.now()-(d._got||Date.now()))));
+        body=`<div class="cup-round">${lab}</div>
+          <div class="label">${L('対戦相手','对手')}</div>${whoHTML(m.opp,true)}${partyHTML(m.oppParty)}
+          ${wait?`<p class="cup-ok">${L('相手が来るのを待っています…','等待对手进入…')}</p><p class="hint">${L(`あと${leftTxt(dl)}たっても相手が来なければ、あなたの不戦勝になります`,`再过${leftTxt(dl)}对手仍未进入的话，你将不战而胜`)}</p><button class="btn small" id="cup-unsit">${L('やめる','取消')}</button>`
+            :`<button class="btn primary" id="cup-sit">${L('対戦をはじめる','开始对战')}</button><p class="hint">${L(`あと${leftTxt(dl)}以内に始めてね。来ないと不戦敗になります`,`请在${leftTxt(dl)}内开始。未出场将判负`)}${m.oppHere?L('（相手はもう待っています！）','（对手已经在等了！）'):''}</p>`}${ON.err&&ON.cup?`<p class="cup-warn">${ON.err}</p>`:''}${rec}`}
       else if(m.flag)body=`<div class="cup-round">${lab}</div><p class="cup-warn">${L('結果が食い違っています。運営に声をかけてください','双方结果不一致，请联系工作人员')}</p>`;
       else if(m.rep)body=`<div class="cup-round">${lab}</div><p class="cup-ok">${L('結果を送信しました。相手の報告を待っています','结果已发送，等待对方报告')}</p>${rec}`;
       else{const wait=ON.cup&&(ON.state==='connecting'||ON.state==='waiting');
@@ -1357,9 +1413,9 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   on('cup-reg',()=>{sfx('tap');pedit=true;renderProf();$('#prof').scrollIntoView({behavior:'smooth'})});
   on('cup-entry',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:true})});
   on('cup-cancel',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:false})});
-  on('cup-chk',()=>{sfx('tap');const code=($('#cup-code').value||'').trim();if(!/^\d{4}$/.test(code)){toast(L('4けたの数字を入れてください','请输入4位数字'));return}
+  on('cup-chk',()=>{sfx('tap');const code=c.online?'':($('#cup-code').value||'').trim();if(!c.online&&!/^\d{4}$/.test(code)){toast(L('4けたの数字を入れてください','请输入4位数字'));return}
     fixParty();if(!save.party.length){toast(L('先にパーティを組んでください','请先组建队伍'));return}cupAct('/api/cup/checkin',{tid:c.id,code,party:onlineParty()})});
-  on('cup-sit',()=>{sfx('tap');const m=me.match;onlineConnect(m.room,false,{tid:c.id,r:m.r,party:me.party});renderCup()});
+  on('cup-sit',()=>{sfx('tap');const m=me.match;onlineConnect(m.room,false,{tid:c.id,r:m.r,party:me.party,ticket:m.ticket||''});renderCup()});
   on('cup-unsit',()=>{sfx('tap');ON.cup=null;onlineClose();ON.state='idle';renderCup()});
   on('cup-claim',async()=>{sfx('tap');try{const r=await api('/api/cup/claim',auth());if(r.coins>0){save.coins+=r.coins;persist();updCoins();sfx('reveal',3);toast(L(`コイン +${r.coins}`,`金币 +${r.coins}`))}syncCupFlags(r.flags);if(CUP.data.rew)CUP.data.rew.coins=0;renderCup()}catch(e){toast(L('サーバーにつながりませんでした','无法连接服务器'))}})}
 function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)||[],hall=(d&&d.hall)||[];
@@ -1689,12 +1745,13 @@ function bossReward(id){const c=byId(id),st=starOf(id);
 /* ================= 通信対戦 ================= */
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
 const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
-const ON={ws:null,code:'',state:'idle',err:''};
+const ON={ws:null,code:'',state:'idle',err:'',lad:null,ladRes:null};
+const ENGINE_V=9;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
 function onlineQueue(fn){B.chain=(B.chain||Promise.resolve()).then(()=>B&&!B.done?fn():null).catch(e=>console.error(e));return B.chain}
-function renderOnline(){renderCup();cupLoad();renderProf();renderRank();loadRank();claimRank();
+function renderOnline(){renderCup();cupLoad();renderLad();ladLoad();renderProf();renderRank();loadRank();claimRank();
   $('#on-party').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
   const el=$('#on-body');
   if(!ONLINE_URL){el.innerHTML=`<p class="hint">${L('通信対戦のサーバーを準備中です。もう少しお待ちください。','联机服务器正在准备中，请稍候。')}</p>`;return}
@@ -1707,21 +1764,25 @@ function renderOnline(){renderCup();cupLoad();renderProf();renderRank();loadRank
     <div class="row"><input id="on-code" class="code-out" style="height:auto;flex:1;min-width:0;font:700 20px var(--f-body);letter-spacing:.2em;text-transform:uppercase" maxlength="8" autocomplete="off" inputmode="text" aria-label="${L('合言葉','暗号')}" placeholder="ABCD"><button class="btn" id="on-join">${L('入る','加入')}</button></div>`;
   $('#on-create').onclick=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c='';const r=crypto.getRandomValues(new Uint8Array(4));r.forEach(x=>c+=A[x%A.length]);onlineConnect(c,true)};
   $('#on-join').onclick=()=>{const c=($('#on-code').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(c.length<4){ON.err=L('合言葉は4文字以上です','暗号至少4个字符');renderOnline();return}onlineConnect(c,false)}}
-function onlineConnect(code,host,cup){ac();ON.err='';fixParty();ON.cup=cup||null;
-  if(!cup&&!save.party.length){ON.err=L('先にパーティを組んでください','请先组建队伍');renderOnline();return}
-  const short=!cup&&save.party.find(id=>loadout(id).length!==4);if(short){ON.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderOnline();return}
+function onlineConnect(code,host,cup,lad){ac();ON.err='';fixParty();ON.cup=cup||null;ON.lad=lad||null;ON.ladRes=null;
+  if(!cup&&!lad&&!save.party.length){ON.err=L('先にパーティを組んでください','请先组建队伍');renderOnline();return}
+  const short=!cup&&!lad&&save.party.find(id=>loadout(id).length!==4);if(short){ON.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderOnline();return}
   onlineClose();ON.code=code;ON.state='connecting';renderOnline();
   let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/ws?room='+encodeURIComponent(code))}catch(e){ON.state='idle';ON.err=L('接続できませんでした','无法连接');renderOnline();return}
   ON.ws=ws;
-  ws.onopen=()=>{onlineSend({t:'hello',v:8,party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
+  ws.onopen=()=>{onlineSend({t:'hello',v:ENGINE_V,ticket:ON.cup?ON.cup.ticket||'':ON.lad?ON.lad.ticket:'',party:ON.cup?ON.cup.party:onlineParty(),name:ON.cup?ON.cup.party[0].id:save.party[0]});ON.state=host?'waiting':'connecting';renderOnline()};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}onlineMsg(m)};
   ws.onerror=()=>{if(ON.state!=='battle'){ON.state='idle';ON.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');renderOnline()}};
   ws.onclose=()=>{if(ON.ws!==ws)return;ON.ws=null;if(ON.state==='battle'&&B&&B.online&&!B.done){toast(L('通信が切れました','连接已断开'));onlineQueue(async()=>{B.S.over=1;B.cut=true;await finish()})}else if(ON.state!=='battle'){ON.state='idle';renderOnline()}}}
 function onlineMsg(m){
   if(m.t==='full'){ON.state='idle';ON.err=L('その部屋は満員か、対戦中です','该房间已满或正在对战');onlineClose();renderOnline();return}
   if(m.t==='ver'){ON.state='idle';ON.err=L('相手とゲームのバージョンがちがいます。2人ともページを読みこみ直して、同じバージョンにしてね','与对方的游戏版本不同。请两人都重新载入页面，使用相同版本');onlineClose();renderOnline();return}
-  if(m.t==='start'){ON.state='battle';beginOnline(m);if(ON.cup)B.cup=ON.cup;return}
+  if(m.t==='over'){ON.state='idle';ON.err=L('この対戦はもう終わっています','这场对战已经结束了');onlineClose();ON.cup=null;ON.lad=null;renderOnline();return}
+  if(m.t==='lad'){ON.ladRes=m;return}
+  if(m.t==='waiting'){ON.state='waiting';if(ON.cup)renderCup();else renderLad();return}
+  if(m.t==='start'){ON.state='battle';beginOnline(m);if(ON.cup)B.cup=ON.cup;if(ON.lad)B.lad=ON.lad;return}
   if(!B||!B.online)return;
+  if(m.t==='timeout'&&!B.done){toast(L('時間切れで負けになりました','因超时判负'));onlineQueue(async()=>{B.S.over=1;B.idle=true;await finish()});return}
   if(m.t==='pick'){if(B.pickWait){const r=B.pickWait;B.pickWait=null;r(m.k|0)}else B.oppPick=m.k|0;return}
   if(m.t==='ult')onlineQueue(()=>play(G.useUlt(B.S,1,m.ks)||[]).then(()=>{if(B.S.over>=0)return finish()}));
   if(m.t==='sw')onlineQueue(()=>play(G.switchTo(B.S,1,m.k|0,m.dk|0)||[]).then(()=>{if(B.S.over>=0)return finish()}));
@@ -1742,17 +1803,23 @@ function beginOnline(m){
   TUT.on=false;
   B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
-  const on=byId(m.oppName);$('#floor-tag').textContent=L('通信対戦','联机对战')+(on?' vs '+on.name:'');
+  const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
+  const kind=m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
+  $('#floor-tag').innerHTML=kind+(m.oppWho&&m.oppWho.w&&m.oppWho.w.length?' vs '+nameOf(m.oppWho.w):on?' vs '+on.name:'');
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(false);
   onlineQueue(async()=>{await say(L('通信対戦スタート！','联机对战开始！'),700);await say(m.youFirst?L('あなたが先攻です','你是先攻'):L('相手が先攻です','对方是先攻'),700);
     bubble(1,G.act(B.S,1).ch.lines[0]);turnTimer();await runTurn(m.youFirst?0:1)})}
 async function finishOnline(win,me,foe){if(win){save.st.pvp=(save.st.pvp||0)+1;persist();pushScore();checkTitles()}ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{sfx('lose')}
   await W(900);
-  if(B.cup){const c=B.cup;ON.cup=null;if(!B.cut)cupReport(c,win);
+  if(B.lad){ON.lad=null;for(let i=0;i<30&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;LAD.me=r?r.after:LAD.me;if(!r)ladLoad();
+    return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[['online',L('ランクバトルへ','返回排位赛')],['party',L('編成へ','前往编队')]],
+      sub:(B.cut?L('通信が切れました（負け）','连接已断开（判负）'):B.idle?L('時間切れ（負け）','超时（判负）'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('ランクバトルに勝利！','排位赛获胜！'):L('ランクバトルに敗れた…','排位赛落败……'))+(r?'<br>'+ladChange(r):''),
+      hint:B.ghost?L('ゴースト戦：負けても★は減りません（連勝ボーナスなし）','幽灵战：输了也不会减少★（无连胜奖励）'):''})}
+  if(B.cup){const c=B.cup;ON.cup=null;if(!B.cut&&!(CUP.data&&CUP.data.cup&&CUP.data.cup.online))cupReport(c,win);
     return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[['online',L('大会の画面へ','返回大赛画面')]],
-      sub:B.cut?L('通信が切れました。運営に声をかけてください','连接已断开，请联系工作人员'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('マイスター杯で勝利！','在大师杯中获胜！'):L('マイスター杯で敗れた…','在大师杯中落败……'),
-      hint:B.cut?'':L('結果を送信しました。次の組み合わせを待とう','结果已发送，等待下一轮对阵吧')})}
+      sub:B.cut?L('通信が切れました（負け）','连接已断开（判负）'):B.idle?L('時間切れ（負け）','超时（判负）'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('マイスター杯で勝利！','在大师杯中获胜！'):L('マイスター杯で敗れた…','在大师杯中落败……'),
+      hint:B.cut?'':L('結果はサーバーに記録されました。次の組み合わせを待とう','结果已记录在服务器上。等待下一轮对阵吧')})}
   showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,
     sub:B.cut?L('通信が切れました','连接已断开'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('通信対戦に勝利！','赢得联机对战！'):L('通信対戦に敗れた…','联机对战失败……'),
     hint:L('通信対戦ではコインは増えません。また遊ぼう！','联机对战不会获得金币。下次再来玩吧！')})}

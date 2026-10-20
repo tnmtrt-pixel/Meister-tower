@@ -1,4 +1,6 @@
+import './engine.js';
 import { CupMixin } from './cup.js';
+import { LadderMixin, ENGINE_V, cleanParty } from './ladder.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -21,7 +23,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/' || url.pathname === '/health') {
-      return new Response('meister-tower-online ok', { headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' } });
+      return new Response('meister-tower-online ok v' + ENGINE_V, { headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' } });
     }
     if (url.pathname === '/ws') {
       if (request.headers.get('Upgrade') !== 'websocket') return new Response('WebSocketで接続してください', { status: 426 });
@@ -29,6 +31,11 @@ export default {
       if (!ROOM_RE.test(room)) return new Response('合言葉が正しくありません', { status: 400 });
       const stub = env.ROOM.get(env.ROOM.idFromName(room));
       return stub.fetch(request);
+    }
+    /* ランクバトルのマッチング */
+    if (url.pathname === '/mm') {
+      if (request.headers.get('Upgrade') !== 'websocket') return new Response('WebSocketで接続してください', { status: 426 });
+      return env.RANK.get(env.RANK.idFromName('global')).fetch(request);
     }
     if (url.pathname.startsWith('/api/')) {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
@@ -39,35 +46,58 @@ export default {
   },
 };
 
+/*
+ * 対戦部屋
+ *  ・合言葉の部屋（友だち対戦）：今までどおり、行動を中継するだけ
+ *  ・ランクバトル／大会の部屋：Rank から /setup で「だれが入るか（チケット）とパーティ」を先に登録しておく。
+ *    サーバーも同じエンジンで対戦を計算し、勝ち負けはサーバーが決めて Rank に送る（データを書きかえたズルができない）。
+ *    ゴースト戦では、サーバーが相手（CPU）として技を選んで送る。
+ */
+const IDLE_MS = 100000; /* 自分のターンで、この時間なにも送らなければ負け（ゲーム側は60秒で自動ターン終了） */
 export class Room {
   constructor(state, env) {
     this.state = state;
-    this.players = []; // {ws, hello}
+    this.env = env;
+    this.players = []; // {ws, hello, slot}
     this.started = false;
+    this.setup = undefined;
+  }
+
+  async loadSetup() {
+    if (this.setup === undefined) this.setup = (await this.state.storage.get('setup')) || null;
+    return this.setup;
   }
 
   async fetch(request) {
-    // 3人目以降・対戦中の部屋には入れない
-    if (this.players.length >= 2 || this.started) {
+    const url = new URL(request.url);
+    if (url.pathname === '/setup' && request.method === 'POST') {
+      const b = await request.json();
+      this.setup = { ...b, at: Date.now() };
+      await this.state.storage.put('setup', this.setup);
+      return new Response('ok');
+    }
+    const S = await this.loadSetup();
+    const full = S ? this.players.length >= S.slots.filter((x) => !x.bot).length || this.started : this.players.length >= 2 || this.started;
+    if (full || (S && S.done)) {
       const pair = new WebSocketPair();
       pair[1].accept();
-      pair[1].send(JSON.stringify({ t: 'full' }));
+      pair[1].send(JSON.stringify({ t: S && S.done ? 'over' : 'full' }));
       pair[1].close(1000, 'full');
       return new Response(null, { status: 101, webSocket: pair[0] });
     }
     const pair = new WebSocketPair();
     const ws = pair[1];
     ws.accept();
-    const me = { ws, hello: null };
+    const me = { ws, hello: null, slot: -1 };
     this.players.push(me);
 
-    ws.addEventListener('message', (ev) => this.onMessage(me, ev.data));
+    ws.addEventListener('message', (ev) => { try { this.onMessage(me, ev.data); } catch (e) { /* */ } });
     const bye = () => this.onClose(me);
     ws.addEventListener('close', bye);
     ws.addEventListener('error', bye);
 
     ws.send(JSON.stringify({ t: 'joined', count: this.players.length }));
-    if (this.players.length === 2) this.other(me)?.ws.send(JSON.stringify({ t: 'opponent-joined' }));
+    if (!S && this.players.length === 2) this.other(me)?.ws.send(JSON.stringify({ t: 'opponent-joined' }));
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -83,16 +113,12 @@ export class Room {
     let m;
     try { m = JSON.parse(raw); } catch (e) { return; }
     if (!m || typeof m !== 'object') return;
+    if (this.setup) return this.onAuth(me, m);
 
     if (m.t === 'hello' && !this.started) {
       // パーティの中身は最低限の形だけ確認する（キャラID・★・技4つ・強化）
-      if (!Array.isArray(m.party) || m.party.length < 1 || m.party.length > 3) return;
-      const party = m.party.map((x) => ({
-        id: String(x.id).slice(0, 20),
-        star: Math.min(3, Math.max(1, x.star | 0)),
-        mv: (Array.isArray(x.mv) ? x.mv : []).slice(0, 4).map((n) => n | 0),
-        lv: Object.fromEntries(Object.entries(x.lv || {}).slice(0, 8).map(([k, v]) => [k | 0, Math.min(2, Math.max(0, v | 0))])),
-      }));
+      const party = cleanParty(m.party);
+      if (!party) return;
       me.hello = { party, name: String(m.name || '').slice(0, 16), v: m.v | 0 };
       const op = this.other(me);
       if (op && op.hello) this.start();
@@ -128,10 +154,135 @@ export class Room {
     });
   }
 
+  /* ---------- ランクバトル・大会（サーバーが計算する部屋） ---------- */
+  onAuth(me, m) {
+    const SU = this.setup;
+    if (m.t === 'hello' && !this.started && me.slot < 0) {
+      if ((m.v | 0) !== ENGINE_V) { this.send(me, { t: 'ver' }); try { me.ws.close(1000, 'ver'); } catch (e) { /* */ } return; }
+      const k = SU.slots.findIndex((x) => !x.bot && x.ticket && x.ticket === m.ticket);
+      if (k < 0 || this.players.some((p) => p.slot === k)) { this.send(me, { t: 'full' }); try { me.ws.close(1000, 'ticket'); } catch (e) { /* */ } return; }
+      me.slot = k;
+      if (SU.kind === 'cup') this.tellRank({ t: 'present', tid: SU.tid, r: SU.r, mt: SU.mt, id: SU.slots[k].id });
+      const humans = SU.slots.filter((x) => !x.bot).length;
+      if (this.players.filter((p) => p.slot >= 0).length === humans) this.startAuth();
+      else this.send(me, { t: 'waiting' });
+      return;
+    }
+    if (!this.started || me.slot < 0 || !this.S || this.S.over >= 0) return;
+    const E = globalThis.ENGINE, S = this.S, side = me.slot;
+    if (m.t === 'emote') { const op = this.other(me); if (op) this.send(op, { t: 'emote', e: m.e }); return; }
+    if (S.turn !== side) return;
+    this.lastAct = Date.now();
+    if (m.t === 'act') {
+      const mi = m.mi | 0, ks = (m.ks || []).slice(0, 2).map((n) => n | 0);
+      if (!E.useMove(S, side, mi, ks)) return;
+      this.relay(side, { t: 'act', mi, ks });
+    } else if (m.t === 'ult') {
+      const ks = (m.ks || []).slice(0, 2).map((n) => n | 0);
+      if (!E.useUlt(S, side, ks)) return;
+      this.relay(side, { t: 'ult', ks });
+    } else if (m.t === 'end') {
+      E.endTurn(S, side);
+      this.relay(side, { t: 'end' });
+      if (S.over < 0) { E.startTurn(S, 1 - side); this.turnStarted(); }
+    } else return;
+    if (S.over >= 0) this.done(S.over === 0 ? 0 : 1, 'ko');
+  }
+
+  relay(side, msg) {
+    for (const p of this.players) if (p.slot >= 0 && p.slot !== side) this.send(p, msg);
+  }
+
+  startAuth() {
+    const E = globalThis.ENGINE, SU = this.setup;
+    this.started = true;
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    const first = crypto.getRandomValues(new Uint8Array(1))[0] % 2;
+    this.S = E.newPvP({ me: SU.slots[0].party, opp: SU.slots[1].party, seed, firstSide: first, maxRound: 12 });
+    for (const p of this.players) {
+      if (p.slot < 0) continue;
+      const mine = SU.slots[p.slot], op = SU.slots[1 - p.slot];
+      this.send(p, { t: 'start', seed, youFirst: first === p.slot, me: mine.party, opp: op.party, oppName: op.party[0].id, kind: SU.kind, ghost: !!SU.ghost, oppWho: op.who, oppLad: op.lad });
+    }
+    E.startTurn(this.S, first);
+    this.lastAct = Date.now();
+    this.turnStarted();
+    this.idleT = setInterval(() => this.idleCheck(), 5000);
+  }
+
+  /* ターンが始まったとき：ゴースト（CPU）の番なら技を選んで送る */
+  turnStarted() {
+    const SU = this.setup, S = this.S;
+    if (S.over >= 0) return this.done(S.over === 0 ? 0 : 1, 'ko');
+    const side = S.turn;
+    if (!SU.slots[side].bot) return;
+    const E = globalThis.ENGINE;
+    const step = () => {
+      if (!this.S || this.S.over >= 0 || this.S.turn !== side || this.finished) return;
+      this.lastAct = Date.now();
+      const ks = E.ultDice(S, side);
+      if (ks) { E.useUlt(S, side, ks); this.relay(side, { t: 'ult', ks }); }
+      else {
+        const c = E.cpuChoose(S, side);
+        if (c) { E.useMove(S, side, c.mi, c.ks); this.relay(side, { t: 'act', mi: c.mi, ks: c.ks }); }
+        else {
+          E.endTurn(S, side);
+          this.relay(side, { t: 'end' });
+          if (S.over < 0) { E.startTurn(S, 1 - side); this.turnStarted(); }
+          else this.done(S.over === 0 ? 0 : 1, 'ko');
+          return;
+        }
+      }
+      if (S.over >= 0) return this.done(S.over === 0 ? 0 : 1, 'ko');
+      setTimeout(step, 1400);
+    };
+    setTimeout(step, 2600);
+  }
+
+  idleCheck() {
+    if (!this.S || this.finished) { clearInterval(this.idleT); return; }
+    const side = this.S.turn;
+    if (this.setup.slots[side].bot) return;
+    if (Date.now() - this.lastAct > IDLE_MS) {
+      for (const p of this.players) if (p.slot === side) this.send(p, { t: 'timeout' });
+      this.relay(side, { t: 'left' });
+      this.done(1 - side, 'idle');
+    }
+  }
+
+  /* 勝ち負けが決まった（winSlot＝勝った席） */
+  async done(winSlot, why) {
+    if (this.finished) return;
+    this.finished = true;
+    clearInterval(this.idleT);
+    const SU = this.setup;
+    SU.done = true;
+    await this.state.storage.put('setup', SU);
+    const win = SU.slots[winSlot].id;
+    if (SU.kind === 'rank') {
+      const res = await this.tellRank({ t: 'rank', ids: SU.slots.map((x) => x.id), win, ghost: !!SU.ghost, ghostLad: SU.ghost ? SU.slots[1].lad : null, why });
+      if (res && res.res) for (const p of this.players) { const id = SU.slots[p.slot] && SU.slots[p.slot].id; if (id && res.res[id]) this.send(p, { t: 'lad', ...res.res[id] }); }
+    } else if (SU.kind === 'cup') {
+      await this.tellRank({ t: 'cup', tid: SU.tid, r: SU.r, mt: SU.mt, win, why });
+    }
+  }
+
+  async tellRank(body) {
+    try {
+      const stub = this.env.RANK.get(this.env.RANK.idFromName('global'));
+      const r = await stub.fetch('https://int/int', { method: 'POST', body: JSON.stringify(body) });
+      return await r.json();
+    } catch (e) { return null; }
+  }
+
   onClose(me) {
     const i = this.players.indexOf(me);
     if (i < 0) return;
     this.players.splice(i, 1);
+    if (this.setup) {
+      if (this.started && !this.finished && me.slot >= 0) { this.relay(me.slot, { t: 'left' }); this.done(1 - me.slot, 'left'); }
+      return;
+    }
     const op = this.players[0];
     if (op) this.send(op, { t: 'left' });
     if (this.players.length === 0) this.started = false;
@@ -193,6 +344,28 @@ export class Rank {
     for (const c of ['dinf', 'dkey', 'dlast', 'winf', 'wkey', 'wlast']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
+    this.ladInit();
+  }
+
+  /* 大会を時刻どおりに進める（10秒ごと） */
+  async alarm() {
+    let live = false;
+    try { live = await this.cupTick(); } catch (e) { live = true; }
+    if (live) await this.store.setAlarm(Date.now() + 10000);
+  }
+  async ensureAlarm() {
+    if (this.alarmOk) return;
+    this.alarmOk = true;
+    const a = await this.store.getAlarm();
+    if (!a) await this.store.setAlarm(Date.now() + 5000);
+  }
+
+  /* Room（対戦部屋）からの連絡。外からは届かない */
+  async internal(b) {
+    if (b.t === 'rank') return json({ ok: true, res: await this.ladResult(b) });
+    if (b.t === 'cup') { await this.cupResult(b); return json({ ok: true }); }
+    if (b.t === 'present') { await this.cupPresent(b); return json({ ok: true }); }
+    return json({ err: 'int' }, 400);
   }
 
   row(id) {
@@ -210,13 +383,17 @@ export class Rank {
   async fetch(request) {
     const url = new URL(request.url);
     try {
-      if (request.method === 'GET' && url.pathname === '/api/rank') { await this.settle(); return this.rank(url); }
+      if (url.pathname === '/mm') return this.mmAccept();
+      if (url.pathname === '/int' && request.method === 'POST') return this.internal(await request.json());
+      this.ensureAlarm().catch(() => {});
+      if (request.method === 'GET' && url.pathname === '/api/rank') { if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); await this.settle(); return this.rank(url); }
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
       if (url.pathname === '/api/profile') return this.profile(b);
       if (url.pathname === '/api/score') return this.score(b);
       if (url.pathname === '/api/rank/claim') return this.claim(b);
+      if (url.pathname === '/api/lad/me') return this.ladMe(b, json);
       if (url.pathname.startsWith('/api/cup/')) return this.cupRoute(url.pathname, b, json);
       if (url.pathname === '/api/admin') return this.admin(b);
       return json({ err: 'not found' }, 404);
@@ -291,6 +468,8 @@ export class Rank {
 
   /* 期間が切り替わったら、前の期間の1〜3位に報酬を記録する（だれかがアクセスしたときに行う） */
   async settle(now = Date.now()) {
+    return; /* Ver 2.3：無限の塔のランキング報酬はおわり（ランクバトルのシーズン報酬に変更） */
+    // eslint-disable-next-line no-unreachable
     for (const [type, p] of Object.entries(PER)) {
       const K = p.fn(now), sk = 'set_' + type, done = await this.store.get(sk);
       if (done === undefined) { await this.store.put(sk, K); continue; }
@@ -308,7 +487,7 @@ export class Rank {
     const a = await this.auth(b);
     if (a.err) return json({ err: a.err }, 403);
     if (!a.r) return json({ coins: 0, items: [] });
-    await this.settle();
+    this.ladRow(b.id); /* シーズンが変わっていれば、ここで報酬が記録される */
     const items = this.sql.exec('SELECT kind, pkey, rank, coins FROM rw WHERE id=? AND got=0 ORDER BY pkey', b.id).toArray();
     if (items.length) this.sql.exec('UPDATE rw SET got=1 WHERE id=? AND got=0', b.id);
     return json({ coins: items.reduce((t, x) => t + x.coins, 0), items });
@@ -327,4 +506,4 @@ export class Rank {
   }
 }
 
-Object.assign(Rank.prototype, CupMixin);
+Object.assign(Rank.prototype, CupMixin, LadderMixin);

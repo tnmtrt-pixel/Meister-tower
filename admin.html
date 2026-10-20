@@ -81,7 +81,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
   <div id="rk" class="card hide">
     <div class="big">ランキング管理</div>
     <p class="st">消したい人の「非表示」を押すと、すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。</p>
-    <p><select id="rk-type"><option value="inf">無限の塔 トータル</option><option value="infw">ウィークリー</option><option value="infd">デイリー</option></select>
+    <p><select id="rk-type"><option value="lad">ランクバトル（今シーズン）</option><option value="inf">無限の塔 トータル（旧）</option><option value="infw">ウィークリー</option><option value="infd">デイリー</option></select>
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
@@ -94,10 +94,11 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <label>サブタイトル<input name="sub" value="第1戦・二学期中間"></label>
       <label>サブタイトル（中国語）<input name="subzh" value="第1战・第二学期期中"></label>
       <label>日時<input name="date" type="datetime-local" value="2026-10-23T19:00"></label>
-      <label>場所<input name="place" value="2406教室"></label>
+      <label>場所<input name="place" value="オンライン"></label>
       <label>定員<input name="cap" type="number" value="16" min="2" max="64"></label>
       <label>スイスドローの回戦数（このあと決勝）<input name="rnum" type="number" value="3" min="1" max="6"></label>
     </form>
+    <p class="st">オンライン大会：開始15分前に受付が自動で始まり（コード不要）、開始時刻に1回戦が自動で始まります。対戦の勝ち負けはサーバーが決め、全卓がそろうと次の回戦・決勝・終了まで自動で進みます。12分たっても来ない人は不戦敗です。</p>
     <p><button class="btn primary" id="cdo">作成する</button> <button class="btn" id="ccancel">やめる</button></p>
   </div>
   <div id="app" class="main hide">
@@ -140,7 +141,7 @@ async function rkAdmin(body){const r=await fetch(API+'/api/admin',{method:'POST'
 const rkName=w=>(w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('');
 async function rkLoad(){const el=$('#rk-list');el.textContent='読みこんでいます…';
   try{const t=$('#rk-type').value,j=await (await fetch(API+'/api/rank?type='+t)).json();
-    el.innerHTML='<table style="width:100%;border-collapse:collapse">'+(j.top||[]).map(x=>`<tr style="border-top:1px solid var(--line)"><td>${x.n}位</td><td>${img(x.icon)}</td><td><span class="tt">${esc(titleOf(x))}</span> <b>${esc(rkName(x.w))}</b><br><small>ID下4けた ${esc(x.id)}</small></td><td>${x.v}F</td><td><button class="btn small danger" data-hide="${esc(x.id)}">非表示</button></td></tr>`).join('')+'</table>'||'だれもいません';
+    el.innerHTML='<table style="width:100%;border-collapse:collapse">'+(j.top||[]).map(x=>`<tr style="border-top:1px solid var(--line)"><td>${x.n}位</td><td>${img(x.icon)}</td><td><span class="tt">${esc(titleOf(x))}</span> <b>${esc(rkName(x.w))}</b><br><small>ID下4けた ${esc(x.id)}</small></td><td>${t==='lad'?(x.rank>=11?'マスター '+x.rate:'ランク'+x.rank+' ★'+x.stars):x.v+'F'}</td><td><button class="btn small danger" data-hide="${esc(x.id)}">非表示</button></td></tr>`).join('')+'</table>'||'だれもいません';
     el.querySelectorAll('[data-hide]').forEach(b=>b.onclick=async()=>{if(!confirm('この人をランキングから非表示にしますか？'))return;try{const r=await rkAdmin({id:b.dataset.hide,hide:true});toast(`${r.n}人を非表示にしました`);rkLoad()}catch(e){toast(String(e.message||e))}});
     const h=await rkAdmin({list:true}).catch(()=>null),hid=h&&h.users?h.users.filter(u=>u.hidden):[];
     $('#rk-hid').innerHTML=hid.length?'<div class="big" style="margin-top:14px;font-size:16px">非表示にしている人</div>'+hid.map(u=>{let w=[];try{w=JSON.parse(u.w)}catch(e){}return`<p>${esc(rkName(w))}（${esc(u.id.slice(-4))}） <button class="btn small" data-show="${esc(u.id)}">戻す</button></p>`}).join(''):'';
@@ -161,22 +162,24 @@ const act=(op,extra,confirmMsg)=>async()=>{if(confirmMsg&&!confirm(confirmMsg))r
 
 function render(){if(!S)return;const st=$('#stage'),sd=$('#side');
   const o=$('#sel').querySelector(`option[value="${S.id}"]`);if(o)o.textContent=`${S.name.ja}／${S.sub.ja}（${({open:'エントリー受付中',checkin:'当日受付中',play:'進行中',done:'終了'})[S.status]}）`;
-  const head=`<div class="title">${esc(S.name.ja)}</div><div class="sub">${esc(S.sub.ja)}</div><div class="meta">📅 ${esc(S.date.replace('T',' '))}　📍 ${esc(S.place)}</div>`;
+  const clk=t=>{if(!t)return'—';const d=new Date(t+9*3600e3);return`${d.getUTCMonth()+1}/${d.getUTCDate()} ${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2,'0')}`};
+  const head=`<div class="title">${esc(S.name.ja)}</div><div class="sub">${esc(S.sub.ja)}</div><div class="meta">📅 ${esc(S.date.replace('T',' '))}　📍 ${esc(S.place)}</div>
+    <div class="st" style="margin-top:6px">${S.online?`🤖 自動進行 ON（受付開始 ${clk(S.checkinAt)}・1回戦 ${clk(S.startAt)}）`:'🖐 教室モード（受付コード・運営がボタンで進める）'} <button class="btn small" id="b-online">${S.online?'教室モードにする':'自動進行にする'}</button></div>`;
   let body='',ctl='';
   const R=S.rounds[S.rounds.length-1],swissDone=S.rounds.filter(r=>!r.final).length>=S.rnum;
   if(S.status==='open'){
     body=`<p class="big">エントリー ${S.entries} / ${S.cap}人</p><div class="chips">${(S.players||[]).map(p=>`<span class="chip">${esc(nameOf(p))}</span>`).join('')}</div>`;
-    ctl=`<button class="btn primary" id="b-checkin">当日の受付を始める</button>`}
+    ctl=`<button class="btn primary" id="b-checkin">${S.online?'今すぐ受付を始める（ふだんは自動）':'当日の受付を始める'}</button>`}
   else if(S.status==='checkin'){
-    body=`<p class="big" style="text-align:center;margin:10px 0 0">受付コード</p><div class="code">${esc(S.code)}</div>
+    body=`${S.online?'<p class="big" style="text-align:center;margin:10px 0 0">受付中（ゲームの「受付する」ボタンで受付）</p>':`<p class="big" style="text-align:center;margin:10px 0 0">受付コード</p><div class="code">${esc(S.code)}</div>`}
       <p class="big" style="text-align:center">受付済み ${S.checked}人 ／ エントリー ${S.entries}人</p>
       <div class="chips">${(S.players||[]).map(p=>`<span class="chip ${p.chk?'ok':''}">${p.chk?'✓ ':''}${esc(nameOf(p))}</span>`).join('')}</div>`;
-    ctl=`<button class="btn primary" id="b-start" ${S.checked<2?'disabled':''}>第1回戦を始める（受付を締め切る）</button> <button class="btn small" id="b-recode">受付コードを変える</button>`}
+    ctl=`<button class="btn primary" id="b-start" ${S.checked<2?'disabled':''}>${S.online?'今すぐ第1回戦を始める（ふだんは開始時刻に自動）':'第1回戦を始める（受付を締め切る）'}</button>${S.online?'':' <button class="btn small" id="b-recode">受付コードを変える</button>'}`}
   else if(S.status==='play'&&R){
     if(R.final){const m=R.ms[0];const sideHTML=(p,k)=>`<div class="side">${img(p.icon)}<div class="st">${esc(titleOf(p))}</div><div class="nm" style="${m.win?(m.win===k?'color:var(--good)':'opacity:.5'):''}">${esc(nameOf(p))}</div></div>`;
       body=`<div class="round"><div class="big">🏆 決勝</div><div class="timer" id="tm"></div></div>
         <div class="final">${sideHTML(m.a,'a')}<div class="vsbig">VS</div>${sideHTML(m.b,'b')}</div>
-        <div class="st" style="text-align:center">${m.win?'決着！':m.flag?'⚠ 結果が食い違っています':`報告 ${m.rep}/2`}　ルーム ${esc(m.room)}</div>
+        <div class="st" style="text-align:center">${m.win?(m.win==='-'?'両者不戦敗':'決着！'):S.online?`対戦待ち（入室 ${m.here||0}/2）`:m.flag?'⚠ 結果が食い違っています':`報告 ${m.rep}/2`}　ルーム ${esc(m.room)}</div>
         <div class="ops" style="justify-content:center"><button class="btn small" data-w="a" data-t="1">左の勝ち</button><button class="btn small" data-w="b" data-t="1">右の勝ち</button><button class="btn small" data-redo="1">やり直し</button></div>`;
       ctl=`<button class="btn primary" id="b-finish" ${m.win||m.rep===1?'':'disabled'}>大会を終了する（報酬と殿堂）</button>`}
     else{
@@ -184,7 +187,7 @@ function render(){if(!S)return;const st=$('#stage'),sd=$('#side');
         <div class="tables">${R.ms.slice().sort((a,b)=>(a.t||99)-(b.t||99)).map(m=>{if(!m.b)return`<div class="tb done"><div class="no">不戦勝</div>${plHTML(m.a,'win')}</div>`;
           const cls=m.win?'done':m.flag?'flag':'';
           return`<div class="tb ${cls}"><div class="no">${m.t}番テーブル</div><div class="vs">${plHTML(m.a,m.win?(m.win==='a'?'win':'lose'):'')}<b>vs</b>${plHTML(m.b,m.win?(m.win==='b'?'win':'lose'):'')}</div>
-            <div class="st">${m.win?'✓ 決着':m.flag?'⚠ 結果が食い違っています':`対戦中（報告 ${m.rep}/2）`}　確認コード ${esc((m.room||'').slice(1,5))}</div>
+            <div class="st">${m.win?(m.win==='-'?'✓ 両者不戦敗':'✓ 決着'):S.online?`対戦待ち・対戦中（入室 ${m.here||0}/2）`:m.flag?'⚠ 結果が食い違っています':`対戦中（報告 ${m.rep}/2）`}${S.online?'':`　確認コード ${esc((m.room||'').slice(1,5))}`}</div>
             <div class="ops"><button class="btn small" data-w="a" data-t="${m.t}">A（左）の勝ち</button><button class="btn small" data-w="b" data-t="${m.t}">B（右）の勝ち</button><button class="btn small" data-redo="${m.t}">やり直し</button></div></div>`}).join('')}</div>`;
       const left=R.ms.filter(m=>!m.win).length;
       ctl=`<button class="btn primary" id="b-start">${swissDone?'決勝を始める':`第${S.rounds.length+1}回戦を始める`}</button> <span class="st">${left?`未決着 ${left}卓（片方だけ報告がある卓は、その報告で確定します）`:'全卓決着'}</span>`}}
@@ -196,7 +199,7 @@ function render(){if(!S)return;const st=$('#stage'),sd=$('#side');
       return`<tr style="${p.drop?'opacity:.4':''}"><td class="n">${p.n}</td><td>${esc(nameOf(p))}</td><td>${p.wl[0]}-${p.wl[1]}</td><td>${p.bh}</td><td>${S.status==='play'&&pl?`<button class="btn small" data-drop="${pl.pid}" data-on="${!p.drop}">${p.drop?'戻す':'棄権'}</button>`:''}</td></tr>`}).join('')}</table>
     <div class="ops" style="margin-top:14px"><button class="btn small" id="b-edit">大会情報を変更</button><button class="btn small danger" id="b-del">この大会を削除</button>${S.status==='play'?'<button class="btn small danger" id="b-force">決勝なしで終了</button>':''}</div>`;
   const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f};
-  on('b-checkin',act('checkin'));on('b-recode',act('checkin',{},'受付コードを変えますか？'));on('b-start',act('start'));
+  on('b-checkin',act('checkin'));on('b-online',act('online',{on:!S.online},S.online?'教室モード（受付コード・手動で進行）に切り替えますか？':'自動進行に切り替えますか？'));on('b-recode',act('checkin',{},'受付コードを変えますか？'));on('b-start',act('start'));
   on('b-finish',act('finish',{},'大会を終了して、報酬と殿堂を確定しますか？'));on('b-force',act('finish',{force:true},'決勝をせずに今の順位で終了しますか？（優勝者はなし）'));
   on('b-del',act('delete',{},'この大会を削除しますか？元に戻せません'));
   on('b-edit',async()=>{const date=prompt('日時（例 2026-10-23T19:00）',S.date);if(date==null)return;const place=prompt('場所',S.place);if(place==null)return;try{await adm('edit',{date,place});render()}catch(e){toast(errMsg(e))}});
