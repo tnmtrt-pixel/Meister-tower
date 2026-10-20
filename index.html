@@ -78,6 +78,7 @@ button{font-family:var(--f-body)}
 
 /* キャラ一覧 */
 .grid5{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px}
+.pgrp{grid-column:1/-1;display:flex;align-items:center;gap:6px;margin-top:6px;padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.15)}.pgrp .ty{margin-left:0;font-size:12px;line-height:20px;padding:0 10px}.pgrp small{color:var(--muted,#9fb0d0);font-weight:700}
 .cbtn{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:4px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:0;position:relative}
 .cbtn .crest{width:100%;box-shadow:none;border-width:2px;padding:2px}
 .cbtn .nm{font-weight:800;font-size:10px;line-height:1.2;text-align:center;word-break:break-all}
@@ -647,7 +648,7 @@ hr{border-color:var(--line)!important}
       <div class="party-strip" id="slots"></div>
     </div>
     <div class="panel">
-      <div class="label" data-zh="伙伴（点击查看详情／已选位置时为替换）">仲間（タップで詳細／枠を選んでいるときは入れ替え）</div>
+      <div class="row between" style="gap:8px;flex-wrap:wrap"><div class="label" data-zh="伙伴（点击查看详情／已选位置时为替换）">仲間（タップで詳細／枠を選んでいるときは入れ替え）</div><div class="seg" id="psort" style="flex:none"></div></div>
       <div class="grid5" id="owned"></div>
     </div>
     <div class="panel" id="detail"></div>
@@ -737,7 +738,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=35548d7a"></script>
 <script>
-const VERSION='2.5.1';
+const VERSION='2.5.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -785,6 +786,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.dexReward2=!!v.dexReward2;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0)); /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
   s.auto=!!v.auto;
+  s.psort=v.psort==='type'?'type':'def'; /* 仲間一覧の並び順 */
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
   s.dexReward=!!v.dexReward;s.soraSeen=!!v.soraSeen;if(v.lang==='zh'||v.lang==='ja')s.lang=v.lang;s.tutDone=!!v.tutDone;s.se=v.se!==false;s.bgm=v.bgm!==false;
   const o=Array.isArray(v.owned)?Object.fromEntries(v.owned.map(id=>[id,1])):(v.owned||{});
@@ -960,7 +962,14 @@ function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!ow
     return id?`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px">${crest(byId(id))}<span class="nm">${L(k+1+'番手','第'+(k+1)+'位')}</span></button>`
       :`<button class="cbtn slot${on?' pick':''}" data-slot="${k}" aria-pressed="${on}" style="width:76px" ${k>save.party.length?'disabled':''}><div class="crest" style="--c:var(--line);box-shadow:none;border-style:dashed;border-width:2px"></div><span class="nm">${L('空き','空位')}</span></button>`}).join('')
     +`<p class="hint slot-hint">${slotSel!=null?L(`${slotSel+1}番手を選択中：下の仲間をタップすると入れ替わります（枠をタップで並び替え）`,`已选择第${slotSel+1}位：点击下方伙伴即可替换（点击其他位置可调换顺序）`):L('枠をタップ → 仲間をタップで入れ替え','点击位置 → 再点击伙伴即可替换')}</p>`;
-  $('#owned').innerHTML=ALL.filter(c=>owns(c.id)).map(c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="${nmc(c.name)}">${c.name}</span></button>`}).join('');
+  const cb=c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="${nmc(c.name)}">${c.name}</span></button>`};
+  const mine=ALL.filter(c=>owns(c.id));
+  /* 並び順：いつもの順／タイプ別（タイプごとに見出し、中は★の多い順） */
+  $('#psort').innerHTML=[['def',L('いつもの順','默认')],['type',L('タイプ別','按属性')]].map(([k,t])=>`<button type="button" data-psort="${k}" aria-pressed="${save.psort===k}">${t}</button>`).join('');
+  $('#psort').querySelectorAll('[data-psort]').forEach(b=>b.onclick=()=>{sfx('tap');save.psort=b.dataset.psort;persist();renderParty()});
+  $('#owned').innerHTML=save.psort==='type'?Object.keys(G.TYPES).map(t=>{const g=mine.filter(c=>(c.types||[])[0]===t).sort((a,b)=>starOf(b.id)-starOf(a.id));
+      return g.length?`<div class="pgrp">${tyHTML(t)}<small>${g.length}${L('人','人')}</small></div>`+g.map(cb).join(''):''}).join('')+mine.filter(c=>!G.TYPES[(c.types||[])[0]]).map(cb).join('')
+    :mine.map(cb).join('');
   document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.slot;
     if(slotSel==null){slotSel=k;if(save.party[k])sel=save.party[k]}
     else if(slotSel===k)slotSel=null;
