@@ -13,7 +13,7 @@
  *  WS   /mm                             マッチング（{t:'q', id, sec, v, party} を送ると、相手が見つかったら {t:'match', room, ticket, ...}）
  */
 
-export const ENGINE_V = 9; /* ゲーム側の hello の v と同じにする（技やルールが変わったら両方上げる） */
+export const ENGINE_V = 10; /* ゲーム側の hello の v と同じにする（技やルールが変わったら両方上げる） */
 export const MASTER = 11;
 export const SEASON_MS = 14 * 86400e3;
 /* シーズン1の始まり：2026-10-19（月）15:00 日本時間 */
@@ -79,12 +79,17 @@ export { rid };
 /* パーティの形を整える（キャラID・★・技4つ・強化）。強化は技9つ分＋余裕 */
 export function cleanParty(p) {
   if (!Array.isArray(p) || p.length < 1 || p.length > 3) return null;
-  return p.map((x) => ({
-    id: String((x && x.id) || '').replace(/[^a-z0-9]/g, '').slice(0, 16),
-    star: Math.min(3, Math.max(1, (x && x.star) | 0)),
-    mv: (Array.isArray(x && x.mv) ? x.mv : []).slice(0, 4).map((n) => n | 0),
-    lv: Object.fromEntries(Object.entries((x && x.lv) || {}).slice(0, 12).map(([k, v]) => [k | 0, Math.min(2, Math.max(0, v | 0))])),
-  }));
+  const E = globalThis.ENGINE;
+  const out = p.map((x) => {
+    const id = String((x && x.id) || '').replace(/[^a-z0-9]/g, '').slice(0, 16), star = Math.min(3, Math.max(1, (x && x.star) | 0));
+    let mv = (Array.isArray(x && x.mv) ? x.mv : []).slice(0, 4).map((n) => n | 0);
+    const lv = Object.fromEntries(Object.entries((x && x.lv) || {}).slice(0, 20).map(([k, v]) => [k | 0, Math.min(2, Math.max(0, v | 0))]));
+    /* エンジンで確かめる：いないキャラ・ない技・★が足りない技・同じ技の重なりは外す（あとで技4つかを確認） */
+    const ch = E && E.byId(id);
+    if (E) { if (!ch) return null; mv = mv.filter((k, i) => ch.moves[k] && ch.moves[k].t <= star && mv.indexOf(k) === i); }
+    return { id, star, mv, lv };
+  });
+  return out.some((x) => !x) ? null : out;
 }
 
 const GHOST_MS = 30000; /* この時間だれとも当たらなければゴースト戦 */
@@ -168,7 +173,7 @@ export const LadderMixin = {
     const party = cleanParty(m.party);
     if (!party || party.some((x) => x.mv.length !== 4)) { this.mmSend(ent, { t: 'err', e: 'party' }); return; }
     const r = this.ladRow(m.id);
-    this.sql.exec('UPDATE lad SET gparty = ? WHERE id = ?', JSON.stringify(party), m.id);
+    this.sql.exec('UPDATE lad SET gparty = ? WHERE id = ?', JSON.stringify({ v: ENGINE_V, p: party }), m.id);
     /* 同じ人が2つの画面から並んだら、古い方を外す */
     for (const x of this.queue.filter((x) => x.id === m.id)) { this.mmSend(x, { t: 'dup' }); try { x.ws.close(1000, 'dup'); } catch (e) { /* */ } }
     this.queue = this.queue.filter((x) => x.id !== m.id);
@@ -217,10 +222,9 @@ export const LadderMixin = {
   ghostFor(a) {
     const s = seasonNo();
     const rows = this.sql.exec("SELECT l.id, l.rank, l.stars, l.rate, l.gparty FROM lad l JOIN u ON u.id = l.id WHERE l.season = ? AND l.id != ? AND l.gparty != '' AND u.hidden = 0 ORDER BY ABS((CASE WHEN l.rank >= 11 THEN 110 + (l.rate - 1500) / 10 ELSE l.rank * 10 + l.stars END) - ?) LIMIT 8", s, a.id, a.sc).toArray();
-    if (rows.length) {
-      const r = rows[Math.floor(Math.random() * rows.length)];
-      try { return { party: JSON.parse(r.gparty), who: this.who(r.id), lad: r }; } catch (e) { /* */ }
-    }
+    /* 今のバージョンで記録されたパーティだけ使う（技の番号が変わるため） */
+    const ok = rows.map((r) => { try { const g = JSON.parse(r.gparty); return g && g.v === ENGINE_V && Array.isArray(g.p) ? { party: g.p, who: this.who(r.id), lad: r } : null; } catch (e) { return null; } }).filter(Boolean);
+    if (ok.length) return ok[Math.floor(Math.random() * ok.length)];
     const E = globalThis.ENGINE, pool = E.CHARS.map((c) => c.id), out = [];
     const lv = Math.min(2, Math.floor(a.lad.rank / 4)), st = Math.min(3, 1 + Math.floor(a.lad.rank / 3));
     while (out.length < 3) {

@@ -726,9 +726,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=77cbdb64"></script>
+<script src="engine.js?v=4ab2cdf4"></script>
 <script>
-const VERSION='2.3.2';
+const VERSION='2.4.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -770,7 +770,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.wseen=(Array.isArray(v.wseen)?v.wseen:[]).filter(x=>typeof x==='string').slice(0,400);s.wnote=(Array.isArray(v.wnote)?v.wnote:[]).filter(x=>typeof x==='string').slice(0,400);
   s.pidx=Math.min(2,Math.max(0,v.pidx|0));s.parties=[0,1,2].map(k=>(Array.isArray(v.parties)&&Array.isArray(v.parties[k])?v.parties[k]:[]).filter(id=>typeof id==='string'&&byId(id)).slice(0,3));
   s.hpLv={};for(const k in (v.hpLv||{}))if(byId(k))s.hpLv[k]=Math.min(5,Math.max(0,v.hpLv[k]|0));
-  {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),pend:Math.max(0,I.pend|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0)},
+  {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),pend:Math.max(0,I.pend|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0),f:(Array.isArray((I.day||{}).f)?I.day.f:[]).filter(n=>Number.isInteger(n)&&n>0).slice(0,2000)},
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
   s.dexReward2=!!v.dexReward2;
@@ -781,8 +781,13 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   for(const k in o)if(byId(k))s.owned[k]=Math.min(3,Math.max(1,Math.floor(+o[k]||1)));
   for(const k in (v.shards||{}))if(byId(k))s.shards[k]=Math.max(0,Math.floor(+v.shards[k]||0));
   /* Ver 3.0：技を作り直したので、古いセーブの技番号（強化・選んだ技）を、同じ名前の新しい技の番号へ移す */
-  const MIG=!v.mv3;s.mv3=true;const mapI=(k,m)=>{if(!MIG)return +m;const o=(G.OLDMOVES[k]||[])[+m];return o==null?-1:byId(k).moves.findIndex(x=>x.jn===o)};
-  for(const k in (v.lv||{}))if(byId(k)&&v.lv[k]&&typeof v.lv[k]==='object'){s.lv[k]={};let maxed=0;for(const m in v.lv[k]){const n=Math.min(2,Math.max(0,Math.floor(+v.lv[k][m]||0)));if(n===2)maxed++;const j=mapI(k,m);if(j>=0&&byId(k).moves[j]&&n)s.lv[k][j]=n}}/* Ver 3.2：Ver 3.0 のときに渡した分があるので、かけらの追加はしない */
+  /* Ver 2.4：技を作り直したので、Ver 2.3 のセーブ（mv3）は OLD23、もっと古いセーブは OLDMOVES の名前で新しい番号へ移す */
+  const SRC=v.mv4?null:v.mv3?G.OLD23:G.OLDMOVES;s.mv3=true;s.mv4=true;const mapI=(k,m)=>{if(!SRC)return +m;const o=(SRC[k]||[])[+m];return o==null?-1:byId(k).moves.findIndex(x=>x.jn===o)};
+  /* Ver 2.4：技の中身が変わったので、技の強化に使ったかけらを全部返して強化を0に戻す（+1で2個、+2で6個。体力強化はそのまま） */
+  s.refund=Math.max(0,+v.refund||0);
+  for(const k in (v.lv||{}))if(byId(k)&&v.lv[k]&&typeof v.lv[k]==='object'){s.lv[k]={};for(const m in v.lv[k]){const n=Math.min(2,Math.max(0,Math.floor(+v.lv[k][m]||0)));
+    if(!v.mv4){if(n){s.shards[k]=(s.shards[k]||0)+(n===2?6:2);s.refund+=n===2?6:2}continue}
+    const j=mapI(k,m);if(j>=0&&byId(k).moves[j]&&n)s.lv[k][j]=n}}
   for(const k in (v.load||{}))if(byId(k)&&Array.isArray(v.load[k]))s.load[k]=v.load[k].map(m=>mapI(k,m)).filter(m=>m>=0&&byId(k).moves[m]!=null).slice(0,4);
   s.party=(Array.isArray(v.party)?v.party:[]).filter(id=>s.owned[id]).slice(0,3);
   return s}
@@ -866,7 +871,7 @@ function typeChart(){sfx('tap');const R=[['de',L('大きな目と6で爆発す�
   <table class="tychart"><tr><th>${L('タイプ','属性')}</th><th>${L('技の特徴','技能特点')}</th><th>${L('超必殺','超必杀')}</th></tr>${R.map(([t,d])=>`<tr><th>${t==='hikari'?tyHTML('hikari')+tyHTML('yami'):tyHTML(t)}</th><td style="text-align:left">${d}</td><td>${G.ultNum({types:[t]})}・${G.ultNum({types:[t]})}</td></tr>`).join('')}</table>
   <p class="hint">${L('超必殺：★3のキャラは、1つ目のタイプで決まった数字のゾロ目がそろうと、1バトルに1回だけ使えます。','超必杀：★3角色掷出由第一属性决定的数字对子时，每场对战可使用1次。')}</p>`,L('とじる','关闭'))}
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
-  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.ty?tyHTML(m.ty):''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:m.tk?`<span class="tg">${L('固有','专属')}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
+  return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.ty?tyHTML(m.ty):''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:m.tk?`<span class="tg">${L('固有','专属')}</span>`:m.tier==='t'?`<span class="tg">${L('得意','擅长')}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
 function updCoins(){$('#coin').textContent=save.coins}
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
@@ -874,6 +879,7 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(v!=='online'){onlineClose();ladCancel()}
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
   dailyCheck();
+  refundNotice();
   ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[v]();window.scrollTo(0,0)}
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
@@ -1260,6 +1266,11 @@ function seedOf(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCod
 function newDaily(d){const R=G.rng(seedOf(d)),pool=MS.filter(m=>!m.can||m.can()),pick=[],ks=new Set();
   while(pick.length<3&&pool.length){const m=pool.splice(Math.floor(R()*pool.length),1)[0];if(ks.has(m.k))continue;ks.add(m.k);pick.push(m.id)}
   return{d,ids:pick,p:{},c:[],all:false}}
+/* Ver 2.4：技の強化をリセットして返したかけらを、1回だけお知らせ */
+let refundWait=false;function refundNotice(){if(!(save.refund>0)||refundWait)return;refundWait=true;const later=fn=>document.getElementById('title')||loginPending||document.querySelector('.sheet-bg')?setTimeout(()=>later(fn),500):setTimeout(fn,300);
+  later(()=>{refundWait=false;const n=save.refund;if(!(n>0))return;save.refund=0;persist();sfx('reveal',2);openSheet(`<h2 style="text-align:center">${L('技が新しくなりました','技能焕然一新')}</h2>
+    <p style="text-align:center;font-weight:800">${L(`技の強化をリセットして、使ったかけら ${n}個を返しました`,`已重置技能强化，返还了使用过的碎片 ${n}个`)}</p>
+    <p class="hint" style="text-align:center">${L('編成で技を選び直して、もう一度強化してね。体力の強化はそのままです。','请在编队中重新选择技能并再次强化。体力强化保持不变。')}</p>`,L('OK','好的'))})}
 function dailyCheck(){if(!hasAny())return;const d=today();
   if(save.daily.d!==d)save.daily=newDaily(d);
   if(save.login.d!==d){save.login.d=d;save.login.n=(save.login.n%7)+1;save.st.days=(save.st.days||0)+1;const c=LB[save.login.n-1];save.coins+=c;persist();updCoins();
@@ -1433,16 +1444,16 @@ function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)|
 /* 大会の詳細：上位の構築と、よく使われたキャラ */
 /* old＝Ver 3.0より前の大会（技の番号が古い）。同じ名前の新しい技で表示する */
 function buildHTML(pt,old){return(pt||[]).map(x=>{const c=byId(x.id);if(!c)return'';const lv=x.lv||{};
-  const mv=k=>{if(!old)return c.moves[k];const o=(G.OLDMOVES[c.id]||[])[k];return o==null?null:c.moves.find(m=>m.jn===o)};
+  const mv=k=>{if(!old)return c.moves[k];const o=((old==='v2'?G.OLDMOVES:G.OLD23)[c.id]||[])[k];return o==null?null:c.moves.find(m=>m.jn===o)};
   return`<div class="bd-c"><div style="width:44px;flex:none">${crest(c)}</div><div style="min-width:0"><b>${c.name}</b> <span class="rar">${stars(x.star)}</span><div class="bd-mv">${(x.mv||[]).map(k=>mv(k)?`<span>${mv(k).n}${lv[k]?`<i>+${lv[k]}</i>`:''}</span>`:'').join('')}</div></div></div>`}).join('')}
 function cupDetail(e){if(!e)return;
-  const top=(e.top||[]).slice(0,2).map((p,i)=>`<div class="bd-p"><div class="row between"><span class="medal">${i?'🥈':'🥇'}</span>${whoHTML(p)}<b style="flex:none">${p.wl?L(`${p.wl[0]}勝${p.wl[1]}敗`,`${p.wl[0]}胜${p.wl[1]}负`):''}</b></div>${buildHTML(p.party,String(e.date||'')<'2026-10-19')}</div>`).join('');
+  const top=(e.top||[]).slice(0,2).map((p,i)=>`<div class="bd-p"><div class="row between"><span class="medal">${i?'🥈':'🥇'}</span>${whoHTML(p)}<b style="flex:none">${p.wl?L(`${p.wl[0]}勝${p.wl[1]}敗`,`${p.wl[0]}胜${p.wl[1]}负`):''}</b></div>${buildHTML(p.party,e.ev>=10?null:String(e.date||'')<'2026-10-19'?'v2':'v23')}</div>`).join('');
   openSheet(`<h2>${cupT(e.name)}</h2><div class="hint">${cupT(e.sub)}　📅 ${cupDate(e.date)}${e.n?`　👥 ${e.n}${L('人','人')}`:''}</div>
     <div class="label" style="margin-top:8px">${L('優勝・準優勝のパーティ','冠军·亚军的队伍')}</div>${top||`<p class="hint">${L('記録がありません','暂无记录')}</p>`}`,L('閉じる','关闭'))}
 
 /* ================= 無限の塔 ================= */
 /* 負けるまで登る。体力は生き残ったキャラだけ毎階全回復、たおれたキャラはボス（10階ごと）を倒すと半分で復活 */
-const INF_REW={floor:1,boss:5,best:2,cap:30};/* 1階1・自己ベスト更新+2（1日30コインまで）、ボス5は上限とは別 */
+const INF_REW={floor:1,boss:5,best:2};/* Ver 2.4：1日の上限はなし。各階のクリアコイン（1、ボス階は+5）は、その階ごとに1日1回まで。自己ベスト更新+2 */
 const HP_MAX_LV=5,HP_COST=[3,4,5,6,7];/* 体力強化：1段階+2（最大+10）。塔と無限の塔だけで有効 */
 const hpOf=id=>G.PLAYER_HP+2*(save.hpLv[id]||0);
 const infOpen=()=>Math.max(save.best||1,save.floor)>TOP;
@@ -1461,15 +1472,15 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
 async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,msg='';
-  if(win){const D=save.inf.day.d===today()?save.inf.day:(save.inf.day={d:today(),c:0});
-    let r=INF_REW.floor;const nb=f>save.inf.best;if(nb){r+=INF_REW.best;save.inf.best=f}
-    const capped=Math.max(0,Math.min(r,INF_REW.cap-D.c)),bossC=f%10===0?INF_REW.boss:0;/* ボス撃破のコインは1日の上限とは別 */
-    D.c+=capped;coins=capped+bossC;save.coins+=coins;
+  if(win){const D=save.inf.day.d===today()?save.inf.day:(save.inf.day={d:today(),c:0,f:[]});if(!Array.isArray(D.f))D.f=[];
+    const first=!D.f.includes(f);if(first)D.f.push(f);
+    const nb=f>save.inf.best;if(nb)save.inf.best=f;
+    coins=(first?INF_REW.floor+(f%10===0?INF_REW.boss:0):0)+(nb?INF_REW.best:0);D.c+=coins;save.coins+=coins;
     B.S.sides[0].team.forEach(x=>{run.hp[x.ch.id]=x.hp>0?x.max:(f%10===0?Math.round(x.max*G.INF.revive):0)});
     save.st.wins=(save.st.wins||0)+1;mission('win');B.S.sides[0].team.forEach(x=>{save.use[x.ch.id]=(save.use[x.ch.id]||0)+1});
     save.inf.pend=Math.max(save.inf.pend||0,f);/* デイリー・ウィークリー用 */
     run.f=f+1;msg=nb?L('自己ベスト更新！','刷新个人最佳！'):'';
-    if(D.c>=INF_REW.cap&&capped<r)msg+=(msg?'　':'')+L('今日の報酬は上限です','今日奖励已达上限')}
+    if(!first)msg+=(msg?'　':'')+L(`${f}F のコインは今日もうもらいました（また明日）`,`${f}F 的金币今天已经领过了（明天再来）`)}
   else{save.inf.run=null}
   persist();updCoins();pushScore();checkTitles();
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose')}
@@ -1481,8 +1492,8 @@ async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,
 function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d===today()?save.inf.day.c:0;
   el.innerHTML=`<h2>🗼 ${L('無限の塔','无限之塔')}</h2>
     <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎階全回復、たおれた仲間は10階ごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每层完全恢复，倒下的伙伴在打倒每10层的头目后复活。')}</p>
-    <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D} / ${INF_REW.cap}${L('コイン','金币')}</b></div>
-    <p class="hint">${L(`報酬：1階${INF_REW.floor}コイン、自己ベスト更新で+${INF_REW.best}（この2つは1日${INF_REW.cap}コインまで）。ボスを倒すと上限とは別に${INF_REW.boss}コイン`,`奖励：每层${INF_REW.floor}金币，刷新最佳+${INF_REW.best}（这两项每天最多${INF_REW.cap}金币）。打倒头目另得${INF_REW.boss}金币（不计入上限）`)}</p>
+    <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D}${L('コイン','金币')}</b></div>
+    <p class="hint">${L(`報酬：1階クリアで${INF_REW.floor}コイン、ボスの階はさらに+${INF_REW.boss}（どの階も1日1回まで。上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1层${INF_REW.floor}金币，头目层再+${INF_REW.boss}（每层每天限1次，无上限）。刷新最佳+${INF_REW.best}`)}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
       <div class="row"><button class="btn primary" id="inf-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
     :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
@@ -1752,7 +1763,7 @@ function bossReward(id){const c=byId(id),st=starOf(id);
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
 const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
 const ON={ws:null,code:'',state:'idle',err:'',lad:null,ladRes:null};
-const ENGINE_V=9;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
+const ENGINE_V=10;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}

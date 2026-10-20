@@ -15,7 +15,7 @@
  *  運営用    POST /api/cup/admin    {key, op, ...}            ADMIN_KEY が必要
  */
 
-import { cleanParty, hexId } from './ladder.js';
+import { cleanParty, hexId, ENGINE_V } from './ladder.js';
 
 const PARTICIPATION_COINS = 30;
 const ROUND_MS = 12 * 60 * 1000; /* 来ない人を負けにするまで */
@@ -322,7 +322,7 @@ export const CupMixin = {
       /* 大会の記録：1位・2位の構築（キャラ・★・4技・強化）。優勝が決まっていなくても残す */
       const hall = ((await this.store.get('cuphall')) || []).filter((x) => x.tid !== T.id);
       const snap = (p, i) => ({ ...(T.ents[p.pid].snap || this.who(p.pid)), ...this.who(p.pid), party: T.ents[p.pid].party, wl: [p.w, p.l], n: i + 1 });
-      hall.unshift({ tid: T.id, name: T.name, sub: T.sub, date: T.date, n, champ, top: st.slice(0, 2).map(snap) });
+      hall.unshift({ tid: T.id, name: T.name, sub: T.sub, date: T.date, n, champ, ev: ENGINE_V, top: st.slice(0, 2).map(snap) });
       await this.store.put('cuphall', hall.slice(0, 50));
     }
     T.status = 'done';
