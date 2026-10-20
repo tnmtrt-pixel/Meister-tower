@@ -69,6 +69,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <select id="sel"></select>
     <button class="btn small" id="new">＋ 新しい大会</button>
     <button class="btn small" id="rk-open">ランキング管理</button>
+    <button class="btn small" id="ra-open">📣 集合タイム</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
@@ -85,6 +86,17 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
+  </div>
+  <div id="ra" class="card hide">
+    <div class="big">📣 集合タイム（ランクバトル）</div>
+    <p class="st">決めた時間はゲームのタワー画面とランクバトル画面に予告されます。その間、人と対戦すると1戦ごとに 3コイン＋選べるかけら2個（勝つと+5コイン）。1回の集合タイムで10戦まで・同じ相手とは2戦まで。勝ち3点・負け1点で、終わったときに3戦以上の上位3人へボーナス（1位 50コイン＋かけら10／2位 30＋6／3位 20＋4）。ゴースト戦までの待ち時間は40秒になります（ふだんは20秒）。</p>
+    <form class="grid" id="raf" onsubmit="return false">
+      <label>はじまり<input name="start" type="datetime-local"></label>
+      <label>長さ（分）<input name="min" type="number" value="30" min="5" max="240"></label>
+      <label>ひとこと（なくてもOK）<input name="label" maxlength="40" placeholder="例：昼休みに集合！"></label>
+    </form>
+    <p><button class="btn primary" id="ra-add">追加する</button> <button class="btn small" id="ra-close">閉じる</button></p>
+    <div id="ra-list"></div>
   </div>
   <div id="create" class="card hide">
     <div class="big">新しい大会を作る</div>
@@ -150,6 +162,16 @@ async function rkLoad(){const el=$('#rk-list');el.textContent='読みこんで�
 $('#rk-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rk').classList.remove('hide');rkLoad()};
 $('#rk-close').onclick=()=>$('#rk').classList.add('hide');
 $('#rk-load').onclick=rkLoad;$('#rk-type').onchange=rkLoad;
+/* 集合タイム：/api/admin {rally:'add'|'del'|'list'} */
+const raW=t=>{const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
+function raShow(list){const now=Date.now(),el=$('#ra-list');
+  el.innerHTML=list.length?'<table style="width:100%;border-collapse:collapse">'+list.map(r=>`<tr style="border-top:1px solid var(--line)"><td>${raW(r.start)}〜${new Date(r.end).getHours()}:${String(new Date(r.end).getMinutes()).padStart(2,'0')}</td><td>${esc(r.label)}</td><td>${now>=r.end?'終了':now>=r.start?'<b>開催中</b>':'予定'}</td><td><button class="btn small danger" data-rdel="${esc(r.id)}">消す</button></td></tr>`).join('')+'</table>':'<p class="st">まだ決まっていません</p>';
+  el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{if(!confirm('この集合タイムを消しますか？'))return;try{raShow((await rkAdmin({rally:'del',id:b.dataset.rdel})).list)}catch(e){toast(String(e.message||e))}})}
+async function raLoad(){try{raShow((await rkAdmin({rally:'list'})).list)}catch(e){$('#ra-list').textContent='読みこめませんでした：'+(e.message||e)}}
+$('#ra-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}const f=$('#raf');if(!f.start.value){const d=new Date(Date.now()+86400e3);d.setHours(12,30,0,0);f.start.value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}$('#ra').classList.remove('hide');raLoad()};
+$('#ra-close').onclick=()=>$('#ra').classList.add('hide');
+$('#ra-add').onclick=async()=>{const f=$('#raf'),t=new Date(f.start.value).getTime();if(!t){toast('はじまりの時間を入れてください');return}
+  try{raShow((await rkAdmin({rally:'add',start:t,min:+f.min.value||30,label:f.label.value})).list);toast('追加しました');f.label.value=''}catch(e){toast(String(e.message||e))}};
 
 
 async function boot(){try{const j=await adm('list');$('#login').classList.add('hide');

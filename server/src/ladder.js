@@ -92,7 +92,7 @@ export function cleanParty(p) {
   return out.some((x) => !x) ? null : out;
 }
 
-const GHOST_MS = 30000; /* この時間だれとも当たらなければゴースト戦 */
+/* ゴースト戦までの待ち時間は rally.js（ふだん20秒・集合タイム40秒） */
 
 export const LadderMixin = {
   ladInit() {
@@ -102,6 +102,7 @@ export const LadderMixin = {
       games INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0, gparty TEXT NOT NULL DEFAULT '', last INTEGER NOT NULL DEFAULT 0)`);
     this.queue = [];
     this.mmTimer = null;
+    this.rallyInit();
   },
 
   /* 自分のランク。シーズンが変わっていたら、報酬を記録して新しいシーズンへ */
@@ -167,6 +168,7 @@ export const LadderMixin = {
     let m;
     try { m = JSON.parse(raw); } catch (e) { return; }
     if (!m || m.t !== 'q' || ent.id) return;
+    await this.rallyLoad();
     if ((m.v | 0) !== ENGINE_V) { this.mmSend(ent, { t: 'ver' }); try { ent.ws.close(1000, 'ver'); } catch (e) { /* */ } return; }
     const a = await this.auth(m);
     if (a.err || !a.r) { this.mmSend(ent, { t: 'err', e: 'auth' }); try { ent.ws.close(1000, 'auth'); } catch (e) { /* */ } return; }
@@ -179,7 +181,7 @@ export const LadderMixin = {
     this.queue = this.queue.filter((x) => x.id !== m.id);
     Object.assign(ent, { id: m.id, party, sc: score(r), lad: r, t0: Date.now(), who: this.who(m.id) });
     this.queue.push(ent);
-    this.mmSend(ent, { t: 'wait', ghostMs: GHOST_MS });
+    this.mmSend(ent, { t: 'wait', ghostMs: this.ghostMs(), rally: this.rallyPub(this.rallyNow()) });
     this.mmKick();
   },
   mmKick() {
@@ -210,7 +212,7 @@ export const LadderMixin = {
           used.add(a); used.add(best);
           this.queue = this.queue.filter((x) => x !== a && x !== best);
           await this.mmMake(a, best);
-        } else if (now - a.t0 >= GHOST_MS) {
+        } else if (now - a.t0 >= this.ghostMs()) {
           used.add(a);
           this.queue = this.queue.filter((x) => x !== a);
           await this.mmMake(a, null);
@@ -254,7 +256,9 @@ export const LadderMixin = {
 
   /* Room から届く試合結果（外からは呼べない） */
   async ladResult(b) {
+    await this.rallyLoad();
     const out = {};
+    const bonus = this.rallyReward(b.ids, b.win, !!b.ghost);
     const rows = {};
     for (const id of b.ids) if (id) rows[id] = this.ladRow(id);
     for (const id of b.ids) {
@@ -263,7 +267,7 @@ export const LadderMixin = {
       const opp = opId ? rows[opId] : (b.ghostLad || { rank: rows[id].rank, stars: 0, rate: 1500 });
       const nr = applyResult(rows[id], b.win === id, opp, !!b.ghost);
       this.sql.exec('UPDATE lad SET rank=?, stars=?, streak=?, rate=?, best=?, games=?, wins=?, last=? WHERE id=?', nr.rank, nr.stars, nr.streak, nr.rate, nr.best, nr.games, nr.wins, Date.now(), id);
-      out[id] = { before: this.ladPub(rows[id]), after: this.ladPub(nr), gain: nr.gain || 0, delta: nr.delta || 0, up: !!nr.up, down: !!nr.down };
+      out[id] = { before: this.ladPub(rows[id]), after: this.ladPub(nr), gain: nr.gain || 0, delta: nr.delta || 0, up: !!nr.up, down: !!nr.down, rally: bonus[id] || null };
     }
     return out;
   },

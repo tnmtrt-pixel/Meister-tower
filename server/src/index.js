@@ -1,6 +1,7 @@
 import './engine.js';
 import { CupMixin } from './cup.js';
 import { LadderMixin, ENGINE_V, cleanParty } from './ladder.js';
+import { RallyMixin } from './rally.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -23,7 +24,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/' || url.pathname === '/health') {
-      return new Response('meister-tower-online ok v' + ENGINE_V, { headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' } });
+      return new Response('meister-tower-online ok v' + ENGINE_V + ' rally', { headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*' } });
     }
     if (url.pathname === '/ws') {
       if (request.headers.get('Upgrade') !== 'websocket') return new Response('WebSocketで接続してください', { status: 426 });
@@ -387,6 +388,7 @@ export class Rank {
       if (url.pathname === '/int' && request.method === 'POST') return this.internal(await request.json());
       this.ensureAlarm().catch(() => {});
       if (request.method === 'GET' && url.pathname === '/api/rank') { if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); await this.settle(); return this.rank(url); }
+      if (request.method === 'GET' && url.pathname === '/api/rally') return this.rallyGet(json, url);
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
@@ -488,14 +490,16 @@ export class Rank {
     if (a.err) return json({ err: a.err }, 403);
     if (!a.r) return json({ coins: 0, items: [] });
     this.ladRow(b.id); /* シーズンが変わっていれば、ここで報酬が記録される */
+    await this.rallyLoad(); /* 終わった集合タイムの上位ボーナスもここで記録 */
     const items = this.sql.exec('SELECT kind, pkey, rank, coins FROM rw WHERE id=? AND got=0 ORDER BY pkey', b.id).toArray();
     if (items.length) this.sql.exec('UPDATE rw SET got=1 WHERE id=? AND got=0', b.id);
-    return json({ coins: items.reduce((t, x) => t + x.coins, 0), items });
+    return json({ coins: items.reduce((t, x) => t + (x.kind === 'rshard' ? 0 : x.coins), 0), shards: items.reduce((t, x) => t + (x.kind === 'rshard' ? x.coins : 0), 0), items });
   }
 
   async admin(b) {
     const key = this.env && this.env.ADMIN_KEY;
     if (!key || b.key !== key) return json({ err: 'auth' }, 403);
+    if (b.rally) return this.rallyAdmin(b, json);
     if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });
     if (!ID_RE.test(b.id || '') && !/^[0-9a-f]{4}$/.test(b.id || '')) return json({ err: 'id' }, 400);
     const hide = b.hide === false ? 0 : 1;
@@ -506,4 +510,4 @@ export class Rank {
   }
 }
 
-Object.assign(Rank.prototype, CupMixin, LadderMixin);
+Object.assign(Rank.prototype, CupMixin, LadderMixin, RallyMixin);
