@@ -740,7 +740,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=35548d7a"></script>
 <script>
-const VERSION='2.5.5';
+const VERSION='2.5.6';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -966,12 +966,11 @@ function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!ow
     +`<p class="hint slot-hint">${slotSel!=null?L(`${slotSel+1}番手を選択中：下の仲間をタップすると入れ替わります（枠をタップで並び替え）`,`已选择第${slotSel+1}位：点击下方伙伴即可替换（点击其他位置可调换顺序）`):L('枠をタップ → 仲間をタップで入れ替え','点击位置 → 再点击伙伴即可替换')}</p>`;
   const cb=c=>{const pi=save.party.indexOf(c.id);return`<button class="cbtn" data-id="${c.id}" aria-pressed="${slotSel==null&&c.id===sel}">${pi>=0?`<span class="badge">${pi+1}</span>`:''}${crest(c)}<span class="rar">${stars(starOf(c.id))}</span><span class="${nmc(c.name)}">${c.name}</span></button>`};
   const mine=ALL.filter(c=>owns(c.id));
-  /* グループ：収録（vol.1／vol.2／塔のボス）／タイプ（タイプごと、中は★の多い順） */
-  $('#psort').innerHTML=[['vol',L('収録','收录')],['type',L('タイプ','属性')]].map(([k,t])=>`<button type="button" data-psort="${k}" aria-pressed="${save.psort===k}">${t}</button>`).join('');
+  /* 並び替え：収録順（vol.1→vol.2→塔のボス）／タイプ順（同じタイプの中は収録順） */
+  $('#psort').innerHTML=[['vol',L('収録順','按收录')],['type',L('タイプ順','按属性')]].map(([k,t])=>`<button type="button" data-psort="${k}" aria-pressed="${save.psort===k}">${t}</button>`).join('');
   $('#psort').querySelectorAll('[data-psort]').forEach(b=>b.onclick=()=>{sfx('tap');save.psort=b.dataset.psort;persist();renderParty()});
-  $('#owned').innerHTML=save.psort==='type'?Object.keys(G.TYPES).map(t=>{const g=mine.filter(c=>(c.types||[])[0]===t).sort((a,b)=>starOf(b.id)-starOf(a.id));
-      return g.length?`<div class="pgrp">${tyHTML(t)}<small>${g.length}${L('人','人')}</small></div>`+g.map(cb).join(''):''}).join('')+mine.filter(c=>!G.TYPES[(c.types||[])[0]]).map(cb).join('')
-    :DEXG().map(([t,f])=>{const g=mine.filter(f);return g.length?`<div class="pgrp"><b>${t}</b><small>${g.length}${L('人','人')}</small></div>`+g.map(cb).join(''):''}).join('');
+  const TO=Object.keys(G.TYPES),tk=c=>{const k=TO.indexOf((c.types||[])[0]);return k<0?99:k};
+  $('#owned').innerHTML=(save.psort==='type'?mine.slice().sort((a,b)=>tk(a)-tk(b)):mine).map(cb).join('');
   document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.slot;
     if(slotSel==null){slotSel=k;if(save.party[k])sel=save.party[k]}
     else if(slotSel===k)slotSel=null;
