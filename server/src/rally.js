@@ -7,10 +7,13 @@
  *  受け取り：ランキングの報酬と同じ /api/rank/claim（kind 'rally' はコイン、'rshard' は選べるかけらの数）
  *
  *  GET  /api/rally                         今と次の集合タイム、マッチング待ちの人数
- *  POST /api/admin {key, rally:'add', start, min, label} / {key, rally:'del', id} / {key, rally:'list'}
+ *  POST /api/admin {key, rally:'add', start, min, label} / {key, rally:'del', id} / {key, rally:'list'} / {key, rally:'daily', hours:[8,12,16,20], min, label}
  */
 export const RALLY = { per: 3, win: 5, shards: 2, max: 10, sameOpp: 2, pW: 3, pL: 1, minG: 3, top: [{ c: 50, s: 10 }, { c: 30, s: 6 }, { c: 20, s: 4 }] };
 export const GHOST_MS = 20000, GHOST_RALLY_MS = 40000;
+/* 毎日の集合タイム（日本時間）。運営ページで変えられる（storage 'rallyDaily'）。1回だけ休むときは運営ページで消す（'rallySkip' に記録して作り直さない） */
+export const DAILY0 = { hours: [8, 12, 16, 20], min: 30, label: '' };
+const H9 = 9 * 3600e3, DAY = 86400e3;
 
 export const RallyMixin = {
   rallyInit() {
@@ -18,8 +21,27 @@ export const RallyMixin = {
   },
   async rallyLoad() {
     if (!this.rallies) this.rallies = (await this.store.get('rallies')) || [];
+    await this.rallyGen();
     await this.rallySettle();
     return this.rallies;
+  },
+  async rallyDaily() {
+    if (!this.rDaily) this.rDaily = (await this.store.get('rallyDaily')) || DAILY0;
+    return this.rDaily;
+  },
+  /* 今日と明日の「毎日の集合タイム」を用意する */
+  async rallyGen(now = Date.now()) {
+    const D = await this.rallyDaily();
+    if (!this.rSkip) this.rSkip = (await this.store.get('rallySkip')) || [];
+    const day0 = Math.floor((now + H9) / DAY) * DAY - H9;
+    let ch = false;
+    for (let d = 0; d < 2; d++) for (const h of D.hours || []) {
+      const start = day0 + d * DAY + h * 3600e3, id = 'd' + start.toString(36);
+      if (start + D.min * 60000 <= now || this.rSkip.includes(id) || this.rallies.some((r) => r.id === id)) continue;
+      this.rallies.push({ id, start, min: D.min, label: D.label || '', daily: 1 });
+      ch = true;
+    }
+    if (ch) await this.rallySave();
   },
   /* 集合タイムの順位（3戦以上・見えない人は除く） */
   rallyBoard(rid, n = 5) {
@@ -78,10 +100,19 @@ export const RallyMixin = {
       this.rallies.push({ id: 'r' + start.toString(36), start, min, label: String(b.label || '').slice(0, 40) });
       await this.rallySave();
     } else if (b.rally === 'del') {
+      if (String(b.id).startsWith('d')) { this.rSkip = [...(this.rSkip || []), b.id].slice(-60); await this.store.put('rallySkip', this.rSkip); }
       this.rallies = this.rallies.filter((r) => r.id !== b.id);
       await this.rallySave();
+    } else if (b.rally === 'daily') {
+      /* 毎日の時間を変える：まだ始まっていない毎日分を消して作り直す */
+      const hours = [...new Set((Array.isArray(b.hours) ? b.hours : []).map((x) => Math.floor(+x)).filter((x) => x >= 0 && x <= 23))].sort((x, y) => x - y).slice(0, 8);
+      this.rDaily = { hours, min: Math.min(240, Math.max(5, b.min | 0 || 30)), label: String(b.label || '').slice(0, 40) };
+      await this.store.put('rallyDaily', this.rDaily);
+      const now = Date.now();
+      this.rallies = this.rallies.filter((r) => !(r.daily && r.start > now));
+      await this.rallyGen();
     }
-    return json({ ok: true, list: this.rallies.map((r) => this.rallyPub(r)) });
+    return json({ ok: true, daily: await this.rallyDaily(), list: this.rallies.map((r) => ({ ...this.rallyPub(r), daily: r.daily || 0 })) });
   },
   /* ランクバトルの結果ごとに、集合タイムの報酬を記録（人との対戦だけ） */
   rallyReward(ids, win, ghost) {

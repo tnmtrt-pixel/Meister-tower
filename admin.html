@@ -89,7 +89,15 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
   </div>
   <div id="ra" class="card hide">
     <div class="big">📣 集合タイム（ランクバトル）</div>
-    <p class="st">決めた時間はゲームのタワー画面とランクバトル画面に予告されます。その間、人と対戦すると1戦ごとに 3コイン＋選べるかけら2個（勝つと+5コイン）。1回の集合タイムで10戦まで・同じ相手とは2戦まで。勝ち3点・負け1点で、終わったときに3戦以上の上位3人へボーナス（1位 50コイン＋かけら10／2位 30＋6／3位 20＋4）。ゴースト戦までの待ち時間は40秒になります（ふだんは20秒）。</p>
+    <p class="st">毎日の時間（はじめは 8時・12時・16時・20時、30分間）は自動で用意されます。決めた時間はゲームのタワー画面とランクバトル画面に予告されます。その間、人と対戦すると1戦ごとに 3コイン＋選べるかけら2個（勝つと+5コイン）。1回の集合タイムで10戦まで・同じ相手とは2戦まで。勝ち3点・負け1点で、終わったときに3戦以上の上位3人へボーナス（1位 50コイン＋かけら10／2位 30＋6／3位 20＋4）。ゴースト戦までの待ち時間は40秒になります（ふだんは20秒）。</p>
+    <div class="big" style="font-size:16px;margin-top:8px">毎日の集合タイム（日本時間）</div>
+    <form class="grid" id="rad" onsubmit="return false">
+      <label>時刻（カンマで区切る。例：8,12,16,20）<input name="hours" value="8,12,16,20"></label>
+      <label>長さ（分）<input name="min" type="number" value="30" min="5" max="240"></label>
+      <label>ひとこと（なくてもOK）<input name="label" maxlength="40"></label>
+    </form>
+    <p><button class="btn" id="rad-save">毎日の時間を保存</button> <span class="st">1回だけ休むときは、下の一覧でその回を「消す」。</span></p>
+    <div class="big" style="font-size:16px;margin-top:8px">特別な集合タイムを追加</div>
     <form class="grid" id="raf" onsubmit="return false">
       <label>はじまり<input name="start" type="datetime-local"></label>
       <label>長さ（分）<input name="min" type="number" value="30" min="5" max="240"></label>
@@ -164,11 +172,14 @@ $('#rk-close').onclick=()=>$('#rk').classList.add('hide');
 $('#rk-load').onclick=rkLoad;$('#rk-type').onchange=rkLoad;
 /* 集合タイム：/api/admin {rally:'add'|'del'|'list'} */
 const raW=t=>{const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
-function raShow(list){const now=Date.now(),el=$('#ra-list');
-  el.innerHTML=list.length?'<table style="width:100%;border-collapse:collapse">'+list.map(r=>`<tr style="border-top:1px solid var(--line)"><td>${raW(r.start)}〜${new Date(r.end).getHours()}:${String(new Date(r.end).getMinutes()).padStart(2,'0')}</td><td>${esc(r.label)}</td><td>${now>=r.end?'終了':now>=r.start?'<b>開催中</b>':'予定'}</td><td><button class="btn small danger" data-rdel="${esc(r.id)}">消す</button></td></tr>`).join('')+'</table>':'<p class="st">まだ決まっていません</p>';
+function raShow(list,daily){const now=Date.now(),el=$('#ra-list');if(daily){const f=$('#rad');f.hours.value=(daily.hours||[]).join(',');f.min.value=daily.min||30;f.label.value=daily.label||''}
+  el.innerHTML=list.length?'<table style="width:100%;border-collapse:collapse">'+list.map(r=>`<tr style="border-top:1px solid var(--line)"><td>${raW(r.start)}〜${new Date(r.end).getHours()}:${String(new Date(r.end).getMinutes()).padStart(2,'0')}</td><td>${r.daily?'毎日':'特別'} ${esc(r.label)}</td><td>${now>=r.end?'終了':now>=r.start?'<b>開催中</b>':'予定'}</td><td><button class="btn small danger" data-rdel="${esc(r.id)}">消す</button></td></tr>`).join('')+'</table>':'<p class="st">まだ決まっていません</p>';
   el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{if(!confirm('この集合タイムを消しますか？'))return;try{raShow((await rkAdmin({rally:'del',id:b.dataset.rdel})).list)}catch(e){toast(String(e.message||e))}})}
-async function raLoad(){try{raShow((await rkAdmin({rally:'list'})).list)}catch(e){$('#ra-list').textContent='読みこめませんでした：'+(e.message||e)}}
+async function raLoad(){try{const j=await rkAdmin({rally:'list'});raShow(j.list,j.daily)}catch(e){$('#ra-list').textContent='読みこめませんでした：'+(e.message||e)}}
 $('#ra-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}const f=$('#raf');if(!f.start.value){const d=new Date(Date.now()+86400e3);d.setHours(12,30,0,0);f.start.value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}$('#ra').classList.remove('hide');raLoad()};
+$('#rad-save').onclick=async()=>{const f=$('#rad'),hours=f.hours.value.split(/[,、\s]+/).filter(Boolean).map(Number).filter(x=>x>=0&&x<=23);
+  if(!confirm(`毎日 ${hours.join('時・')}時 から ${+f.min.value||30}分 にしますか？${hours.length?'':'（空なので毎日の集合タイムはなくなります）'}`))return;
+  try{const j=await rkAdmin({rally:'daily',hours,min:+f.min.value||30,label:f.label.value});raShow(j.list,j.daily);toast('保存しました')}catch(e){toast(String(e.message||e))}};
 $('#ra-close').onclick=()=>$('#ra').classList.add('hide');
 $('#ra-add').onclick=async()=>{const f=$('#raf'),t=new Date(f.start.value).getTime();if(!t){toast('はじまりの時間を入れてください');return}
   try{raShow((await rkAdmin({rally:'add',start:t,min:+f.min.value||30,label:f.label.value})).list);toast('追加しました');f.label.value=''}catch(e){toast(String(e.message||e))}};
