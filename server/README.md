@@ -6,6 +6,14 @@ Cloudflare Workers + Durable Objects（SQLite）で動く、対戦部屋の中�
 - 接続先：`wss://<WorkerのURL>/ws?room=合言葉`
 - 動作確認：`https://<WorkerのURL>/health` に「meister-tower-online ok」と出れば稼働中です。
 
+
+### Ver 2.3 から
+- ランクバトル・マイスター杯は、サーバーもゲームと同じ `src/engine.js` で対戦を計算し、勝ち負けをサーバーが決めます（データを書きかえたズルが効きません）。
+  `src/engine.js` はゲームの engine.js の自動コピー（build_index.py が書く）。技やルールを変えたら、`src/ladder.js` の ENGINE_V とゲームの ENGINE_V を両方上げます。
+- マッチング：`wss://<WorkerのURL>/mm`（30秒で相手がいなければゴースト戦）。ランクとシーズンは `src/ladder.js`。
+- 大会の自動進行：Durable Object のアラームで10秒ごとに `cupTick`（`src/cup.js`）。
+- 最新版が動いているかは `/health` に「meister-tower-online ok v9」と出るかで確認できます。
+
 ## Cloudflare への取り込み
 1. Workers & Pages →「作成」→「リポジトリをインポート」でこのリポジトリを選ぶ
 2. プロジェクト名を `meister-tower-online` にする（wrangler.jsonc の name と同じ）
