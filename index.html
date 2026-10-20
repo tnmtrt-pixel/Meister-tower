@@ -728,7 +728,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=77cbdb64"></script>
 <script>
-const VERSION='2.3.1';
+const VERSION='2.3.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1731,7 +1731,9 @@ async function finish(){if(B.done)return;retireBtn(false);if(TUT.on){tutFinish()
   const ismeister=(B.tower||'meister')==='meister',twk=B.tower||'meister';
   /* 続けて遊ぶ：勝ったら挑戦中の階へ、負けたら同じ階にもう一度 */
   const play=n=>()=>{towerMode=twk;tsel=n===TPof(twk).floor?null:n;beginBattle()};
-  const tgo=[win?[`next`,master?L(`続けて遊ぶ（${T.floor}F）`,`继续游玩（${T.floor}F）`):L(`次の階へ（${T.floor}F）`,`前往下一层（${T.floor}F）`),play(T.floor)]:['again',L(`再挑戦する（${f}F）`,`再次挑战（${f}F）`),play(f)],
+  const again=['again',L(`もう一度 ${f}F`,`再来一次 ${f}F`),play(f)],next=['next',master?L(`続けて遊ぶ（${T.floor}F）`,`继续游玩（${T.floor}F）`):L(`次の階へ（${T.floor}F）`,`前往下一层（${T.floor}F）`),play(T.floor)];
+  /* 勝ったときも「もう一度」で同じ階を周回できる（ボス階はこちらを先に） */
+  const tgo=[...(!win?[again]:(f===TOP||f===TOP2||T.floor===f)?[again,next]:[next,again]),
     ['tower',L('タワーへ','前往塔')],['party',L('編成へ','前往编队')],['gacha',L('ガチャへ','前往扭蛋')]];
   showOverlay({word:master?(ismeister?'MEISTER!':'JUDGE!'):clear?'CLEAR!':win?'WINNER':'LOSE…',ch:win?me.ch:foe.ch,win,coins,go:tgo,
     sub:master?(ismeister?L('真・塔の主をたおした！<br>マイスターの称号を手に入れた','打倒了真·塔之主！<br>获得了「大师」称号'):L(`${tn}を制覇した！`,`制霸了${tn}！`)):opened?L('ボスをたおした！<br>上層（11〜20F）への道が開いた','打倒了头目！<br>通往上层（11〜20F）的道路开启了'):win?L(`${me.ch.name}の勝利！<br>${f}F ${FLS[f-1].n} ${RP?'再挑戦クリア':'クリア'}`,`${me.ch.name}获胜！<br>${f}F ${FLS[f-1].n} ${RP?'再挑战通关':'通关'}`):L(`${foe.ch.name}に敗れた…`,`败给了${foe.ch.name}……`),
