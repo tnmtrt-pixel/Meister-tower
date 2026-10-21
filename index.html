@@ -183,6 +183,7 @@ details p{margin:6px 0 0}
 .fighter.turn{border-color:var(--ink);border-width:2px}
 .finfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .fname{font-family:var(--f-display);font-size:19px;line-height:1.2}
+.flv{display:block;margin:2px 0 1px;line-height:1}.flv .chip{display:inline-block}
 .side{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);display:flex;gap:6px;align-items:center}
 .fighter.foe .side{justify-content:flex-end}
 .side{flex-wrap:wrap;row-gap:4px;white-space:nowrap}
@@ -764,7 +765,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.7.4';
+const VERSION='2.7.5';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1713,7 +1714,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
 function snapNow(){return B.S.sides.map(sd=>({idx:sd.idx,dec:B.S.decree,team:sd.team.map(f=>({hp:f.hp,max:f.max,guard:f.guard,pow:f.pow,weak:f.weak,dMod:f.dMod,white:f.white,nine:!!f.nineUsed})),dice:sd.dice.map(d=>({v:d.v,used:d.used})),used:[...sd.used]}))}
 function drawF(i){const sd=B.S.sides[i],v=B.view[i],f=sd.team[v.idx],el=$('#f'+i);preImg(sd.team);
   el.innerHTML=`${crest(f.ch,'big')}<div class="finfo"><span class="side">${i?L('相手','对手'):L('あなた','你')}<span class="pips" aria-label="${i?L('相手の残り人数','对手剩余人数'):L('パーティの残り人数','队伍剩余人数')}">${v.team.map(t=>`<i class="${t.hp<=0?'dead':''}"></i>`).join('')}</span><button class="info-btn" data-info="${i}">${L('能力と技','特性与技能')}</button>${i?`<button class="info-btn" data-hist="1">${L('行動の記録','行动记录')}</button>`:''}</span>
-  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${typesHTML(f.ch)}${f.lv?`<span class="chip down" style="margin-left:6px;vertical-align:middle">Lv${f.lv}${f.bonus?L(' 攻撃+',' 攻击+')+f.bonus:''}</span>`:''}</span><div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
+  <span class="fname">${f.ch.name} <span class="rar">${stars(f.star)}</span>${typesHTML(f.ch)}</span>${f.lv?`<span class="flv"><span class="chip down">Lv${f.lv}${f.bonus?L('・攻撃+','·攻击+')+f.bonus:''}</span></span>`:''}<div class="hp"><i></i></div><span class="hpnum"></span><div class="chips"></div></div>`;
   el.querySelector('.crest').onclick=()=>infoSheet(i);el.querySelector('[data-info]').onclick=()=>infoSheet(i);
   const h=el.querySelector('[data-hist]');if(h)h.onclick=histSheet;
   el.querySelector('.pips').onclick=()=>toast(i?L('相手の控えは、出てくるまで分からない','对手的替补在登场前是未知的'):L('パーティの残り人数','队伍剩余人数'));
