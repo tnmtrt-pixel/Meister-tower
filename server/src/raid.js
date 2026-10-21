@@ -58,22 +58,25 @@ export const RaidMixin = {
       if (r.killed) this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', u.id, 'rfeather', day * 10 + 1, 1, RAID.killFeather);
     });
   },
-  raidPub(r, id) {
-    const top = this.sql.exec('SELECT r.id, r.dmg, r.tries, u.w, u.icon, u.title FROM raid_u r JOIN u ON u.id = r.id WHERE r.day = ? AND r.tries > 0 AND u.hidden = 0 ORDER BY r.dmg DESC, r.last ASC LIMIT 5', r.day).toArray()
+  raidPub(r, id, n = 5) {
+    const top = this.sql.exec('SELECT r.id, r.dmg, r.tries, u.w, u.icon, u.title FROM raid_u r JOIN u ON u.id = r.id WHERE r.day = ? AND r.tries > 0 AND u.hidden = 0 ORDER BY r.dmg DESC, r.last ASC LIMIT ?', r.day, n).toArray()
       .map((x, i) => ({ n: i + 1, w: JSON.parse(x.w || '[]'), icon: x.icon, title: x.title, dmg: x.dmg, me: x.id === id || undefined }));
     const log = this.sql.exec('SELECT l.t, l.dmg, l.kill, u.w FROM raid_log l JOIN u ON u.id = l.id WHERE l.day = ? AND u.hidden = 0 ORDER BY l.t DESC LIMIT 8', r.day).toArray()
       .map((x) => ({ t: x.t, dmg: x.dmg, kill: x.kill || undefined, w: JSON.parse(x.w || '[]') }));
     const me = id ? this.sql.exec('SELECT tries, dmg, best FROM raid_u WHERE day = ? AND id = ?', r.day, id).toArray()[0] || { tries: 0, dmg: 0, best: 0 } : null;
+    /* 自分の順位（ダメージが自分より多い人の数＋1） */
+    const myRank = me && me.tries > 0 ? this.sql.exec('SELECT COUNT(*) AS n FROM raid_u WHERE day = ? AND tries > 0 AND (dmg > ? OR (dmg = ? AND last < (SELECT last FROM raid_u WHERE day = ? AND id = ?)))', r.day, me.dmg, me.dmg, r.day, id).toArray()[0].n + 1 : 0;
     const people = this.sql.exec('SELECT COUNT(*) AS n FROM raid_u WHERE day = ? AND tries > 0', r.day).toArray()[0].n;
     const killer = r.killer ? this.sql.exec('SELECT w FROM u WHERE id = ?', r.killer).toArray()[0] : null;
     return { day: r.day, boss: RAID.boss, max: r.max, hp: r.hp, tries: r.tries, people, killed: r.killed || 0, killer: killer ? JSON.parse(killer.w || '[]') : null,
-      end: raidDayEnd(r.day), triesMax: RAID.tries, me, top, log, rally: this.rallyNow ? !!this.rallyNow() : false, rallyMul: RAID.rally,
+      end: raidDayEnd(r.day), triesMax: RAID.tries, me, myRank, top, log, rally: this.rallyNow ? !!this.rallyNow() : false, rallyMul: RAID.rally,
       rew: { feather: RAID.feather, killFeather: RAID.killFeather, featherNeed: RAID.featherNeed, stage: RAID.stage, stageShard: RAID.stageShard, killShard: RAID.killShard, killCoin: RAID.killCoin, top: RAID.top } };
   },
   async raidGet(url, json) {
     if (this.rallyLoad) await this.rallyLoad();
     const id = url.searchParams.get('id') || '';
-    return json({ now: Date.now(), raid: this.raidPub(this.raidToday(), /^[0-9a-f]{16,32}$/.test(id) ? id : '') });
+    const n = Math.min(50, Math.max(5, Number(url.searchParams.get('n')) || 5));
+    return json({ now: Date.now(), raid: this.raidPub(this.raidToday(), /^[0-9a-f]{16,32}$/.test(id) ? id : '', n) });
   },
   async raidStart(b, json) {
     const a = await this.auth(b);
