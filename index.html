@@ -629,9 +629,9 @@ hr{border-color:var(--line)!important}
         <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排行">ランキング</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="成绩">成績</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
-      <button data-s="tower" aria-pressed="true" data-zh="🏰 塔">🏰 タワー</button><button data-s="raid" aria-pressed="false" data-zh="🐦 团队战">🐦 レイド</button><button data-s="lad" aria-pressed="false" data-zh="⚔️ 排位">⚔️ ランク</button><button data-s="cup" aria-pressed="false" data-zh="🏆 大赛">🏆 大会</button></nav>
+      <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="cup" aria-pressed="false" data-zh="大赛">大会</button></nav>
   </header>
 
   <section class="view" id="v-tower">
@@ -761,7 +761,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.7.1';
+const VERSION='2.7.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1305,7 +1305,7 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
       return`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`};
     showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:!oc,
       sub:L('報酬が届きました！','奖励到了！')+'<br>'+items.map(line).join('<br>'),
-      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['rank',L('ランキングへ','前往排行')],['tower',L('タワーへ','前往塔')]]})}}
+      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['rank',L('成績へ','前往成绩')],['tower',L('タワーへ','前往塔')]]})}}
   catch(e){}finally{claimBusy=false}}
 async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-rank').hidden)renderRank()}
 
