@@ -532,6 +532,7 @@ h2{font-weight:400;letter-spacing:.02em;color:#fff;text-shadow:0 2px 0 rgba(0,0,
 .seg{border:2px solid var(--gold);border-radius:4px;background:rgba(8,14,34,.8);gap:0}
 .seg button{background:transparent;color:#C8D6F2;font-weight:800}
 .seg button+button{border-left:1px solid rgba(217,174,69,.45)}
+.subnav{margin-top:6px}.subnav button{font-size:13px;padding:6px 4px}.subnav[hidden]{display:none}
 .seg button[aria-pressed="true"]{background:linear-gradient(180deg,#5EA6FF,#2257D0);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:inset 0 -3px 0 var(--gold-hi)}
 .snd{background:rgba(8,14,34,.8);border:1px solid var(--line);color:#DDE8FF;border-radius:4px}
 .coins{color:#fff}
@@ -627,8 +628,10 @@ hr{border-color:var(--line)!important}
       <div class="row"><span class="coins"><span data-zh="金币">コイン</span> <b id="coin">0</b></span>
         <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
     <nav class="seg" id="nav">
-      <button data-v="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button><button data-v="online" aria-pressed="false" data-zh="联机">通信</button></nav>
+      <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排行">ランキング</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
+    <nav class="seg subnav" id="subnav" aria-label="バトル">
+      <button data-s="tower" aria-pressed="true" data-zh="🏰 塔">🏰 タワー</button><button data-s="raid" aria-pressed="false" data-zh="🐦 团队战">🐦 レイド</button><button data-s="lad" aria-pressed="false" data-zh="⚔️ 排位">⚔️ ランク</button><button data-s="cup" aria-pressed="false" data-zh="🏆 大赛">🏆 大会</button></nav>
   </header>
 
   <section class="view" id="v-tower">
@@ -711,19 +714,21 @@ hr{border-color:var(--line)!important}
   </section>
 
   <section class="view" id="v-online" hidden>
-    <div class="panel cup" id="cup" hidden></div>
-    <div class="panel raid" id="raid"></div>
-    <div class="panel lad" id="lad"></div>
-    <div class="panel" id="prof"></div>
-    <div class="panel" id="rank"></div>
-    <div class="panel" id="cuprec" hidden></div>
+    <div data-sub="raid"><div class="panel raid" id="raid"></div></div>
+    <div data-sub="lad"><div class="panel lad" id="lad"></div>
     <div class="panel">
-      <h2 data-zh="联机对战">通信対戦</h2>
-      <p class="hint" data-zh="和朋友用各自的手机对战。一人创建房间，把显示的暗号告诉对方，对方输入暗号即可开始。使用你当前的队伍出战。">友だちと、それぞれのスマホで対戦できます。片方が部屋を作り、表示された合言葉を相手に伝えて、相手が合言葉を入力すると始まります。今のパーティで戦います。</p>
-      <div class="label" data-zh="出战队伍">出場するパーティ</div>
-      <div class="party-strip" id="on-party"></div>
-      <div id="on-body"></div>
+        <h2 data-zh="联机对战">通信対戦</h2>
+        <p class="hint" data-zh="和朋友用各自的手机对战。一人创建房间，把显示的暗号告诉对方，对方输入暗号即可开始。使用你当前的队伍出战。">友だちと、それぞれのスマホで対戦できます。片方が部屋を作り、表示された合言葉を相手に伝えて、相手が合言葉を入力すると始まります。今のパーティで戦います。</p>
+        <div class="label" data-zh="出战队伍">出場するパーティ</div>
+        <div class="party-strip" id="on-party"></div>
+        <div id="on-body"></div>
+      </div>
     </div>
+    <div data-sub="cup"><div class="panel cup" id="cup" hidden></div><div class="panel" id="cup-none" hidden></div><div class="panel" id="cuprec" hidden></div></div>
+  </section>
+  <section class="view" id="v-rank" hidden>
+    <div class="panel" id="rank"></div>
+    <div class="panel" id="prof"></div>
   </section>
   <section class="view" id="arena" hidden>
     <div class="floor-tag" id="floor-tag"></div>
@@ -757,7 +762,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.6.1';
+const VERSION='2.7.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -905,14 +910,21 @@ function typeChart(){sfx('tap');const R=[['de',L('大きな目と6で爆発す�
 function mvHTML(m,extra=''){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
   return`<span class="cond">${G.condLabel(m.c)}${m.c.t==='pair'?L('<br>2個','<br>2个'):''}</span><span class="nm">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.ty?tyHTML(m.ty):''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:m.tk?`<span class="tg">${L('固有','专属')}</span>`:m.sub?`<span class="tg">${L('サブ','副')}</span>`:m.tier==='t'?`<span class="tg">${L('得意','擅长')}</span>`:''}${extra}</span><span class="dmg">${d||'—'}<small>${d?L('ダメージ','伤害'):''}</small></span><span class="fx">${fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span>`}
 function updCoins(){$('#coin').textContent=save.coins}
+/* Ver 2.7：タブは「バトル（タワー・レイド・ランク・大会）・編成・ガチャ・ランキング・図鑑」。バトルは2段目のタブで切りかえ */
+const NAV={sub:'tower'};const SUBS=['tower','raid','lad','cup'];
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
+  if(v==='online')v=NAV.sub!=='tower'?NAV.sub:'lad';if(v==='battle')v=NAV.sub;
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
-  document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
-  if(v!=='online'){onlineClose();ladCancel()}
-  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=x!==v);$('#arena').hidden=true;$('#nav').hidden=false;
+  const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'?'tower':'online'):v;
+  document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
+  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;
+  if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
+  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
+  if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
   dailyCheck();
   refundNotice();
-  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[v]();window.scrollTo(0,0)}
+  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView})[view]();window.scrollTo(0,0)}
+document.querySelectorAll('#subnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.s)});
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
 /* ================= タワー ================= */
@@ -1294,9 +1306,9 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
       return`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`};
     showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:!oc,
       sub:L('報酬が届きました！','奖励到了！')+'<br>'+items.map(line).join('<br>'),
-      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('online');setTimeout(shardPick,400)}]]:[]),['online',L('通信へ','前往联机')],['tower',L('タワーへ','前往塔')]]})}}
+      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['rank',L('ランキングへ','前往排行')],['tower',L('タワーへ','前往塔')]]})}}
   catch(e){}finally{claimBusy=false}}
-async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-online').hidden)renderRank()}
+async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-rank').hidden)renderRank()}
 
 /* ================= ログインボーナス・デイリーミッション ================= */
 /* 日付は日本時間の朝5時で切り替え */
@@ -1402,7 +1414,7 @@ function ladQueue(){ac();LAD.err='';fixParty();
 function renderLad(){const el=$('#lad');if(!el)return;const p=save.prof,me=LAD.me;
   const head=`<div class="row between"><h2>⚔️ ${L('ランクバトル','排位赛')}</h2>${me?`<span class="hint">${L(`シーズン${me.season}・あと${leftTxt(me.end-Date.now())}`,`第${me.season}赛季·还剩${leftTxt(me.end-Date.now())}`)}</span>`:''}</div>`;
   if(!p.reg){el.innerHTML=head+`<p class="hint">${L('ランクバトルに参加するには、下のプロフィールで名前を決めて「登録」してください。','参加排位赛前，请先在下方个人资料中决定名字并「登记」。')}</p><button class="btn" id="lad-reg">${L('プロフィールを登録する','登记个人资料')}</button>`;
-    $('#lad-reg').onclick=()=>{sfx('tap');pedit=true;renderProf();$('#prof').scrollIntoView({behavior:'smooth'})};return}
+    $('#lad-reg').onclick=()=>{sfx('tap');pedit=true;nav('rank');setTimeout(()=>$('#prof').scrollIntoView({behavior:'smooth'}),150)};return}
   const rk=me?`<div class="lad-rank"><div class="lad-badge${me.rank>=MASTER?' m':''}">${me.rank>=MASTER?L('マスター','大师'):me.rank}<small>${me.rank>=MASTER?L('レート ','积分 ')+me.rate:L('ランク','等级')}</small></div>
     <div>${me.rank>=MASTER?'':starsHTML(me.stars,me.need)}${me.streak>=2?`<div class="lad-streak">🔥 ${L(`${me.streak}連勝中`,`${me.streak}连胜中`)}</div>`:''}<div class="hint">${L(`今シーズン ${me.wins}勝${me.games-me.wins}敗・最高 ${rankName(me.best)}`,`本赛季 ${me.wins}胜${me.games-me.wins}负·最高 ${rankName(me.best)}`)}</div></div></div>`:`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   let act;
@@ -1472,7 +1484,7 @@ function raidLeft(r){return Math.max(0,(r.triesMax||3)-((r.me&&r.me.tries)||0))}
 function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo=raidBoss();
   if(tw){tw.innerHTML=r&&bo?`<button type="button" class="raid-tw" id="raid-tw-go">${crest(bo)}<span class="rt"><b>🐦 ${L('レイドバトル','团队战')}：${L('始原の紫翼皇','始原紫翼皇')}</b>
     <small>${r.killed?L('🎉 今日はみんなで倒した！ また明日','🎉 今天大家一起打倒了！明天再来'):L(`残りHP ${Math.ceil(r.hp/r.max*100)}%・今日のあなたの挑戦 あと${raidLeft(r)}回`,`剩余HP ${Math.ceil(r.hp/r.max*100)}%·你今天还能挑战 ${raidLeft(r)}次`)}${r.rally&&!r.killed?L('・集合タイム中はダメージ1.5倍！','·集合时间伤害1.5倍！'):''}</small></span></button>`:'';
-    const b=$('#raid-tw-go');if(b)b.onclick=()=>{sfx('tap');nav('online');setTimeout(()=>$('#raid')?.scrollIntoView({behavior:'smooth'}),200)}}
+    const b=$('#raid-tw-go');if(b)b.onclick=()=>{sfx('tap');nav('raid')}}
   if(!el)return;
   const head=`<div class="row between"><h2>🐦 ${L('レイドバトル','团队战')}</h2>${r?`<span class="hint">${L(`入れかわりまで ${leftTxt(r.end-Date.now()-(RD.off||0))}`,`距离更换还有 ${leftTxt(r.end-Date.now()-(RD.off||0))}`)}</span>`:''}</div>`;
   if(!r||!bo){el.innerHTML=head+`<p class="hint">${L('読み込み中…','读取中…')}</p>`;return}
@@ -1509,7 +1521,7 @@ function featherAdd(n,quiet){if(!(n>0))return;let joined=false,sh=0;
   if(owns('origin')){sh=n}else{save.feather=(save.feather||0)+n;if(save.feather>=10){save.feather-=10;grant('origin',3);joined=true;sh=save.feather;save.feather=0}}
   if(sh)save.shards.origin=(save.shards.origin||0)+sh;persist();
   if(joined){checkTitles&&checkTitles();const show=()=>{if(document.querySelector('.overlay,.sheet-bg,.gx')||(B&&!B.done)){setTimeout(show,800);return}sfx('reveal',3);
-    showOverlay({word:'NEW!',ch:byId('origin'),win:true,coins:0,noCoin:true,sub:L('紫の羽が10枚そろった！<br><b>始原の紫翼皇</b>（★3）が仲間になった！','紫之羽集齐10根了！<br><b>始原紫翼皇</b>（★3）成为伙伴了！'),hint:L('これからの紫の羽は、紫翼皇のかけらになります','之后的紫之羽会变成紫翼皇的碎片'),go:[['party',L('編成へ','前往编队')],['online',L('通信へ','前往联机')]]})};setTimeout(show,600)}
+    showOverlay({word:'NEW!',ch:byId('origin'),win:true,coins:0,noCoin:true,sub:L('紫の羽が10枚そろった！<br><b>始原の紫翼皇</b>（★3）が仲間になった！','紫之羽集齐10根了！<br><b>始原紫翼皇</b>（★3）成为伙伴了！'),hint:L('これからの紫の羽は、紫翼皇のかけらになります','之后的紫之羽会变成紫翼皇的碎片'),go:[['party',L('編成へ','前往编队')],['raid',L('レイドへ','前往团队战')]]})};setTimeout(show,600)}
   else if(!quiet||sh)toast(sh?L(`紫の羽 → 紫翼皇のかけら+${sh}`,`紫之羽 → 紫翼皇的碎片+${sh}`):L(`紫の羽+${n}（${save.feather}/10）`,`紫之羽+${n}（${save.feather}/10）`));
   renderRaid()}
 async function finishRaidOn(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
@@ -1519,7 +1531,7 @@ async function finishRaidOn(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=nul
   setTimeout(()=>{claimRank(true);raidLoad()},300);
   const left=r?Math.max(0,(r.triesMax||3)-(r.tries||0)):0,again=r&&!r.kill&&!(RD.d&&RD.d.killed)&&left>0;
   return showOverlay({word:r&&r.kill?'VICTORY!':'RAID',ch:r&&r.kill?me.ch:raidBoss(),win:true,coins:0,noCoin:true,
-    go:[...(again?[['raid-again',L(`もう一度挑む（あと${left}回）`,`再挑战（还剩${left}次）`),()=>{nav('online');raidGo()}]]:[]),['online',L('レイドへ','前往团队战'),()=>{nav('online');setTimeout(()=>$('#raid')?.scrollIntoView(),200)}],['party',L('編成へ','前往编队')],['tower',L('タワーへ','前往塔')]],
+    go:[...(again?[['raid-again',L(`もう一度挑む（あと${left}回）`,`再挑战（还剩${left}次）`),()=>{nav('raid');raidGo()}]]:[]),['raid',L('レイドへ','前往团队战')],['party',L('編成へ','前往编队')],['tower',L('タワーへ','前往塔')]],
     sub:r?L(`紫翼皇に <b>${r.dmg}</b> ダメージ！`,`对紫翼皇造成 <b>${r.dmg}</b> 伤害！`)+(r.mul>1?L(`（集合タイムで ${r.mul}倍）`,`（集合时间 ${r.mul}倍）`):'')+
       `<br><span class="lad-chg">${L(`みんなの残りHP ${r.hp.toLocaleString()} / ${r.max.toLocaleString()}`,`大家剩余HP ${r.hp.toLocaleString()} / ${r.max.toLocaleString()}`)}</span>`+
       (r.kill?`<br><span class="lad-chg">🎉 ${L('とどめを刺した！ みんなで紫翼皇を倒した！','最后一击！大家一起打倒了紫翼皇！')}</span>`:r.killedBefore?`<br>${L('（ほかの人が先に倒していました）','（其他人已经先打倒了）')}`:'')+
@@ -1547,7 +1559,8 @@ async function cupAct(path,extra){if(CUP.busy)return;CUP.busy=true;try{CUP.data=
 function cupReport(c,win){const send=()=>api('/api/cup/report',{...auth(),tid:c.tid,r:c.r,win});send().catch(()=>setTimeout(()=>send().catch(()=>{}),3000))}
 const partyHTML=pt=>`<div class="party-strip">${(pt||[]).map(x=>byId(x.id)?`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(x.id))}<span class="rar">${stars(x.star)}</span></div>`:'').join('')}</div>`;
 const whoHTML=(p,big)=>p?`<div class="who" style="align-items:center">${byId(p.icon)?`<div style="width:${big?56:40}px;flex:none">${crest(byId(p.icon))}</div>`:''}<div>${p.title?`<span class="ptitle">${titleTxt(p.title)}</span><br>`:''}<b>${nameOf(p.w,p.tag)}</b></div></div>`:'';
-function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=true;return}el.hidden=false;
+function cupNone(){const n=$('#cup-none');if(!n)return;const none=$('#cup').hidden;n.hidden=!none;if(none)n.innerHTML=`<h2>🏆 ${L('マイスター杯（大会）','大师杯（大赛）')}</h2><p class="hint">${L('いまは大会の予定はありません。大会があるときは、ここで受付や対戦をします。','目前没有大赛安排。有大赛时，会在这里报名和对战。')}</p>`}
+function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=true;cupNone();return}el.hidden=false;cupNone();
   const me=d.me||{},reg=save.prof.reg,head=`<div class="cup-h"><span class="cup-badge">🏆 ${L('大会','大赛')}</span><h2>${cupT(c.name)}</h2><div class="cup-sub">${cupT(c.sub)}</div>
     <div class="hint">📅 ${cupDate(c.date)}　📍 ${c.place||''}　👥 ${c.status==='open'||c.status==='checkin'?`${c.entries}/${c.cap}${L('人','人')}`:`${c.checked}${L('人','人')}`}</div></div>`;
   let body='';
@@ -1584,7 +1597,7 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   if(d.rew&&d.rew.coins>0)body+=`<button class="btn primary" id="cup-claim">🎁 ${L(`報酬を受け取る（${d.rew.coins}コイン）`,`领取奖励（${d.rew.coins}金币）`)}</button>`;
   el.innerHTML=head+body;
   const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f};
-  on('cup-reg',()=>{sfx('tap');pedit=true;renderProf();$('#prof').scrollIntoView({behavior:'smooth'})});
+  on('cup-reg',()=>{sfx('tap');pedit=true;nav('rank');setTimeout(()=>$('#prof').scrollIntoView({behavior:'smooth'}),150)});
   on('cup-entry',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:true})});
   on('cup-cancel',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:false})});
   on('cup-chk',()=>{sfx('tap');const code=c.online?'':($('#cup-code').value||'').trim();if(!c.online&&!/^\d{4}$/.test(code)){toast(L('4けたの数字を入れてください','请输入4位数字'));return}
@@ -1630,7 +1643,7 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   TUT.on=false;B={inf:true,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
-  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const boss=run.f%10===0;$('#floor-tag').textContent=L(`無限の塔 ${run.f}F${boss?'｜ボス戦':''}`,`无限之塔 ${run.f}F${boss?'｜头目战':''}`);
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
@@ -1676,7 +1689,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;
   B={raid,tower:TW,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:T.lap,tower:TW,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   if(raid)B.S.rule=null;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:B.S.fl;
-  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{const e=G.act(B.S,1);
@@ -1931,7 +1944,8 @@ function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id)
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
 function onlineQueue(fn){B.chain=(B.chain||Promise.resolve()).then(()=>B&&!B.done?fn():null).catch(e=>console.error(e));return B.chain}
-function renderOnline(){renderCup();cupLoad();renderRaid();raidLoad();renderLad();ladLoad();rallyLoad();renderProf();renderRank();loadRank();claimRank();
+function renderRankView(){renderRank();loadRank();renderProf();claimRank()}
+function renderOnline(){renderCup();cupLoad();renderRaid();raidLoad();renderLad();ladLoad();rallyLoad();claimRank();
   $('#on-party').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
   const el=$('#on-body');
   if(!ONLINE_URL){el.innerHTML=`<p class="hint">${L('通信対戦のサーバーを準備中です。もう少しお待ちください。','联机服务器正在准备中，请稍候。')}</p>`;return}
@@ -1982,7 +1996,7 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
 function beginOnline(m){
   TUT.on=false;
   B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
-  ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
   B.oraid=m.kind==='raid';B.mul=m.mul||1;const kind=m.kind==='raid'?L('レイドバトル','团队战'):m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
   $('#floor-tag').innerHTML=kind+(m.oppWho&&m.oppWho.w&&m.oppWho.w.length?' vs '+nameOf(m.oppWho.w):on?' vs '+on.name:'');
@@ -1993,11 +2007,11 @@ async function finishOnline(win,me,foe){if(B.oraid)return finishRaidOn(win,me,fo
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{sfx('lose')}
   await W(900);
   if(B.lad){ON.lad=null;for(let i=0;i<30&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;LAD.me=r?r.after:LAD.me;if(!r)ladLoad();const rb=r&&r.rally;if(rb)setTimeout(()=>claimRank(true),300);
-    return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[...(rb&&rb.shards?[['rshard',L(`🧩 かけらを選ぶ`,`🧩 选择碎片`),()=>{nav('online');setTimeout(shardPick,400)}]]:[]),['lad-again',L('もう一度マッチング','再次匹配'),()=>{nav('online');ladQueue()}],['online',L('ランクバトルへ','返回排位赛')],['party',L('編成へ','前往编队')]],
+    return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[...(rb&&rb.shards?[['rshard',L(`🧩 かけらを選ぶ`,`🧩 选择碎片`),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['lad-again',L('もう一度マッチング','再次匹配'),()=>{nav('lad');ladQueue()}],['lad',L('ランクバトルへ','返回排位赛')],['party',L('編成へ','前往编队')]],
       sub:(B.cut?L('通信が切れました（負け）','连接已断开（判负）'):B.idle?L('時間切れ（負け）','超时（判负）'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('ランクバトルに勝利！','排位赛获胜！'):L('ランクバトルに敗れた…','排位赛落败……'))+(r?'<br>'+ladChange(r):'')+(rb?'<br><span class="lad-chg">'+(rb.capped?L('📣 集合タイム：この相手・この回の報酬は上限です','📣 集合时间：本次奖励已达上限'):L(`📣 集合タイム +${rb.coins}コイン・選べるかけら+${rb.shards}（${rb.games}/${rb.max}戦・${rb.pts}点）`,`📣 集合时间 +${rb.coins}金币·自选碎片+${rb.shards}（${rb.games}/${rb.max}场·${rb.pts}分）`))+'</span>':''),
       hint:B.ghost?L('ゴースト戦：負けても★は減りません（連勝ボーナスなし）','幽灵战：输了也不会减少★（无连胜奖励）'):''})}
   if(B.cup){const c=B.cup;ON.cup=null;if(!B.cut&&!(CUP.data&&CUP.data.cup&&CUP.data.cup.online))cupReport(c,win);
-    return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[['online',L('大会の画面へ','返回大赛画面')]],
+    return showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,noCoin:true,go:[['cup',L('大会の画面へ','返回大赛画面')]],
       sub:B.cut?L('通信が切れました（負け）','连接已断开（判负）'):B.idle?L('時間切れ（負け）','超时（判负）'):B.left?L('相手が退出したので、あなたの勝ち！','对方退出了，你获胜！'):win?L('マイスター杯で勝利！','在大师杯中获胜！'):L('マイスター杯で敗れた…','在大师杯中落败……'),
       hint:B.cut?'':L('結果はサーバーに記録されました。次の組み合わせを待とう','结果已记录在服务器上。等待下一轮对阵吧')})}
   showOverlay({word:B.cut?'DISCONNECT':win?'WIN!':'LOSE…',ch:win?me.ch:foe.ch,win,coins:0,
@@ -2129,8 +2143,8 @@ function applyLang(l){l=l==='zh'?'zh':'ja';G.setLang(l);save.lang=l;persist();co
   document.querySelectorAll('[data-zh-aria]').forEach(e=>{if(e.dataset.jaAria==null)e.dataset.jaAria=e.getAttribute('aria-label');e.setAttribute('aria-label',zh?e.dataset.zhAria:e.dataset.jaAria)});
   document.querySelectorAll('[data-zh-ph]').forEach(e=>{if(e.dataset.jaPh==null)e.dataset.jaPh=e.placeholder;e.placeholder=zh?e.dataset.zhPh:e.dataset.jaPh});
   updCoins();
-  const vis=['tower','party','gacha','dex','online'].find(x=>!$('#v-'+x).hidden);
-  if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline})[vis]()}
+  const vis=['tower','party','gacha','dex','online','rank'].find(x=>!$('#v-'+x).hidden);
+  if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView})[vis]()}
 
 /* ================= 起動 ================= */
 fixParty();applyLang(save.lang||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'ja'));updCoins();setSnd();
