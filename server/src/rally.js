@@ -37,7 +37,7 @@ export const RallyMixin = {
     let ch = false;
     for (let d = 0; d < 2; d++) for (const h of D.hours || []) {
       const start = day0 + d * DAY + h * 3600e3, id = 'd' + start.toString(36);
-      if (start + D.min * 60000 <= now || this.rSkip.includes(id) || this.rallies.some((r) => r.id === id)) continue;
+      if (this.rSkip.includes(id) || this.rallies.some((r) => r.id === id)) continue;
       this.rallies.push({ id, start, min: D.min, label: D.label || '', daily: 1 });
       ch = true;
     }
@@ -90,7 +90,10 @@ export const RallyMixin = {
     const cur = C ? { ...this.rallyPub(C), board: hide(this.rallyBoard(C.id)), mine: /^[0-9a-f]{16,32}$/.test(id) ? this.rallyMine(C.id, id) : null } : null;
     const L = this.rallies.filter((r) => r.done && r.res && r.res.length).pop();
     const last = L && now - (L.start + L.min * 60000) < 86400e3 ? { ...this.rallyPub(L), res: L.res } : null;
-    return json({ now, cur, next, last, queue: (this.queue || []).length, rew: RALLY });
+    /* 今日と明日の一覧（予定を立てやすいように。日本時間） */
+    const d0 = Math.floor((now + H9) / DAY) * DAY - H9;
+    const days = this.rallies.filter((r) => r.start >= d0 && r.start < d0 + 2 * DAY).map((r) => this.rallyPub(r));
+    return json({ now, cur, next, last, days, d0, queue: (this.queue || []).length, rew: RALLY });
   },
   async rallyAdmin(b, json) {
     await this.rallyLoad();
