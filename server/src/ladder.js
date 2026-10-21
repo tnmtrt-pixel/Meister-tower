@@ -92,7 +92,7 @@ export function cleanParty(p) {
   return out.some((x) => !x) ? null : out;
 }
 
-/* ゴースト戦までの待ち時間は rally.js（ふだん20秒・集合タイム40秒） */
+/* ゴースト戦までの待ち時間は rally.js（ふだん30秒・集合タイム60秒） */
 
 export const LadderMixin = {
   ladInit() {
@@ -181,7 +181,7 @@ export const LadderMixin = {
     this.queue = this.queue.filter((x) => x.id !== m.id);
     Object.assign(ent, { id: m.id, party, sc: score(r), lad: r, t0: Date.now(), who: this.who(m.id) });
     this.queue.push(ent);
-    this.mmSend(ent, { t: 'wait', ghostMs: this.ghostMs(), rally: this.rallyPub(this.rallyNow()) });
+    this.mmSend(ent, { t: 'wait', ghostMs: this.ghostMs(), rally: this.rallyPub(this.rallyNow()), queue: this.queue.length });
     this.mmKick();
   },
   mmKick() {

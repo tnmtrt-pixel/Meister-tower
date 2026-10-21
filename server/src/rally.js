@@ -1,6 +1,6 @@
 /*
  * 集合タイム（ランクバトルに人が集まる時間）
- *  運営ページで時間を決める（予告つき）。集合タイム中は、人との対戦で報酬が出る。ゴースト戦までの待ち時間は 20秒 → 40秒。
+ *  運営ページで時間を決める（予告つき）。集合タイム中は、人との対戦で報酬が出る。ゴースト戦までの待ち時間は 30秒 → 60秒。
  *  報酬（人との対戦のみ・負けてももらえる）：1戦ごとに3コインと「選べるかけら」2個、勝ったらさらに+5コイン。
  *  1回の集合タイムで報酬が出るのは10戦まで。同じ相手は2戦まで（談合よけ）。
  *  上位ボーナス：報酬の出た対戦で 勝ち3点・負け1点。3戦以上した人のうち上位3人に、終わったあとボーナス（同点は勝ち数→先に達した人）。
@@ -10,7 +10,7 @@
  *  POST /api/admin {key, rally:'add', start, min, label} / {key, rally:'del', id} / {key, rally:'list'} / {key, rally:'daily', hours:[8,12,16,20], min, label}
  */
 export const RALLY = { per: 3, win: 5, shards: 2, max: 10, sameOpp: 2, pW: 3, pL: 1, minG: 3, top: [{ c: 50, s: 10 }, { c: 30, s: 6 }, { c: 20, s: 4 }] };
-export const GHOST_MS = 20000, GHOST_RALLY_MS = 40000;
+export const GHOST_MS = 30000, GHOST_RALLY_MS = 60000;
 /* 毎日の集合タイム（日本時間）。運営ページで変えられる（storage 'rallyDaily'）。1回だけ休むときは運営ページで消す（'rallySkip' に記録して作り直さない） */
 export const DAILY0 = { hours: [8, 12, 16, 20], min: 30, label: '' };
 const H9 = 9 * 3600e3, DAY = 86400e3;

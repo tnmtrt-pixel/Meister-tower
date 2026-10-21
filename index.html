@@ -740,7 +740,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=35548d7a"></script>
 <script>
-const VERSION='2.5.6';
+const VERSION='2.5.7';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1350,9 +1350,9 @@ function newsPop(){if(newsPopped||!hasAny()||!unread().some(n=>n.pop))return;
 $('#news-btn').onclick=showNews;
 
 /* ================= ランクバトル ================= */
-/* マッチングボタン → サーバーの待合室（/mm）で近いランクの人と組む。20秒（集合タイム中は40秒）だれもいなければゴースト（ほかの人のパーティをCPUが動かす）。
+/* マッチングボタン → サーバーの待合室（/mm）で近いランクの人と組む。30秒（集合タイム中は60秒）だれもいなければゴースト（ほかの人のパーティをCPUが動かす）。
    対戦の勝ち負けはサーバーが計算して決める */
-const LAD={me:null,ws:null,state:'idle',t0:0,tick:null,err:'',ghostMs:20000};
+const LAD={me:null,ws:null,state:'idle',t0:0,tick:null,err:'',ghostMs:30000};
 function ladChange(r){const a=r.before,b=r.after;
   if(b.rank>=MASTER&&a.rank>=MASTER)return`<span class="lad-chg${r.delta<0?' dn':''}">${L('レート','积分')} ${a.rate} → ${b.rate}（${r.delta>=0?'+':''}${r.delta}）</span>`;
   if(b.rank>a.rank)return`<span class="lad-chg">🎉 ${rankName(a.rank)} → ${rankName(b.rank)}${L(' に昇格！',' 晋级！')}</span>`;
@@ -1368,7 +1368,7 @@ function ladQueue(){ac();LAD.err='';fixParty();
   LAD.ws=ws;
   ws.onopen=()=>ws.send(JSON.stringify({t:'q',...auth(),v:ENGINE_V,party:onlineParty()}));
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
-    if(m.t==='wait'){LAD.state='queue';LAD.t0=Date.now();LAD.ghostMs=m.ghostMs||20000;clearInterval(LAD.tick);LAD.tick=setInterval(()=>{if(LAD.state!=='queue'||$('#v-online').hidden){clearInterval(LAD.tick);return}const w=$('#lad-sec');if(w)w.textContent=Math.floor((Date.now()-LAD.t0)/1000)},500);renderLad();return}
+    if(m.t==='wait'){LAD.state='queue';LAD.t0=Date.now();LAD.ghostMs=m.ghostMs||30000;if(RAL.d&&m.queue!=null)RAL.d.queue=m.queue;rallyLoad();clearInterval(LAD.tick);LAD.tick=setInterval(()=>{if(LAD.state!=='queue'||$('#v-online').hidden){clearInterval(LAD.tick);return}const w=$('#lad-sec');if(w)w.textContent=Math.floor((Date.now()-LAD.t0)/1000)},500);renderLad();return}
     if(m.t==='match'){LAD.ws=null;clearInterval(LAD.tick);try{ws.close()}catch(e){}LAD.state='idle';sfx('reveal',2);
       toast(m.ghost?L('ゴーストと対戦します！','与幽灵对战！'):L('対戦相手が見つかりました！','找到对手了！'));onlineConnect(m.room,false,null,{ticket:m.ticket,ghost:m.ghost});renderLad();return}
     LAD.err=m.t==='ver'?L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面'):m.t==='dup'?L('別の画面でマッチングを始めたので、こちらは止めました','已在其他画面开始匹配，这里已停止'):m.e==='auth'?L('プロフィールの登録が必要です','需要登记个人资料'):L('マッチングできませんでした','无法匹配');
@@ -1383,16 +1383,16 @@ function renderLad(){const el=$('#lad');if(!el)return;const p=save.prof,me=LAD.m
     <div>${me.rank>=MASTER?'':starsHTML(me.stars,me.need)}${me.streak>=2?`<div class="lad-streak">🔥 ${L(`${me.streak}連勝中`,`${me.streak}连胜中`)}</div>`:''}<div class="hint">${L(`今シーズン ${me.wins}勝${me.games-me.wins}敗・最高 ${rankName(me.best)}`,`本赛季 ${me.wins}胜${me.games-me.wins}负·最高 ${rankName(me.best)}`)}</div></div></div>`:`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   let act;
   if(LAD.state==='connect')act=`<p class="lad-wait">${L('サーバーにつないでいます…','正在连接服务器…')}</p>`;
-  else if(LAD.state==='queue')act=`<div class="lad-wait">${L('相手をさがしています…','正在寻找对手…')}<b><span id="lad-sec">${Math.floor((Date.now()-LAD.t0)/1000)}</span>${L('秒','秒')}</b><small class="hint">${L(`${Math.round(LAD.ghostMs/1000)}秒たっても見つからないときは、ゴーストと対戦します`,`${Math.round(LAD.ghostMs/1000)}秒后仍找不到对手时，将与幽灵对战`)}</small></div><div class="row" style="justify-content:center"><button class="btn" id="lad-cancel">${L('やめる','取消')}</button></div>`;
+  else if(LAD.state==='queue')act=`<div class="lad-wait">${L('相手をさがしています…','正在寻找对手…')}<b><span id="lad-sec">${Math.floor((Date.now()-LAD.t0)/1000)}</span>${L('秒','秒')}</b><small class="hint" id="lad-qn">${L(`いま待っている人：あなたをふくめて ${RAL.d?RAL.d.queue|0:'-'}人`,`当前等待的人：${RAL.d?RAL.d.queue|0:'-'}人`)}</small><small class="hint">${L(`${Math.round(LAD.ghostMs/1000)}秒たっても見つからないときは、ゴーストと対戦します`,`${Math.round(LAD.ghostMs/1000)}秒后仍找不到对手时，将与幽灵对战`)}</small></div><div class="row" style="justify-content:center"><button class="btn" id="lad-cancel">${L('やめる','取消')}</button></div>`;
   else if(ON.lad&&(ON.state==='connecting'||ON.state==='waiting'))act=`<p class="lad-wait">${L('対戦相手とつないでいます…','正在连接对手…')}</p>`;
   else act=`${LAD.err?`<p class="cup-warn">${LAD.err}</p>`:''}<div class="label">${L('出場するパーティ（今のパーティ）','出战队伍（当前队伍）')}</div>${partyHTML(onlineParty())}
     <div class="row" style="justify-content:center"><button class="btn primary" id="lad-go">${L('マッチング開始','开始匹配')}</button></div>`;
-  el.innerHTML=head+`<div id="rally-lad">${rallyHTML()}</div>`+rk+act+`<details class="hint" style="margin-top:6px"><summary>${L('ルール','规则')}</summary>${L('勝つと★+1（3連勝目からは★+2）。★がたまるとランクが上がり、ランク10の上はマスター（レート）。ランク5から、負けると★−1（ランク5と8より下には下がりません）。20秒（集合タイム中は40秒）で相手が見つからないときは、ほかの人のパーティをCPUが動かす「ゴースト」と対戦（負けても★は減りません。勝ちは★+1で、連勝には入りません）。★や強化はそのままで戦います。シーズンは2週間で、終わると最高ランクに応じてコインがもらえ、次のシーズンは3つ下のランクから始まります。','获胜★+1（第3连胜起★+2）。★集满后等级提升，等级10之上为大师（积分）。等级5起，输了★−1（不会降到等级5和8以下）。20秒（集合时间内为40秒）内找不到对手时，将与由CPU操作他人队伍的「幽灵」对战（输了也不会减少★；获胜★+1，不计入连胜）。★和强化保持原样对战。赛季为2周，结束时按最高等级获得金币，下个赛季从低3级的等级开始。')}</details>`;
+  el.innerHTML=head+`<div id="rally-lad">${rallyHTML()}</div>`+rk+act+`<details class="hint" style="margin-top:6px"><summary>${L('ルール','规则')}</summary>${L('勝つと★+1（3連勝目からは★+2）。★がたまるとランクが上がり、ランク10の上はマスター（レート）。ランク5から、負けると★−1（ランク5と8より下には下がりません）。30秒（集合タイム中は60秒）で相手が見つからないときは、ほかの人のパーティをCPUが動かす「ゴースト」と対戦（負けても★は減りません。勝ちは★+1で、連勝には入りません）。★や強化はそのままで戦います。シーズンは2週間で、終わると最高ランクに応じてコインがもらえ、次のシーズンは3つ下のランクから始まります。','获胜★+1（第3连胜起★+2）。★集满后等级提升，等级10之上为大师（积分）。等级5起，输了★−1（不会降到等级5和8以下）。30秒（集合时间内为60秒）内找不到对手时，将与由CPU操作他人队伍的「幽灵」对战（输了也不会减少★；获胜★+1，不计入连胜）。★和强化保持原样对战。赛季为2周，结束时按最高等级获得金币，下个赛季从低3级的等级开始。')}</details>`;
   const on=(id,f)=>{const b=$('#'+id);if(b)b.onclick=f};
   on('lad-go',()=>{sfx('tap');ladQueue()});on('lad-cancel',()=>{sfx('tap');ladCancel();renderLad()});rallyBind()}
 
 /* ================= 集合タイム ================= */
-/* 運営が決めた時間帯（予告あり）。その間は人と対戦するたびにコインと「選べるかけら」。ゴースト戦までの待ち時間は40秒に */
+/* 運営が決めた時間帯（予告あり）。その間は人と対戦するたびにコインと「選べるかけら」。ゴースト戦までの待ち時間は60秒に */
 const RAL={d:null,off:0,at:0,tick:null};
 async function rallyLoad(){try{const j=await api('/api/rally'+(save.prof.reg?'?id='+save.prof.id:''));RAL.d=j;RAL.off=(j.now||Date.now())-Date.now();RAL.at=Date.now()}catch(e){}rallyPaint()}
 const rNow=()=>Date.now()+RAL.off;
@@ -1407,18 +1407,18 @@ const rClock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return s>=3600?leftTxt(
 function rallyHTML(){const c=rallyCur(),n=rallyNext(),R=(RAL.d&&RAL.d.rew)||{per:3,win:5,shards:2,max:10},q=RAL.d?RAL.d.queue|0:0;let h='';
   if(c)h=`<div class="rally on">📣 ${L('集合タイム中！','集合时间进行中！')}${c.label?` ${esc(c.label)}`:''}<br>${L('のこり','剩余')} <b data-rclock="${c.end}">${rClock(c.end-rNow())}</b>
     <small>${L(`人と対戦すると1戦ごとに ${R.per}コイン＋選べるかけら${R.shards}個（勝つと+${R.win}コイン）。負けてももらえます・${R.max}戦まで`,`与真人对战每场 ${R.per}金币＋自选碎片${R.shards}个（获胜再+${R.win}金币）。输了也有·最多${R.max}场`)}</small>
-    <small>${L(`いまマッチング待ち ${q}人・ゴースト戦まで40秒`,`当前等待匹配 ${q}人·40秒后与幽灵对战`)}</small>${rallyBoardHTML(c,R)}</div>`;
+    <small>${L(`いまマッチング待ち ${q}人・ゴースト戦まで60秒`,`当前等待匹配 ${q}人·60秒后与幽灵对战`)}</small>${rallyBoardHTML(c,R)}</div>`;
   else if(RAL.d&&RAL.d.last&&RAL.d.last.res&&rNow()-RAL.d.last.end<6*3600e3&&!$('#v-online').hidden)h=`<div class="rally">🏆 ${L('集合タイムの結果','集合时间结果')}${RAL.d.last.label?` ${esc(RAL.d.last.label)}`:''}<div class="rb">${RAL.d.last.res.map(x=>`<div>${['🥇','🥈','🥉'][x.n-1]||x.n} ${nameOf(x.w)} <b>${x.pts}${L('点','分')}</b></div>`).join('')}</div>${n?`<small>${L('次の集合タイム','下次集合时间')} ${rWhen(n.start)}</small>`:''}</div>`;
   if(!h&&n)h=`<div class="rally">📣 ${L('次の集合タイム','下次集合时间')}${n.label?` ${esc(n.label)}`:''}<br><b>${rWhen(n.start)}〜${new Date(n.end).getHours()}:${String(new Date(n.end).getMinutes()).padStart(2,'0')}</b>
     <small>${L('あと','还有')} <span data-rclock="${n.start}">${rClock(n.start-rNow())}</span>${L(`・この時間にランクバトルをすると、コインと選べるかけらがもらえる！`,`·这段时间参加排位赛可获得金币和自选碎片！`)}</small></div>`;
   if(save.rshard>0)h+=`<div class="row" style="justify-content:center;margin:-4px 0 10px"><button class="btn primary" data-rshard>🧩 ${L(`選べるかけら ×${save.rshard} を使う`,`使用自选碎片 ×${save.rshard}`)}</button></div>`;
   return h}
 function rallyBind(){document.querySelectorAll('[data-rshard]').forEach(b=>b.onclick=()=>{sfx('tap');shardPick()})}
-function rallyPaint(){for(const id of['rally-lad','rally-tw']){const el=document.getElementById(id);if(el)el.innerHTML=rallyHTML()}rallyBind()}
+function rallyPaint(){const qn=document.getElementById('lad-qn');if(qn&&RAL.d)qn.textContent=L(`いま待っている人：あなたをふくめて ${RAL.d.queue|0}人`,`当前等待的人：${RAL.d.queue|0}人`);for(const id of['rally-lad','rally-tw']){const el=document.getElementById(id);if(el)el.innerHTML=rallyHTML()}rallyBind()}
 /* 1秒ごとに残り時間だけ書きかえる。始まり・終わりをまたいだら表示を作り直す。マッチング待ちの人数は30秒ごとに取り直す */
 RAL.tick=setInterval(()=>{if(!RAL.d)return;const st=rallyCur()?'on':rallyNext()?'next':'none';if(st!==RAL.st){RAL.st=st;rallyPaint();return}
   document.querySelectorAll('[data-rclock]').forEach(e=>{e.textContent=rClock(+e.dataset.rclock-rNow())});
-  const vis=!$('#v-online').hidden||!$('#v-tower').hidden;if(vis&&Date.now()-RAL.at>(st==='on'?30000:300000))rallyLoad()},1000);
+  const vis=!$('#v-online').hidden||!$('#v-tower').hidden;if(vis&&Date.now()-RAL.at>(LAD.state==='queue'||st==='on'&&!$('#v-online').hidden?5000:st==='on'?30000:300000))rallyLoad()},1000);
 function shardPick(){if(!(save.rshard>0))return;const ids=ALL.filter(c=>owns(c.id)).map(c=>c.id);if(!ids.length)return;
   const draw=()=>{const bg=document.querySelector('.sheet-bg');if(!bg)return;bg.querySelector('[data-rsn]').textContent=save.rshard;
     bg.querySelectorAll('[data-rs]').forEach(b=>{b.querySelector('small').textContent=L(`かけら ${save.shards[b.dataset.rs]||0}`,`碎片 ${save.shards[b.dataset.rs]||0}`);b.disabled=!(save.rshard>0)})};
