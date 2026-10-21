@@ -755,9 +755,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=47478006"></script>
+<script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.6.0';
+const VERSION='2.6.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -803,7 +803,8 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
   s.dexReward2=!!v.dexReward2;
-  s.rshard=Math.max(0,Math.floor(+v.rshard||0)); /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
+  s.rshard=Math.max(0,Math.floor(+v.rshard||0));
+  s.feather=Math.max(0,Math.floor(+v.feather||0)); /* レイドの「紫の羽」（10枚で紫翼皇が仲間に） */ /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
   s.auto=!!v.auto;
   s.psort=v.psort==='type'?'type':'vol'; /* 仲間一覧の並び順 */
   s.tseen=(Array.isArray(v.tseen)?v.tseen:[]).filter(n=>Number.isInteger(n));
@@ -1083,7 +1084,7 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
   box.querySelector('[data-gx="close"]').focus({preventScroll:true})}
 
 /* ================= 図鑑 ================= */
-const DEXG=()=>[[L('キャラクター vol.1','角色 vol.1'),c=>c.vol===1&&!c.reward],[L('キャラクター vol.2','角色 vol.2'),c=>c.vol===2&&!c.reward],[L('塔のボス（倒すと仲間に）','塔的头目（打倒后成为伙伴）'),c=>!!c.reward]];
+const DEXG=()=>[[L('キャラクター vol.1','角色 vol.1'),c=>c.vol===1&&!c.reward],[L('キャラクター vol.2','角色 vol.2'),c=>c.vol===2&&!c.reward],[L('ボス（塔で倒す・レイドで羽を集めると仲間に）','头目（在塔中打倒·在团队战中收集羽毛即可成为伙伴）'),c=>!!c.reward]];
 function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vol===2),g1=v1.filter(c=>owns(c.id)).length,g2=v2.filter(c=>owns(c.id)).length,got=g1+g2;
   $('#dex-count').textContent=`${got} / ${CHARS.length}`+L('人','人');$('#dex-bar').style.width=got/CHARS.length*100+'%';
   $('#dex-reward').innerHTML=(save.dexReward?L('vol.1：コンプリート報酬を受け取りました！','vol.1：已领取全收集奖励！'):L(`vol.1：${v1.length}人を全員集めると、コイン10枚と特別な仲間がもらえます（${g1}/${v1.length}）`,`vol.1：集齐全部${v1.length}人，可获得10金币和特别的伙伴（${g1}/${v1.length}）`))+'<br>'+
@@ -1092,7 +1093,7 @@ function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vo
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 /* ボスキャラの入手方法 */
 const REWARD_TXT={meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
-const rewardHow=c=>{const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
+const rewardHow=c=>{if(c.reward==='raid')return L(`レイドバトルに挑戦した日に「紫の羽」1枚、みんなで倒した日はさらに2枚。10枚集めると★3で仲間になります（いま ${Math.min(10,save.feather||0)}/10枚）。仲間になったあとの羽は、かけら1個になります。ガチャには出ません。`,`参加团队战的那天获得「紫之羽」1根，大家一起打倒的那天再获得2根。集齐10根即可以★3成为伙伴（现在 ${Math.min(10,save.feather||0)}/10根）。成为伙伴后的羽毛会变成碎片1个。不会出现在扭蛋中。`);const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   if(!o){el.innerHTML=`<p class="hint">${c.reward?L('まだ出会っていないボス。','尚未遇见的头目。')+rewardHow(c):L(`まだ出会っていないキャラ。ガチャ（vol.${c.vol}）で仲間にしよう。`,`尚未遇见的角色。用扭蛋（vol.${c.vol}）让它成为伙伴吧。`)}</p>`;return}
   el.innerHTML=`<div class="who">${crest(c,'big')}<div><b>${c.name}</b><span class="rar" style="font-size:16px">${stars(starOf(id))}</span><br>${typesHTML(c)} <small>${nick(c)}</small></div></div>
@@ -1278,7 +1279,7 @@ function renderRank(){const el=$('#rank');
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
 async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;claimBusy=true;
-  try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec});const all=j.items||[];
+  try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec,feather:1});const all=(j.items||[]).filter(x=>x.kind!=='rfeather');if(j.feathers>0)featherAdd(j.feathers|0,quiet);
     /* 集合タイム・レイドの1戦ごとのコインと、選べるかけらは、その場で受け取る（結果画面に出ているので静かに） */
     const SILENT=x=>x.kind==='rally'||x.kind==='raid'||x.kind==='rshard';const tsh=all.filter(x=>x.kind==='rshard'&&x.pkey<0);
     const items=all.filter(x=>!SILENT(x)),rc=all.filter(x=>x.kind==='rally'||x.kind==='raid').reduce((t,x)=>t+x.coins,0),sh=Math.max(0,j.shards|0),oc=Math.max(0,(j.coins|0)-rc);
@@ -1487,11 +1488,12 @@ function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo
   const R=r.rew||{};
   el.innerHTML=head+`<div class="raid-boss">${crest(bo)}<div class="raid-name"><small>${L('伝説のレイドボス','传说的团队首领')} ${typesHTML(bo)}</small><b>${L('始原の紫翼皇','始原紫翼皇')}</b><small class="raid-yomi">${L('プライマル・ヴァイオレット','Primal Violet')}</small><small>${L(`今日の挑戦 ${r.tries}回・${r.people}人`,`今天的挑战 ${r.tries}次·${r.people}人`)}</small></div></div>${raidBar(r)}
     ${r.rally&&!r.killed?`<div class="rally on" style="margin:8px 0">📣 ${L(`集合タイム中！ ダメージ ${r.rallyMul||1.5}倍`,`集合时间中！伤害 ${r.rallyMul||1.5}倍`)}</div>`:''}
-    ${me&&save.prof.reg?`<div class="raid-me">${L(`あなた：今日 ${me.tries}/${r.triesMax}回・合計 ${me.dmg}ダメージ${me.best?`（最高 ${me.best}）`:''}`,`你：今天 ${me.tries}/${r.triesMax}次·合计 ${me.dmg}伤害${me.best?`（最高 ${me.best}）`:''}`)}</div>`:''}
+    ${me&&save.prof.reg?`<div class="raid-me">${L(`あなた：今日 ${me.tries}/${r.triesMax}回・合計 ${me.dmg}ダメージ${me.best?`（最高 ${me.best}）`:''}`,`你：今天 ${me.tries}/${r.triesMax}次·合计 ${me.dmg}伤害${me.best?`（最高 ${me.best}）`:''}`)}
+      <br>🪶 ${owns('origin')?L('紫翼皇は仲間！ 紫の羽はかけらになります','紫翼皇已是伙伴！紫之羽会变成碎片'):L(`紫の羽 ${save.feather||0}/10枚（10枚で紫翼皇が仲間に）`,`紫之羽 ${save.feather||0}/10根（10根即可让紫翼皇成为伙伴）`)}</div>`:''}
     ${act}
     <div class="label" style="margin-top:8px">${L('今日のダメージランキング','今日伤害排行')}</div>${list(r.top,x=>`<div class="${x.me?'me':''}">${['🥇','🥈','🥉'][x.n-1]||x.n} ${nameOf(x.w)} <b>${x.dmg}</b></div>`)}
     ${r.log&&r.log.length?`<div class="label" style="margin-top:8px">${L('さいきんの攻撃','最近的攻击')}</div>${list(r.log,x=>`<div>${nameOf(x.w)} <b>${x.kill?'🎉 ':''}${x.dmg}${L('ダメージ','伤害')}</b></div>`)}`:''}
-    <details class="hint" style="margin-top:6px"><summary>${L('ルールとごほうび','规则和奖励')}</summary>${L(`始原の紫翼皇の体力を、みんなで1日かけて削ります（毎朝5時に入れかわり）。1人1日${r.triesMax}回、パーティ全員が倒れるまで戦い、与えたダメージがみんなの体力から減ります。集合タイム中はダメージ${r.rallyMul||1.5}倍。挑戦するたびにダメージに応じたコイン。その日が終わったとき（倒したときはすぐ）、挑戦した人全員に、残りHP 75%・50%・25%を切るごとに選べるかけら${R.stageShard||1}個、倒したらさらにかけら${R.killShard||3}個と${R.killCoin||10}コイン。ダメージ上位3人には ${(R.top||[30,20,10]).join('・')}コイン。`,`大家用一天的时间一起削减始原紫翼皇的体力（每天早上5点更换）。每人每天${r.triesMax}次，战斗到全队倒下为止，造成的伤害会从大家的体力中扣除。集合时间内伤害${r.rallyMul||1.5}倍。每次挑战按伤害获得金币。当天结束时（打倒时立即），所有挑战者每当剩余HP低于75%·50%·25%各获得自选碎片${R.stageShard||1}个，打倒后再获得碎片${R.killShard||3}个和${R.killCoin||10}金币。伤害前3名获得 ${(R.top||[30,20,10]).join('·')}金币。`)}</details>`;
+    <details class="hint" style="margin-top:6px"><summary>${L('ルールとごほうび','规则和奖励')}</summary>${L(`始原の紫翼皇の体力を、みんなで1日かけて削ります（毎朝5時に入れかわり）。1人1日${r.triesMax}回、パーティ全員が倒れるまで戦い、与えたダメージがみんなの体力から減ります。集合タイム中はダメージ${r.rallyMul||1.5}倍。挑戦するたびにダメージに応じたコイン。その日が終わったとき（倒したときはすぐ）、挑戦した人全員に、残りHP 75%・50%・25%を切るごとに選べるかけら${R.stageShard||1}個、倒したらさらにかけら${R.killShard||3}個と${R.killCoin||10}コイン。ダメージ上位3人には ${(R.top||[30,20,10]).join('・')}コイン。挑戦した日に「紫の羽」1枚、倒した日はさらに2枚。10枚集めると紫翼皇が仲間になります。`,`大家用一天的时间一起削减始原紫翼皇的体力（每天早上5点更换）。每人每天${r.triesMax}次，战斗到全队倒下为止，造成的伤害会从大家的体力中扣除。集合时间内伤害${r.rallyMul||1.5}倍。每次挑战按伤害获得金币。当天结束时（打倒时立即），所有挑战者每当剩余HP低于75%·50%·25%各获得自选碎片${R.stageShard||1}个，打倒后再获得碎片${R.killShard||3}个和${R.killCoin||10}金币。伤害前3名获得 ${(R.top||[30,20,10]).join('·')}金币。参加的那天获得「紫之羽」1根，打倒的那天再获得2根。集齐10根紫翼皇即可成为伙伴。`)}</details>`;
   const g=$('#raid-go');if(g)g.onclick=()=>{sfx('tap');raidGo()}}
 async function raidGo(){if(RD.busy)return;ac();RD.err='';fixParty();
   if(!save.party.length){RD.err=L('先にパーティを組んでください','请先组建队伍');renderRaid();return}
@@ -1502,6 +1504,14 @@ async function raidGo(){if(RD.busy)return;ac();RD.err='';fixParty();
     if(!r.ok||!j.ok){RD.err=j.err==='tries'?L('今日の挑戦はもう終わりです','今天的挑战已经结束了'):j.err==='killed'?L('今日の紫翼皇はもう倒されました','今天的紫翼皇已经被打倒了'):j.err==='ver'?L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面'):j.err==='profile'?L('プロフィールの登録が必要です','需要登记个人资料'):L('始められませんでした。もう一度試してね','无法开始，请再试一次');return}
     sfx('reveal',3);onlineConnect(j.room,false,null,{ticket:j.ticket,raid:true})}
   catch(e){RD.err=L('接続できませんでした','无法连接')}finally{RD.busy=false;renderRaid()}}
+/* 紫の羽：10枚で紫翼皇が★3で仲間に。仲間になったあとは1枚＝かけら1個 */
+function featherAdd(n,quiet){if(!(n>0))return;let joined=false,sh=0;
+  if(owns('origin')){sh=n}else{save.feather=(save.feather||0)+n;if(save.feather>=10){save.feather-=10;grant('origin',3);joined=true;sh=save.feather;save.feather=0}}
+  if(sh)save.shards.origin=(save.shards.origin||0)+sh;persist();
+  if(joined){checkTitles&&checkTitles();const show=()=>{if(document.querySelector('.overlay,.sheet-bg,.gx')||(B&&!B.done)){setTimeout(show,800);return}sfx('reveal',3);
+    showOverlay({word:'NEW!',ch:byId('origin'),win:true,coins:0,noCoin:true,sub:L('紫の羽が10枚そろった！<br><b>始原の紫翼皇</b>（★3）が仲間になった！','紫之羽集齐10根了！<br><b>始原紫翼皇</b>（★3）成为伙伴了！'),hint:L('これからの紫の羽は、紫翼皇のかけらになります','之后的紫之羽会变成紫翼皇的碎片'),go:[['party',L('編成へ','前往编队')],['online',L('通信へ','前往联机')]]})};setTimeout(show,600)}
+  else if(!quiet||sh)toast(sh?L(`紫の羽 → 紫翼皇のかけら+${sh}`,`紫之羽 → 紫翼皇的碎片+${sh}`):L(`紫の羽+${n}（${save.feather}/10）`,`紫之羽+${n}（${save.feather}/10）`));
+  renderRaid()}
 async function finishRaidOn(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
   if(win){await say(L('紫翼皇「……強くなったね。また、いつでもおいで」','紫翼皇「……你变强了。随时再来吧」'),700);sfx('win')}else sfx('lose');
   await W(700);ON.lad=null;for(let i=0;i<40&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;

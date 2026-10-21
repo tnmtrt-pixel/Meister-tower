@@ -502,9 +502,11 @@ export class Rank {
     if (!a.r) return json({ coins: 0, items: [] });
     this.ladRow(b.id); /* シーズンが変わっていれば、ここで報酬が記録される */
     await this.rallyLoad(); /* 終わった集合タイムの上位ボーナスもここで記録 */
-    const items = this.sql.exec('SELECT kind, pkey, rank, coins FROM rw WHERE id=? AND got=0 ORDER BY pkey', b.id).toArray();
-    if (items.length) this.sql.exec('UPDATE rw SET got=1 WHERE id=? AND got=0', b.id);
-    return json({ coins: items.reduce((t, x) => t + (x.kind === 'rshard' ? 0 : x.coins), 0), shards: items.reduce((t, x) => t + (x.kind === 'rshard' ? x.coins : 0), 0), items });
+    /* 紫の羽（Ver 2.6.1〜）は、受け取れるゲーム（feather:1 を送ってくる）にだけ渡す */
+    const fx = b.feather ? '' : " AND kind != 'rfeather'";
+    const items = this.sql.exec('SELECT kind, pkey, rank, coins FROM rw WHERE id=? AND got=0' + fx + ' ORDER BY pkey', b.id).toArray();
+    if (items.length) this.sql.exec('UPDATE rw SET got=1 WHERE id=? AND got=0' + fx, b.id);
+    return json({ coins: items.reduce((t, x) => t + (x.kind === 'rshard' || x.kind === 'rfeather' ? 0 : x.coins), 0), shards: items.reduce((t, x) => t + (x.kind === 'rshard' ? x.coins : 0), 0), feathers: items.reduce((t, x) => t + (x.kind === 'rfeather' ? x.coins : 0), 0), items });
   }
 
   async admin(b) {
