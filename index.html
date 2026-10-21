@@ -261,6 +261,17 @@ details p{margin:6px 0 0}
 .rd-h{font:800 13px var(--f-body);color:#CFE2FF;margin-bottom:4px}.rd-row{display:grid;grid-template-columns:7.4em 1fr;align-items:start;gap:6px;margin-top:6px}.rd-c{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
 .rd-l{font:700 12px/22px var(--f-body);color:#9fb0d0;white-space:nowrap}.rd{font:700 12px/16px var(--f-body);text-align:center;white-space:nowrap;padding:3px 8px;border-radius:9px;background:#1d2a4d;border:1px solid #3c4f80;color:#E8F0FF}
 .rd.end{opacity:.45}.rd.on{background:#b8610a;border-color:#FFE08A;color:#fff}.rd b{color:#FFE08A}
+.raid h2{margin:0}.raid-boss{display:flex;gap:12px;align-items:center;margin:8px 0}.raid-boss .crest{width:96px;flex:none}
+.raid-name small{display:block;color:#CFE2FF;font:700 12px var(--f-body)}.raid-name .raid-yomi{color:#D9B8F0;letter-spacing:.06em;margin-bottom:2px}.raid-name b{font:400 21px var(--f-display);display:block;line-height:1.25;color:#F3E3FF;letter-spacing:.04em}
+.rhp{position:relative;height:18px;border-radius:9px;background:#241a35;border:2px solid #B48AD0;overflow:hidden;margin:6px 0 2px}
+.rhp>i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#F3D36B,#E9A0FF);transition:width .6s}
+.rhp>u{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.55)}
+.rhp-t{display:flex;justify-content:space-between;font:800 13px var(--f-body);color:#F3E3FF}
+.raid-me{margin:8px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);font:700 13px var(--f-body)}
+.raid-kill{margin:8px 0;padding:10px;border-radius:12px;text-align:center;background:linear-gradient(135deg,#5b3b8c,#b8610a);font:800 15px var(--f-body);color:#fff}
+.raid-list{font-size:13px}.raid-list>div{display:flex;gap:6px;align-items:baseline;padding:2px 0}.raid-list>div b{margin-left:auto}.raid-list .me{color:#FFE08A}
+.raid-tw{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:8px 12px;border-radius:14px;background:linear-gradient(135deg,#3b2a5e,#5a2f6e);border:2px solid #B48AD0;color:#F3E3FF;cursor:pointer;width:100%;text-align:left;font:inherit}
+.raid-tw .crest{width:52px;flex:none}.raid-tw .rt{flex:1;min-width:0}.raid-tw b{font:800 15px var(--f-body)}.raid-tw small{display:block;font:700 12px var(--f-body);opacity:.9}
 .rs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:52vh;overflow:auto;padding:2px}
 .rs-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:#1b2440;border:2px solid #3c4f80;color:#fff;font:700 12px var(--f-body);cursor:pointer}
 .rs-grid button:active{transform:scale(.96)}.rs-grid small{color:#FFE08A}
@@ -621,6 +632,7 @@ hr{border-color:var(--line)!important}
   </header>
 
   <section class="view" id="v-tower">
+    <div id="raid-tw"></div>
     <div id="rally-tw"></div>
     <div class="panel towers" id="towers"></div>
     <div class="panel" id="mission"></div>
@@ -700,6 +712,7 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-online" hidden>
     <div class="panel cup" id="cup" hidden></div>
+    <div class="panel raid" id="raid"></div>
     <div class="panel lad" id="lad"></div>
     <div class="panel" id="prof"></div>
     <div class="panel" id="rank"></div>
@@ -742,9 +755,9 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=35548d7a"></script>
+<script src="engine.js?v=47478006"></script>
 <script>
-const VERSION='2.5.9';
+const VERSION='2.6.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -927,7 +940,7 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 /* ボスの階：倒すとそのボスが仲間に（★が上がる。★3のあとはかけら） */
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
-function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';renderTowers();renderMission();
+function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';renderTowers();renderMission();
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
@@ -1265,16 +1278,22 @@ function renderRank(){const el=$('#rank');
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
 async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;claimBusy=true;
-  try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec});const RK=x=>x.kind==='rally'||x.kind==='rshard';const tsh=(j.items||[]).filter(x=>x.kind==='rshard'&&x.pkey<0);
-    const items=(j.items||[]).filter(x=>!RK(x)),rc=(j.items||[]).filter(x=>x.kind==='rally').reduce((t,x)=>t+x.coins,0),sh=Math.max(0,j.shards|0),oc=Math.max(0,(j.coins|0)-rc);
-    /* 集合タイムの報酬：コインはそのまま、かけらは「選べるかけら」としてためておく */
+  try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec});const all=j.items||[];
+    /* 集合タイム・レイドの1戦ごとのコインと、選べるかけらは、その場で受け取る（結果画面に出ているので静かに） */
+    const SILENT=x=>x.kind==='rally'||x.kind==='raid'||x.kind==='rshard';const tsh=all.filter(x=>x.kind==='rshard'&&x.pkey<0);
+    const items=all.filter(x=>!SILENT(x)),rc=all.filter(x=>x.kind==='rally'||x.kind==='raid').reduce((t,x)=>t+x.coins,0),sh=Math.max(0,j.shards|0),oc=Math.max(0,(j.coins|0)-rc);
     if(rc>0||sh>0){save.coins+=rc;save.rshard=(save.rshard||0)+sh;persist();updCoins();rallyPaint();
-      if(!quiet&&!tsh.length)toast(L(`集合タイムの報酬：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`集合时间奖励：+${rc}金币${sh?`·自选碎片+${sh}`:''}`))}
-    if(oc>0){save.coins+=oc;persist();updCoins();sfx('reveal',3);
+      if(!quiet&&!items.length)toast(L(`ごほうび：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`奖励：+${rc}金币${sh?`·自选碎片+${sh}`:''}`))}
+    if(oc>0||items.some(x=>x.kind==='raidday')){if(oc>0){save.coins+=oc;persist();updCoins()}sfx('reveal',3);
     const nm={infd:L('デイリー','日榜'),infw:L('ウィークリー','周榜')};
-    showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:false,
-      sub:L('ランキングの報酬！','排行榜奖励！')+'<br>'+items.map(x=>x.kind==='rtop'?L(`📣 集合タイム ${x.rank}位：+${x.coins}コイン・選べるかけら+${(tsh.find(y=>y.pkey===-x.pkey)||{}).coins||0}`,`📣 集合时间 第${x.rank}名：+${x.coins}金币·自选碎片+${(tsh.find(y=>y.pkey===-x.pkey)||{}).coins||0}`):x.kind==='lad'?L(`ランクバトル シーズン${x.pkey}（最高 ${rankName(x.rank)}）：+${x.coins}`,`排位赛 第${x.pkey}赛季（最高 ${rankName(x.rank)}）：+${x.coins}`):`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`).join('<br>'),
-      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('online');setTimeout(shardPick,400)}]]:[]),['online',L('ランキングを見る','查看排行榜')],['tower',L('タワーへ','前往塔')]]})}}
+    const shOf=k=>(tsh.find(y=>y.pkey===k)||{}).coins||0;
+    const line=x=>{if(x.kind==='rtop')return L(`📣 集合タイム ${x.rank}位：+${x.coins}コイン・選べるかけら+${shOf(-x.pkey)}`,`📣 集合时间 第${x.rank}名：+${x.coins}金币·自选碎片+${shOf(-x.pkey)}`);
+      if(x.kind==='raidday'){const st=x.rank>>4,tp=x.rank&15,ks=shOf(-(x.pkey*10+1));return L(`🐦 レイド（${st>=4?'撃破！':`HP${[100,75,50,25][st]||100}%まで`}${tp?`・ダメージ${tp}位`:''}）：${x.coins?`+${x.coins}コイン`:''}${ks?`・選べるかけら+${ks}`:''}`,`🐦 团队战（${st>=4?'击破！':`削到HP${[100,75,50,25][st]||100}%`}${tp?`·伤害第${tp}名`:''}）：${x.coins?`+${x.coins}金币`:''}${ks?`·自选碎片+${ks}`:''}`)}
+      if(x.kind==='lad')return L(`ランクバトル シーズン${x.pkey}（最高 ${rankName(x.rank)}）：+${x.coins}`,`排位赛 第${x.pkey}赛季（最高 ${rankName(x.rank)}）：+${x.coins}`);
+      return`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`};
+    showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:!oc,
+      sub:L('報酬が届きました！','奖励到了！')+'<br>'+items.map(line).join('<br>'),
+      go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('online');setTimeout(shardPick,400)}]]:[]),['online',L('通信へ','前往联机')],['tower',L('タワーへ','前往塔')]]})}}
   catch(e){}finally{claimBusy=false}}
 async function loadRank(){const t=rtype;try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-online').hidden)renderRank()}
 
@@ -1440,6 +1459,63 @@ function shardPick(){if(!(save.rshard>0))return;const ids=ALL.filter(c=>owns(c.i
   document.querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>{if(!(save.rshard>0))return;const id=b.dataset.rs;save.rshard--;save.shards[id]=(save.shards[id]||0)+1;persist();sfx('buff');
     toast(L(`${byId(id).name}のかけら+1`,`${byId(id).name}的碎片+1`));draw();rallyPaint();if(!$('#v-party').hidden&&typeof renderDetail==='function')try{renderDetail()}catch(e){}});
   draw()}
+
+/* ================= レイドバトル（Ver 2.6） ================= */
+/* 始原の紫翼皇の体力を、みんなで1日かけて削る。1日3回・パーティ全員が倒れるまで。対戦はサーバーが計算する */
+const RD={d:null,at:0,busy:false,err:''};
+async function raidLoad(){try{const j=await api('/api/raid'+(save.prof.reg?'?id='+save.prof.id:''));RD.d=j.raid;RD.off=(j.now||Date.now())-Date.now();RD.at=Date.now()}catch(e){}renderRaid()}
+const raidBoss=()=>byId('origin');
+function raidBar(r){const p=Math.max(0,r.hp/r.max);return`<div class="rhp" role="img" aria-label="${Math.round(p*100)}%"><i style="width:${(p*100).toFixed(1)}%"></i>${(r.rew&&r.rew.stage||[.75,.5,.25]).map(x=>`<u style="left:${x*100}%"></u>`).join('')}</div>
+  <div class="rhp-t"><span>${L('みんなの残りHP','大家剩余HP')}</span><span>${r.hp.toLocaleString()} / ${r.max.toLocaleString()}（${Math.ceil(p*100)}%）</span></div>`}
+function raidLeft(r){return Math.max(0,(r.triesMax||3)-((r.me&&r.me.tries)||0))}
+function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo=raidBoss();
+  if(tw){tw.innerHTML=r&&bo?`<button type="button" class="raid-tw" id="raid-tw-go">${crest(bo)}<span class="rt"><b>🐦 ${L('レイドバトル','团队战')}：${L('始原の紫翼皇','始原紫翼皇')}</b>
+    <small>${r.killed?L('🎉 今日はみんなで倒した！ また明日','🎉 今天大家一起打倒了！明天再来'):L(`残りHP ${Math.ceil(r.hp/r.max*100)}%・今日のあなたの挑戦 あと${raidLeft(r)}回`,`剩余HP ${Math.ceil(r.hp/r.max*100)}%·你今天还能挑战 ${raidLeft(r)}次`)}${r.rally&&!r.killed?L('・集合タイム中はダメージ1.5倍！','·集合时间伤害1.5倍！'):''}</small></span></button>`:'';
+    const b=$('#raid-tw-go');if(b)b.onclick=()=>{sfx('tap');nav('online');setTimeout(()=>$('#raid')?.scrollIntoView({behavior:'smooth'}),200)}}
+  if(!el)return;
+  const head=`<div class="row between"><h2>🐦 ${L('レイドバトル','团队战')}</h2>${r?`<span class="hint">${L(`入れかわりまで ${leftTxt(r.end-Date.now()-(RD.off||0))}`,`距离更换还有 ${leftTxt(r.end-Date.now()-(RD.off||0))}`)}</span>`:''}</div>`;
+  if(!r||!bo){el.innerHTML=head+`<p class="hint">${L('読み込み中…','读取中…')}</p>`;return}
+  const left=raidLeft(r),me=r.me;
+  let act;
+  if(!save.prof.reg)act=`<p class="hint">${L('参加するには、下のプロフィールで名前を決めて「登録」してください。','参加前，请先在下方个人资料中决定名字并「登记」。')}</p>`;
+  else if(r.killed)act=`<div class="raid-kill">🎉 ${L('みんなで紫翼皇を倒した！','大家一起打倒了紫翼皇！')}${r.killer&&r.killer.length?`<br><small>${L('とどめ','最后一击')}：${nameOf(r.killer)}</small>`:''}<br><small>${L('ごほうびは明日5時までに届きます。また明日！','奖励会在明天5点前送达。明天见！')}</small></div>`;
+  else if(ON.lad&&ON.lad.raid&&(ON.state==='connecting'||ON.state==='waiting'))act=`<p class="lad-wait">${L('紫翼皇のもとへ向かっています…','正在前往紫翼皇所在之处…')}</p>`;
+  else if(left<=0)act=`<p class="cup-ok" style="text-align:center">${L('今日の挑戦は終わり！ 明日の朝5時にまた挑戦できます','今天的挑战结束了！明天早上5点可以再次挑战')}</p>`;
+  else act=`${RD.err?`<p class="cup-warn">${RD.err}</p>`:''}<div class="label">${L('出場するパーティ（今のパーティ）','出战队伍（当前队伍）')}</div>${partyHTML(onlineParty())}
+    <div class="row" style="justify-content:center"><button class="btn primary" id="raid-go" ${RD.busy?'disabled':''}>${L(`挑戦する（今日あと${left}回）`,`挑战（今天还剩${left}次）`)}</button></div>`;
+  const list=(a,f)=>a&&a.length?`<div class="raid-list">${a.map(f).join('')}</div>`:`<p class="hint">${L('まだだれも挑戦していません','还没有人挑战')}</p>`;
+  const R=r.rew||{};
+  el.innerHTML=head+`<div class="raid-boss">${crest(bo)}<div class="raid-name"><small>${L('伝説のレイドボス','传说的团队首领')} ${typesHTML(bo)}</small><b>${L('始原の紫翼皇','始原紫翼皇')}</b><small class="raid-yomi">${L('プライマル・ヴァイオレット','Primal Violet')}</small><small>${L(`今日の挑戦 ${r.tries}回・${r.people}人`,`今天的挑战 ${r.tries}次·${r.people}人`)}</small></div></div>${raidBar(r)}
+    ${r.rally&&!r.killed?`<div class="rally on" style="margin:8px 0">📣 ${L(`集合タイム中！ ダメージ ${r.rallyMul||1.5}倍`,`集合时间中！伤害 ${r.rallyMul||1.5}倍`)}</div>`:''}
+    ${me&&save.prof.reg?`<div class="raid-me">${L(`あなた：今日 ${me.tries}/${r.triesMax}回・合計 ${me.dmg}ダメージ${me.best?`（最高 ${me.best}）`:''}`,`你：今天 ${me.tries}/${r.triesMax}次·合计 ${me.dmg}伤害${me.best?`（最高 ${me.best}）`:''}`)}</div>`:''}
+    ${act}
+    <div class="label" style="margin-top:8px">${L('今日のダメージランキング','今日伤害排行')}</div>${list(r.top,x=>`<div class="${x.me?'me':''}">${['🥇','🥈','🥉'][x.n-1]||x.n} ${nameOf(x.w)} <b>${x.dmg}</b></div>`)}
+    ${r.log&&r.log.length?`<div class="label" style="margin-top:8px">${L('さいきんの攻撃','最近的攻击')}</div>${list(r.log,x=>`<div>${nameOf(x.w)} <b>${x.kill?'🎉 ':''}${x.dmg}${L('ダメージ','伤害')}</b></div>`)}`:''}
+    <details class="hint" style="margin-top:6px"><summary>${L('ルールとごほうび','规则和奖励')}</summary>${L(`始原の紫翼皇の体力を、みんなで1日かけて削ります（毎朝5時に入れかわり）。1人1日${r.triesMax}回、パーティ全員が倒れるまで戦い、与えたダメージがみんなの体力から減ります。集合タイム中はダメージ${r.rallyMul||1.5}倍。挑戦するたびにダメージに応じたコイン。その日が終わったとき（倒したときはすぐ）、挑戦した人全員に、残りHP 75%・50%・25%を切るごとに選べるかけら${R.stageShard||1}個、倒したらさらにかけら${R.killShard||3}個と${R.killCoin||10}コイン。ダメージ上位3人には ${(R.top||[30,20,10]).join('・')}コイン。`,`大家用一天的时间一起削减始原紫翼皇的体力（每天早上5点更换）。每人每天${r.triesMax}次，战斗到全队倒下为止，造成的伤害会从大家的体力中扣除。集合时间内伤害${r.rallyMul||1.5}倍。每次挑战按伤害获得金币。当天结束时（打倒时立即），所有挑战者每当剩余HP低于75%·50%·25%各获得自选碎片${R.stageShard||1}个，打倒后再获得碎片${R.killShard||3}个和${R.killCoin||10}金币。伤害前3名获得 ${(R.top||[30,20,10]).join('·')}金币。`)}</details>`;
+  const g=$('#raid-go');if(g)g.onclick=()=>{sfx('tap');raidGo()}}
+async function raidGo(){if(RD.busy)return;ac();RD.err='';fixParty();
+  if(!save.party.length){RD.err=L('先にパーティを組んでください','请先组建队伍');renderRaid();return}
+  const short=save.party.find(id=>loadout(id).length!==4);if(short){RD.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderRaid();return}
+  ladCancel();RD.busy=true;renderRaid();
+  try{const r=await fetch(ONLINE_URL+'/api/raid/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...auth(),v:ENGINE_V,party:onlineParty()})});const j=await r.json().catch(()=>({}));
+    if(j.raid)RD.d=j.raid;
+    if(!r.ok||!j.ok){RD.err=j.err==='tries'?L('今日の挑戦はもう終わりです','今天的挑战已经结束了'):j.err==='killed'?L('今日の紫翼皇はもう倒されました','今天的紫翼皇已经被打倒了'):j.err==='ver'?L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面'):j.err==='profile'?L('プロフィールの登録が必要です','需要登记个人资料'):L('始められませんでした。もう一度試してね','无法开始，请再试一次');return}
+    sfx('reveal',3);onlineConnect(j.room,false,null,{ticket:j.ticket,raid:true})}
+  catch(e){RD.err=L('接続できませんでした','无法连接')}finally{RD.busy=false;renderRaid()}}
+async function finishRaidOn(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
+  if(win){await say(L('紫翼皇「……強くなったね。また、いつでもおいで」','紫翼皇「……你变强了。随时再来吧」'),700);sfx('win')}else sfx('lose');
+  await W(700);ON.lad=null;for(let i=0;i<40&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;
+  if(r&&RD.d){RD.d.hp=r.hp;if(r.kill)RD.d.killed=1;RD.d.me=Object.assign(RD.d.me||{},{tries:r.tries,dmg:r.myTotal})}
+  setTimeout(()=>{claimRank(true);raidLoad()},300);
+  const left=r?Math.max(0,(r.triesMax||3)-(r.tries||0)):0,again=r&&!r.kill&&!(RD.d&&RD.d.killed)&&left>0;
+  return showOverlay({word:r&&r.kill?'VICTORY!':'RAID',ch:r&&r.kill?me.ch:raidBoss(),win:true,coins:0,noCoin:true,
+    go:[...(again?[['raid-again',L(`もう一度挑む（あと${left}回）`,`再挑战（还剩${left}次）`),()=>{nav('online');raidGo()}]]:[]),['online',L('レイドへ','前往团队战'),()=>{nav('online');setTimeout(()=>$('#raid')?.scrollIntoView(),200)}],['party',L('編成へ','前往编队')],['tower',L('タワーへ','前往塔')]],
+    sub:r?L(`紫翼皇に <b>${r.dmg}</b> ダメージ！`,`对紫翼皇造成 <b>${r.dmg}</b> 伤害！`)+(r.mul>1?L(`（集合タイムで ${r.mul}倍）`,`（集合时间 ${r.mul}倍）`):'')+
+      `<br><span class="lad-chg">${L(`みんなの残りHP ${r.hp.toLocaleString()} / ${r.max.toLocaleString()}`,`大家剩余HP ${r.hp.toLocaleString()} / ${r.max.toLocaleString()}`)}</span>`+
+      (r.kill?`<br><span class="lad-chg">🎉 ${L('とどめを刺した！ みんなで紫翼皇を倒した！','最后一击！大家一起打倒了紫翼皇！')}</span>`:r.killedBefore?`<br>${L('（ほかの人が先に倒していました）','（其他人已经先打倒了）')}`:'')+
+      `<br>${L(`+${r.coins}コイン・今日の合計 ${r.myTotal}ダメージ`,`+${r.coins}金币·今天合计 ${r.myTotal}伤害`)}`
+      :B.cut?L('通信が切れました','连接已断开'):L('結果を受け取れませんでした（ダメージはサーバーに記録されています）','未能收到结果（伤害已记录在服务器）'),
+    hint:r&&!again&&!r.kill?L('今日の挑戦は終わり。明日の朝5時にまた挑戦できます','今天的挑战结束了。明天早上5点可以再次挑战'):''})}
 
 /* ================= マイスター杯（大会） ================= */
 const CUP={data:null,poll:null,busy:false};
@@ -1840,12 +1916,12 @@ function bossReward(id){const c=byId(id),st=starOf(id);
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
 const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
 const ON={ws:null,code:'',state:'idle',err:'',lad:null,ladRes:null};
-const ENGINE_V=12;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
+const ENGINE_V=13;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
 function onlineQueue(fn){B.chain=(B.chain||Promise.resolve()).then(()=>B&&!B.done?fn():null).catch(e=>console.error(e));return B.chain}
-function renderOnline(){renderCup();cupLoad();renderLad();ladLoad();rallyLoad();renderProf();renderRank();loadRank();claimRank();
+function renderOnline(){renderCup();cupLoad();renderRaid();raidLoad();renderLad();ladLoad();rallyLoad();renderProf();renderRank();loadRank();claimRank();
   $('#on-party').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
   const el=$('#on-body');
   if(!ONLINE_URL){el.innerHTML=`<p class="hint">${L('通信対戦のサーバーを準備中です。もう少しお待ちください。','联机服务器正在准备中，请稍候。')}</p>`;return}
@@ -1872,7 +1948,7 @@ function onlineMsg(m){
   if(m.t==='full'){ON.state='idle';ON.err=L('その部屋は満員か、対戦中です','该房间已满或正在对战');onlineClose();renderOnline();return}
   if(m.t==='ver'){ON.state='idle';ON.err=L('相手とゲームのバージョンがちがいます。2人ともページを読みこみ直して、同じバージョンにしてね','与对方的游戏版本不同。请两人都重新载入页面，使用相同版本');onlineClose();renderOnline();return}
   if(m.t==='over'){ON.state='idle';ON.err=L('この対戦はもう終わっています','这场对战已经结束了');onlineClose();ON.cup=null;ON.lad=null;renderOnline();return}
-  if(m.t==='lad'){ON.ladRes=m;return}
+  if(m.t==='lad'||m.t==='raid'){ON.ladRes=m;return}
   if(m.t==='waiting'){ON.state='waiting';if(ON.cup)renderCup();else renderLad();return}
   if(m.t==='start'){ON.state='battle';beginOnline(m);if(ON.cup)B.cup=ON.cup;if(ON.lad)B.lad=ON.lad;return}
   if(!B||!B.online)return;
@@ -1895,15 +1971,15 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
     if(!mine)B.timedOut=false},250)}
 function beginOnline(m){
   TUT.on=false;
-  B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
+  B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
   ['tower','party','gacha','dex','online'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
-  const kind=m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
+  B.oraid=m.kind==='raid';B.mul=m.mul||1;const kind=m.kind==='raid'?L('レイドバトル','团队战'):m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
   $('#floor-tag').innerHTML=kind+(m.oppWho&&m.oppWho.w&&m.oppWho.w.length?' vs '+nameOf(m.oppWho.w):on?' vs '+on.name:'');
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(false);
-  onlineQueue(async()=>{await say(L('通信対戦スタート！','联机对战开始！'),700);await say(m.youFirst?L('あなたが先攻です','你是先攻'):L('相手が先攻です','对方是先攻'),700);
+  onlineQueue(async()=>{if(B.oraid){await say(L('始原の紫翼皇が現れた！','始原紫翼皇出现了！'),800);if(B.mul>1)await say(L(`集合タイム中！ ダメージ ${B.mul}倍`,`集合时间中！伤害 ${B.mul}倍`),700);await say(L('パーティ全員が倒れるまで、できるだけ削ろう！','在全队倒下之前，尽量多造成伤害吧！'),800)}else{await say(L('通信対戦スタート！','联机对战开始！'),700);await say(m.youFirst?L('あなたが先攻です','你是先攻'):L('相手が先攻です','对方是先攻'),700)}
     bubble(1,G.act(B.S,1).ch.lines[0]);turnTimer();await runTurn(m.youFirst?0:1)})}
-async function finishOnline(win,me,foe){if(win){save.st.pvp=(save.st.pvp||0)+1;persist();pushScore();checkTitles()}ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
+async function finishOnline(win,me,foe){if(B.oraid)return finishRaidOn(win,me,foe);if(win){save.st.pvp=(save.st.pvp||0)+1;persist();pushScore();checkTitles()}ON.state='idle';const ws=ON.ws;ON.ws=null;if(ws){try{ws.close()}catch(e){}}
   if(win){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}else{sfx('lose')}
   await W(900);
   if(B.lad){ON.lad=null;for(let i=0;i<30&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;LAD.me=r?r.after:LAD.me;if(!r)ladLoad();const rb=r&&r.rally;if(rb)setTimeout(()=>claimRank(true),300);

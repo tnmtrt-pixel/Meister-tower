@@ -2,6 +2,7 @@ import './engine.js';
 import { CupMixin } from './cup.js';
 import { LadderMixin, ENGINE_V, cleanParty } from './ladder.js';
 import { RallyMixin } from './rally.js';
+import { RaidMixin } from './raid.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -198,12 +199,13 @@ export class Room {
     const E = globalThis.ENGINE, SU = this.setup;
     this.started = true;
     const seed = crypto.getRandomValues(new Uint32Array(1))[0];
-    const first = crypto.getRandomValues(new Uint8Array(1))[0] % 2;
-    this.S = E.newPvP({ me: SU.slots[0].party, opp: SU.slots[1].party, seed, firstSide: first, maxRound: 12 });
+    const first = SU.first === 0 || SU.first === 1 ? SU.first : crypto.getRandomValues(new Uint8Array(1))[0] % 2;
+    const maxRound = SU.maxRound || 12;
+    this.S = E.newPvP({ me: SU.slots[0].party, opp: SU.slots[1].party, seed, firstSide: first, maxRound });
     for (const p of this.players) {
       if (p.slot < 0) continue;
       const mine = SU.slots[p.slot], op = SU.slots[1 - p.slot];
-      this.send(p, { t: 'start', seed, youFirst: first === p.slot, me: mine.party, opp: op.party, oppName: op.party[0].id, kind: SU.kind, ghost: !!SU.ghost, oppWho: op.who, oppLad: op.lad });
+      this.send(p, { t: 'start', seed, youFirst: first === p.slot, me: mine.party, opp: op.party, oppName: op.party[0].id, kind: SU.kind, ghost: !!SU.ghost, oppWho: op.who, oppLad: op.lad, maxRound, mul: SU.mul || 1 });
     }
     E.startTurn(this.S, first);
     this.lastAct = Date.now();
@@ -265,6 +267,11 @@ export class Room {
       if (res && res.res) for (const p of this.players) { const id = SU.slots[p.slot] && SU.slots[p.slot].id; if (id && res.res[id]) this.send(p, { t: 'lad', ...res.res[id] }); }
     } else if (SU.kind === 'cup') {
       await this.tellRank({ t: 'cup', tid: SU.tid, r: SU.r, mt: SU.mt, win, why });
+    } else if (SU.kind === 'raid') {
+      /* レイド：ボスに与えたダメージ（始めたときの体力 − 今の体力）をサーバーが数える */
+      const boss = this.S && this.S.sides[1].team[0], dmg = boss ? Math.max(0, SU.hp0 - Math.max(0, boss.hp)) : 0;
+      const res = await this.tellRank({ t: 'raid', id: SU.slots[0].id, day: SU.day, dmg, mul: SU.mul || 1, why });
+      if (res && res.res) for (const p of this.players) if (p.slot === 0) this.send(p, { t: 'raid', ...res.res });
     }
   }
 
@@ -346,6 +353,7 @@ export class Rank {
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
     this.ladInit();
+    this.raidInit();
   }
 
   /* 大会を時刻どおりに進める（10秒ごと） */
@@ -365,6 +373,7 @@ export class Rank {
   async internal(b) {
     if (b.t === 'rank') return json({ ok: true, res: await this.ladResult(b) });
     if (b.t === 'cup') { await this.cupResult(b); return json({ ok: true }); }
+    if (b.t === 'raid') return json({ ok: true, res: this.raidResult(b) });
     if (b.t === 'present') { await this.cupPresent(b); return json({ ok: true }); }
     return json({ err: 'int' }, 400);
   }
@@ -389,6 +398,7 @@ export class Rank {
       this.ensureAlarm().catch(() => {});
       if (request.method === 'GET' && url.pathname === '/api/rank') { if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); await this.settle(); return this.rank(url); }
       if (request.method === 'GET' && url.pathname === '/api/rally') return this.rallyGet(json, url);
+      if (request.method === 'GET' && url.pathname === '/api/raid') return this.raidGet(url, json);
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
@@ -396,6 +406,7 @@ export class Rank {
       if (url.pathname === '/api/score') return this.score(b);
       if (url.pathname === '/api/rank/claim') return this.claim(b);
       if (url.pathname === '/api/lad/me') return this.ladMe(b, json);
+      if (url.pathname === '/api/raid/start') return this.raidStart(b, json);
       if (url.pathname.startsWith('/api/cup/')) return this.cupRoute(url.pathname, b, json);
       if (url.pathname === '/api/admin') return this.admin(b);
       return json({ err: 'not found' }, 404);
@@ -510,4 +521,4 @@ export class Rank {
   }
 }
 
-Object.assign(Rank.prototype, CupMixin, LadderMixin, RallyMixin);
+Object.assign(Rank.prototype, CupMixin, LadderMixin, RallyMixin, RaidMixin);
