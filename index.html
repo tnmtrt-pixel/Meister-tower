@@ -761,7 +761,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.7.2';
+const VERSION='2.7.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1300,7 +1300,7 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
     const nm={infd:L('デイリー','日榜'),infw:L('ウィークリー','周榜')};
     const shOf=k=>(tsh.find(y=>y.pkey===k)||{}).coins||0;
     const line=x=>{if(x.kind==='rtop')return L(`📣 集合タイム ${x.rank}位：+${x.coins}コイン・選べるかけら+${shOf(-x.pkey)}`,`📣 集合时间 第${x.rank}名：+${x.coins}金币·自选碎片+${shOf(-x.pkey)}`);
-      if(x.kind==='raidday'){const st=x.rank>>4,tp=x.rank&15,ks=shOf(-(x.pkey*10+1));return L(`🐦 レイド（${st>=4?'撃破！':`HP${[100,75,50,25][st]||100}%まで`}${tp?`・ダメージ${tp}位`:''}）：${x.coins?`+${x.coins}コイン`:''}${ks?`・選べるかけら+${ks}`:''}`,`🐦 团队战（${st>=4?'击破！':`削到HP${[100,75,50,25][st]||100}%`}${tp?`·伤害第${tp}名`:''}）：${x.coins?`+${x.coins}金币`:''}${ks?`·自选碎片+${ks}`:''}`)}
+      if(x.kind==='raidday'){const st=x.rank>>4,tp=x.rank&15,ks=shOf(-(x.pkey*10+1));return L(`レイド（${st>=4?'撃破！':`HP${[100,75,50,25][st]||100}%まで`}${tp?`・ダメージ${tp}位`:''}）：${x.coins?`+${x.coins}コイン`:''}${ks?`・選べるかけら+${ks}`:''}`,`团队战（${st>=4?'击破！':`削到HP${[100,75,50,25][st]||100}%`}${tp?`·伤害第${tp}名`:''}）：${x.coins?`+${x.coins}金币`:''}${ks?`·自选碎片+${ks}`:''}`)}
       if(x.kind==='lad')return L(`ランクバトル シーズン${x.pkey}（最高 ${rankName(x.rank)}）：+${x.coins}`,`排位赛 第${x.pkey}赛季（最高 ${rankName(x.rank)}）：+${x.coins}`);
       return`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`};
     showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:!oc,
@@ -1481,11 +1481,11 @@ function raidBar(r){const p=Math.max(0,r.hp/r.max);return`<div class="rhp" role=
   <div class="rhp-t"><span>${L('みんなの残りHP','大家剩余HP')}</span><span>${r.hp.toLocaleString()} / ${r.max.toLocaleString()}（${Math.ceil(p*100)}%）</span></div>`}
 function raidLeft(r){return Math.max(0,(r.triesMax||3)-((r.me&&r.me.tries)||0))}
 function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo=raidBoss();
-  if(tw){tw.innerHTML=r&&bo?`<button type="button" class="raid-tw" id="raid-tw-go">${crest(bo)}<span class="rt"><b>🐦 ${L('レイドバトル','团队战')}：${L('始原の紫翼皇','始原紫翼皇')}</b>
+  if(tw){tw.innerHTML=r&&bo?`<button type="button" class="raid-tw" id="raid-tw-go">${crest(bo)}<span class="rt"><b>${L('レイドバトル','团队战')}：${L('始原の紫翼皇','始原紫翼皇')}</b>
     <small>${r.killed?L('🎉 今日はみんなで倒した！ また明日','🎉 今天大家一起打倒了！明天再来'):L(`残りHP ${Math.ceil(r.hp/r.max*100)}%・今日のあなたの挑戦 あと${raidLeft(r)}回`,`剩余HP ${Math.ceil(r.hp/r.max*100)}%·你今天还能挑战 ${raidLeft(r)}次`)}${r.rally&&!r.killed?L('・集合タイム中はダメージ1.5倍！','·集合时间伤害1.5倍！'):''}</small></span></button>`:'';
     const b=$('#raid-tw-go');if(b)b.onclick=()=>{sfx('tap');nav('raid')}}
   if(!el)return;
-  const head=`<div class="row between"><h2>🐦 ${L('レイドバトル','团队战')}</h2>${r?`<span class="hint">${L(`入れかわりまで ${leftTxt(r.end-Date.now()-(RD.off||0))}`,`距离更换还有 ${leftTxt(r.end-Date.now()-(RD.off||0))}`)}</span>`:''}</div>`;
+  const head=`<div class="row between"><h2>${L('レイドバトル','团队战')}</h2>${r?`<span class="hint">${L(`入れかわりまで ${leftTxt(r.end-Date.now()-(RD.off||0))}`,`距离更换还有 ${leftTxt(r.end-Date.now()-(RD.off||0))}`)}</span>`:''}</div>`;
   if(!r||!bo){el.innerHTML=head+`<p class="hint">${RD.down?L('レイドのサーバーにつながりませんでした。サーバーの更新中かもしれません。しばらくしてから開き直してね。','无法连接团队战服务器，服务器可能正在更新。请稍后再打开。'):L('読み込み中…','读取中…')}</p>`;return}
   const left=raidLeft(r),me=r.me;
   let act;
