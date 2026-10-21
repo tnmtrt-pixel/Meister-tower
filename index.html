@@ -258,8 +258,8 @@ details p{margin:6px 0 0}
 @keyframes rallyp{50%{box-shadow:0 0 18px #FFB74D}}@media (prefers-reduced-motion:reduce){.rally.on{animation:none}}
 .rally .rb{margin-top:8px;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.25);text-align:left;font-size:13px}.rally .rb>div{display:flex;gap:6px;align-items:baseline;padding:1px 0}.rally .rb>div b{margin-left:auto;font-size:14px}.rally .rb .me{color:#FFE08A}.rally .rb-h{font-size:12px;opacity:.85}
 .rd-box{margin:-4px 0 10px;padding:8px 10px;border-radius:12px;background:rgba(8,14,34,.55);border:1px solid rgba(143,184,255,.35)}
-.rd-h{font:800 13px var(--f-body);color:#CFE2FF;margin-bottom:4px}.rd-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:4px}
-.rd-l{font:700 12px var(--f-body);color:#9fb0d0;min-width:92px}.rd{font:700 12px var(--f-body);padding:3px 8px;border-radius:9px;background:#1d2a4d;border:1px solid #3c4f80;color:#E8F0FF}
+.rd-h{font:800 13px var(--f-body);color:#CFE2FF;margin-bottom:4px}.rd-row{display:grid;grid-template-columns:7.4em 1fr;align-items:start;gap:6px;margin-top:6px}.rd-c{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
+.rd-l{font:700 12px/22px var(--f-body);color:#9fb0d0;white-space:nowrap}.rd{font:700 12px/16px var(--f-body);text-align:center;white-space:nowrap;padding:3px 8px;border-radius:9px;background:#1d2a4d;border:1px solid #3c4f80;color:#E8F0FF}
 .rd.end{opacity:.45}.rd.on{background:#b8610a;border-color:#FFE08A;color:#fff}.rd b{color:#FFE08A}
 .rs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:52vh;overflow:auto;padding:2px}
 .rs-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:#1b2440;border:2px solid #3c4f80;color:#fff;font:700 12px var(--f-body);cursor:pointer}
@@ -744,7 +744,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=35548d7a"></script>
 <script>
-const VERSION='2.5.8';
+const VERSION='2.5.9';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1422,7 +1422,7 @@ function rallyHTML(){const c=rallyCur(),n=rallyNext(),R=(RAL.d&&RAL.d.rew)||{per
 const rHM=t=>{const d=new Date(t);return`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`};
 function rallyDaysHTML(){const d=RAL.d;if(!d||!Array.isArray(d.days)||!d.days.length)return'';const t=rNow(),d0=d.d0||0,DAY=864e5;
   const row=(k,lab)=>{const a=d.days.filter(r=>r.start>=d0+k*DAY&&r.start<d0+(k+1)*DAY);if(!a.length)return'';
-    return`<div class="rd-row"><span class="rd-l">${lab}</span>${a.map(r=>{const st=t>=r.end?'end':t>=r.start?'on':'';return`<span class="rd ${st}" title="${esc(r.label||'')}">${rHM(r.start)}〜${rHM(r.end)}${st==='on'?` <b>${L('開催中','进行中')}</b>`:st==='end'?` ${L('終了','结束')}`:''}</span>`}).join('')}</div>`};
+    return`<div class="rd-row"><span class="rd-l">${lab}</span><div class="rd-c">${a.map(r=>{const st=t>=r.end?'end':t>=r.start?'on':'';return`<span class="rd ${st}" title="${esc(r.label||'')}">${rHM(r.start)}〜${rHM(r.end)}</span>`}).join('')}</div></div>`};
   const w=t0=>{const x=new Date(t0+12*36e5);return`${x.getMonth()+1}/${x.getDate()}（${L('日月火水木金土','日一二三四五六')[x.getDay()]}）`};
   const h=row(0,L('今日','今天')+' '+w(d0))+row(1,L('明日','明天')+' '+w(d0+DAY));
   return h?`<div class="rd-box"><div class="rd-h">📅 ${L('集合タイムの予定','集合时间安排')}</div>${h}</div>`:''}
