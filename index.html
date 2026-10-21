@@ -636,7 +636,6 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-tower">
     <div id="raid-tw"></div>
-    <div id="rally-tw"></div>
     <div class="panel towers" id="towers"></div>
     <div class="panel" id="mission"></div>
     <div class="panel" id="infpanel" hidden></div>
@@ -762,7 +761,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=9d7bb8be"></script>
 <script>
-const VERSION='2.7.0';
+const VERSION='2.7.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1407,7 +1406,7 @@ function ladQueue(){ac();LAD.err='';fixParty();
     if(m.t==='wait'){LAD.state='queue';LAD.t0=Date.now();LAD.ghostMs=m.ghostMs||30000;if(RAL.d&&m.queue!=null)RAL.d.queue=m.queue;rallyLoad();clearInterval(LAD.tick);LAD.tick=setInterval(()=>{if(LAD.state!=='queue'||$('#v-online').hidden){clearInterval(LAD.tick);return}const w=$('#lad-sec');if(w)w.textContent=Math.floor((Date.now()-LAD.t0)/1000)},500);renderLad();return}
     if(m.t==='match'){LAD.ws=null;clearInterval(LAD.tick);try{ws.close()}catch(e){}LAD.state='idle';sfx('reveal',2);
       toast(m.ghost?L('ゴーストと対戦します！','与幽灵对战！'):L('対戦相手が見つかりました！','找到对手了！'));onlineConnect(m.room,false,null,{ticket:m.ticket,ghost:m.ghost});renderLad();return}
-    LAD.err=m.t==='ver'?L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面'):m.t==='dup'?L('別の画面でマッチングを始めたので、こちらは止めました','已在其他画面开始匹配，这里已停止'):m.e==='auth'?L('プロフィールの登録が必要です','需要登记个人资料'):L('マッチングできませんでした','无法匹配');
+    LAD.err=m.t==='ver'?(LAD.sv&&LAD.sv<ENGINE_V?L('サーバーの更新を待っています。しばらくしてからもう一度試してね','正在等待服务器更新，请稍后再试'):L('ゲームが古いバージョンです。ページを読みこみ直してください','游戏版本过旧，请重新载入页面')):m.t==='dup'?L('別の画面でマッチングを始めたので、こちらは止めました','已在其他画面开始匹配，这里已停止'):m.e==='auth'?L('プロフィールの登録が必要です','需要登记个人资料'):L('マッチングできませんでした','无法匹配');
     ladCancel();renderLad()};
   ws.onerror=()=>{if(LAD.ws!==ws)return;LAD.err=L('接続できませんでした。電波の良いところでもう一度試してね','无法连接。请在信号好的地方再试一次');ladCancel();renderLad()};
   ws.onclose=()=>{if(LAD.ws!==ws)return;LAD.err=L('接続が切れました','连接已断开');ladCancel();renderLad()}}
@@ -1476,7 +1475,7 @@ function shardPick(){if(!(save.rshard>0))return;const ids=ALL.filter(c=>owns(c.i
 /* ================= レイドバトル（Ver 2.6） ================= */
 /* 始原の紫翼皇の体力を、みんなで1日かけて削る。1日3回・パーティ全員が倒れるまで。対戦はサーバーが計算する */
 const RD={d:null,at:0,busy:false,err:''};
-async function raidLoad(){try{const j=await api('/api/raid'+(save.prof.reg?'?id='+save.prof.id:''));RD.d=j.raid;RD.off=(j.now||Date.now())-Date.now();RD.at=Date.now()}catch(e){}renderRaid()}
+async function raidLoad(){try{const j=await api('/api/raid'+(save.prof.reg?'?id='+save.prof.id:''));RD.d=j.raid;RD.off=(j.now||Date.now())-Date.now();RD.at=Date.now();RD.down=false}catch(e){RD.down=true;RD.at=Date.now()}renderRaid()}
 const raidBoss=()=>byId('origin');
 function raidBar(r){const p=Math.max(0,r.hp/r.max);return`<div class="rhp" role="img" aria-label="${Math.round(p*100)}%"><i style="width:${(p*100).toFixed(1)}%"></i>${(r.rew&&r.rew.stage||[.75,.5,.25]).map(x=>`<u style="left:${x*100}%"></u>`).join('')}</div>
   <div class="rhp-t"><span>${L('みんなの残りHP','大家剩余HP')}</span><span>${r.hp.toLocaleString()} / ${r.max.toLocaleString()}（${Math.ceil(p*100)}%）</span></div>`}
@@ -1487,7 +1486,7 @@ function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo
     const b=$('#raid-tw-go');if(b)b.onclick=()=>{sfx('tap');nav('raid')}}
   if(!el)return;
   const head=`<div class="row between"><h2>🐦 ${L('レイドバトル','团队战')}</h2>${r?`<span class="hint">${L(`入れかわりまで ${leftTxt(r.end-Date.now()-(RD.off||0))}`,`距离更换还有 ${leftTxt(r.end-Date.now()-(RD.off||0))}`)}</span>`:''}</div>`;
-  if(!r||!bo){el.innerHTML=head+`<p class="hint">${L('読み込み中…','读取中…')}</p>`;return}
+  if(!r||!bo){el.innerHTML=head+`<p class="hint">${RD.down?L('レイドのサーバーにつながりませんでした。サーバーの更新中かもしれません。しばらくしてから開き直してね。','无法连接团队战服务器，服务器可能正在更新。请稍后再打开。'):L('読み込み中…','读取中…')}</p>`;return}
   const left=raidLeft(r),me=r.me;
   let act;
   if(!save.prof.reg)act=`<p class="hint">${L('参加するには、下のプロフィールで名前を決めて「登録」してください。','参加前，请先在下方个人资料中决定名字并「登记」。')}</p>`;
