@@ -651,6 +651,7 @@ hr{border-color:var(--line)!important}
     <div class="panel" id="mission"></div>
     <div class="panel" id="infpanel" hidden></div>
     <div class="panel" id="hwpanel" hidden></div>
+    <div class="row startbar" id="hwbar" hidden><button class="btn primary" id="hw-bar-go"></button></div>
     <div class="panel tower-panel">
       <div class="tower" id="tower"></div>
       <div class="story">
@@ -971,7 +972,7 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';renderTowers();renderMission();
-  const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;document.querySelector('#v-tower .startbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
+  const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;document.querySelector('#v-tower .startbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
@@ -1776,9 +1777,9 @@ function renderHW(){const el=$('#hwpanel'),run=save.hw.run,left=Math.max(0,Math.
     ${run&&run.picks&&run.picks.length?`<p class="hint">${L(`ネロのレベル：${run.nlv}`,`尼禄等级：${run.nlv}`)}</p>`:''}
     <div class="label" style="margin-top:8px">${L('挑戦するパーティ','挑战队伍')}</div>
     <div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
-    ${run?`<div class="row"><button class="btn primary" id="hw-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="hw-quit">${L('リタイア','放弃')}</button></div>`
-      :`<button class="btn primary" id="hw-go">${L('1Fから挑戦する','从1F开始挑战')}</button>`}`;
-  $('#hw-go').onclick=()=>{ac();sfx('tap');if(save.hw.run)hwPick();else hwStart()};
+    ${run?`<div class="row"><button class="btn small" id="hw-quit">${L('リタイア','放弃')}</button></div>`:''}`;
+  const bg=$('#hw-bar-go');bg.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
+  bg.onclick=()=>{ac();sfx('tap');if(save.hw.run)hwPick();else hwStart()};
   const q=$('#hw-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1层开始')))return;save.hw.run=null;persist();renderTower()}
 }
 
