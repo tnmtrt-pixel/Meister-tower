@@ -650,6 +650,7 @@ hr{border-color:var(--line)!important}
     <div class="panel towers" id="towers"></div>
     <div class="panel" id="mission"></div>
     <div class="panel" id="infpanel" hidden></div>
+    <div class="row startbar" id="infbar" hidden><button class="btn primary" id="inf-bar-go"></button></div>
     <div class="panel" id="hwpanel" hidden></div>
     <div class="row startbar" id="hwbar" hidden><button class="btn primary" id="hw-bar-go"></button></div>
     <div class="panel tower-panel">
@@ -972,7 +973,7 @@ function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';renderTowers();renderMission();
   const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
-  const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
+  const inf=towerMode==='inf';$('#infpanel').hidden=!inf;$('#infbar').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
   $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==T.floor&&ok?' done':n===T.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
@@ -1698,11 +1699,12 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
     <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D}${L('コイン','金币')}</b></div>
     <p class="hint">${L(`報酬：1階クリアで${INF_REW.floor}コイン、ボスの階はさらに+${INF_REW.boss}（同じ階のコインは1日1回まで。1日の合計に上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1层${INF_REW.floor}金币，头目层再+${INF_REW.boss}（同一层的金币每天限1次，每天合计无上限）。刷新最佳+${INF_REW.best}`)}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
-      <div class="row"><button class="btn primary" id="inf-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
+      <div class="row"><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
     :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
-      <button class="btn primary" id="inf-go">${L('1階から挑戦する','从1层开始挑战')}</button>`}`;
+      `}`;
   if(!run)bindPsets('#psets-i',renderInf);
-  $('#inf-go').onclick=()=>{ac();sfx('tap');if(save.inf.run)beginInf();else infStart()};
+  const ib=$('#inf-bar-go');ib.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1階から挑戦する','从1层开始挑战');
+  ib.onclick=()=>{ac();sfx('tap');if(save.inf.run)beginInf();else infStart()};
   const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1階からです','要放弃吗？下次将从1层开始')))return;save.inf.run=null;persist();renderTower()}}
 
 /* ================= ハロウィンの塔（期間限定・10階・全階でカードを1枚選ぶ） ================= */
