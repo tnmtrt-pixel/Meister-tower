@@ -777,7 +777,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.11.2';
+const VERSION='2.11.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1758,12 +1758,12 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
   const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1F开始')))return;save.inf.run=null;persist();renderTower()}}
 
 /* ================= ハロウィンの塔（期間限定・10階・全階でカードを1枚選ぶ） ================= */
-const HW_FROM=Date.parse('2026-10-23T18:00:00+09:00'),HW_TO=Date.parse('2026-11-04T00:00:00+09:00');
+const HW_FROM=Date.parse('2026-10-23T19:00:00+09:00'),HW_TO=Date.parse('2026-11-04T00:00:00+09:00');
 function hwOpen(){if(/[?&]hwtest=1\b/.test(location.search))return true;/* 動作確認用：アドレスに ?hwtest=1 をつけると期間外でも遊べる */const t=Date.now();return t>=HW_FROM&&t<HW_TO}
 const HWREW={floor:6,boss:30};/* 初回クリアのコイン（1〜9階・10階） */
 const hwRare=()=>Math.min(1,.20+.05*(save.hw.pity||0));/* レアキャラに会える確率：20%＋会えないと1回ごとに+5% */
 function hwSub(){const r=save.hw.run;return r?L(`挑戦中 ${r.f}F`,`挑战中 ${r.f}F`):save.hw.clears?L(`制覇 ${save.hw.clears}回`,`制霸 ${save.hw.clears}次`):save.hw.best?L(`最高 ${save.hw.best}F`,`最高 ${save.hw.best}F`):L('期間限定','限时活动')}
-function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/23 18:00〜11/3の期間限定です','万圣节之塔为10/23 18:00〜11/3限定开放'));return}
+function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/23 19:00〜11/3の期間限定です','万圣节之塔为10/23 19:00〜11/3限定开放'));return}
   fixParty();if(!save.party.length)return;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
   if(save.hw.run){toast(L('ハロウィンの塔はすでに挑戦中です（続きから再開してください）','万圣节之塔已在挑战中（请从继续开始）'));return}
@@ -1822,7 +1822,7 @@ function renderHW(){const el=$('#hwpanel'),run=save.hw.run,left=Math.max(0,Math.
   const rows=Array.from({length:10},(_,i)=>{const n=i+1,FL=G.towerOf('halloween').floors[i],done=save.hw.done.includes(n),cur=run&&run.f===n;
     return`<div class="hw-row${cur?' now':''}${done?' done':''}"><span>${n}F ${L(FL.n,FL.zn)}${n===10?L('（ネロ）','（尼禄）'):''}</span><span>${done?'✓':cur?L('挑戦中','挑战中'):''}</span></div>`}).join('');
   el.innerHTML=`<h2>${L('ハロウィンの塔','万圣节之塔')}</h2>
-    <p class="hint">${L('期間限定（10/23 18:00〜11/3）。全10階。階の前にカードを1枚選びます。トリートを選ぶほど、10階のネロがつよくなります。','限时活动（10/23 18:00〜11/3）。共10层。每层前选择1张卡牌。选择款待越多，10层的尼禄越强。')}</p>
+    <p class="hint">${L('期間限定（10/23 19:00〜11/3）。全10階。階の前にカードを1枚選びます。トリートを選ぶほど、10階のネロがつよくなります。','限时活动（10/23 19:00〜11/3）。共10层。每层前选择1张卡牌。选择款待越多，10层的尼禄越强。')}</p>
     <div class="t-rec"><span>${L('最高到達','最高到达')}</span><b>${save.hw.best}F</b><span>${L('制覇','制霸')}</span><b>${save.hw.clears}${L('回','次')}</b><span>${L('終わるまで','距结束')}</span><b>${left}${L('日','天')}</b></div>
     <p class="hint">${L(`レアキャラ（1〜9F・5Fをのぞく）に会える確率：このバトルは ${Math.round(hwRare()*100)}%（会えないと+3%）`,`遇到稀有角色（1〜9层，不含5层）的概率：本场 ${Math.round(hwRare()*100)}%（没遇到会+3%）`)}</p>
     <div class="hw-list">${rows}</div>
@@ -2317,8 +2317,8 @@ function hwTeaser(){if(Date.now()>=HW_FROM)return;
   ov.innerHTML=`<div style="text-align:center;color:#FFE08A;display:flex;flex-direction:column;gap:12px;align-items:center;padding:16px">
     <div style="font:800 14px var(--f-body);letter-spacing:.2em">${L('期間限定イベント','限时活动')}</div>
     <div style="font:800 26px var(--f-display);color:#fff">${L('ハロウィンの塔','万圣节之塔')}</div>
-    <div style="font:800 22px var(--f-display);color:#FFB347">${L('10/23（金）18:00 スタート！','10/23（五）18:00 开始！')}</div>
-    <p style="margin:0;color:#e8e8f0;font-size:14px">${L('10/23 18:00〜11/3の期間限定。新しい仲間にも会えます。','10/23 18:00〜11/3限定。还能遇到新的伙伴。')}</p>
+    <div style="font:800 22px var(--f-display);color:#FFB347">${L('10/23（金）19:00 スタート！','10/23（五）19:00 开始！')}</div>
+    <p style="margin:0;color:#e8e8f0;font-size:14px">${L('10/23 19:00〜11/3の期間限定。新しい仲間にも会えます。','10/23 19:00〜11/3限定。还能遇到新的伙伴。')}</p>
     <button class="btn primary" id="hw-teaser-ok">${L('わかった','知道了')}</button></div>`;
   document.body.append(ov);
   ov.querySelector('#hw-teaser-ok').onclick=()=>{try{localStorage.setItem('hwTeaser',day)}catch(e){}ov.remove()};
