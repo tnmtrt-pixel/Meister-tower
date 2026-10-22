@@ -777,7 +777,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.11.0';
+const VERSION='2.11.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1418,7 +1418,7 @@ function mission(k,n=1){const D=save.daily;if(!D||D.d!==today())return;let up=fa
 function renderReward(){
   const n=save.login.n||0;
   $('#rw-login').innerHTML=`<h2>${L('ログインボーナス','登录奖励')}</h2>
-    <p class="hint">${L('毎日ログインでコインがもらえます。7日目は15コイン！','每天登录可获得金币，第7天为15金币！')}</p>
+    <p class="hint">${L('毎日ログインでコインがもらえます。7日目は15コイン！ 7日で一周し、次は1日目から始まります。','每天登录可获得金币，第7天为15金币！7天为一轮，之后从第1天重新开始。')}</p>
     <div class="lb7">${LB.map((v,i)=>`<div class="${i+1<n?'done':i+1===n?'today':''}">${L(`${i+1}日目`,`第${i+1}天`)}<b>${v}</b></div>`).join('')}</div>`;
   renderMission();
   $('#rw-claim').onclick=()=>{sfx('tap');if(!save.prof.reg){toast(L('ランクに登録すると受け取れます','注册排位后即可领取'));return}claimRank()};
