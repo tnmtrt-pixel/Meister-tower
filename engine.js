@@ -354,8 +354,42 @@ const OLD23={},OLD24={};/* Ver 2.3・2.4 の技の名前（セーブの技番号
     if(!tk.dmg&&TKD[c.id])tk.dmg={b:TKD[c.id]};
     OLD24[c.id]=L4.map(([k,n])=>n).concat([tk.n,sp.n]);/* Ver 2.4 の並び（補助技あり） */
     c.moves=L4.filter(([k])=>!SUPS.includes(k)).map(mk).concat([tk,sp])}})();
+
+/* ===== Ver 2.8：ハロウィンの塔（期間限定イベント） ===== */
+/* レアキャラ3体（塔で3体目の敵としてまれに出る・倒すと仲間。期間中はガチャにも低い確率で出る）。技は Ver 2.4 の段（T4）＋固有技＋必殺技 */
+const HWC=[
+ {id:'keta',no:26,name:'ケタケタ',img:'img/keta.webp',color:'#8E2A2A',role:'いたずら型・運まかせの道化',vol:'hw',hw:true,types:['ma'],
+  passive:{k:'gamble',n:'道化の鈴',d:'毎ターン サイコロ+1個。ただしターン開始時に2ダメージ'},
+  lines:['さあさあ、ショーの始まりだよ！ ケタケタ！','拍手は？ ねえ、拍手は？','……あれれ、笑えないや'],
+  L:[['ma_s','鈴の音'],['ma_m','おどけステップ'],['ma_l','びっくり箱'],['ma_t','道化のおじぎ'],['ch_s','ケタケタパンチ'],['me_m','ゼンマイ仕掛け']],
+  tk:{n:'ぐるぐるの目',c:{t:'max',n:3},dmg:{b:2},fx:{dDown:1},ty:'ma'},sp:{n:'ショータイム・ジャックポット',b:20}},
+ {id:'tsugi',no:27,name:'ツギハギ',img:'img/tsugi.webp',color:'#C76B9A',role:'回復型・つぎはぎのぬいぐるみ',vol:'hw',hw:true,types:['ma'],
+  passive:{k:'regen',n:'つぎはぎの体',d:'自分のターン終了時に体力4回復'},
+  lines:['この子とあたし、ずっといっしょ。……あなたも、いっしょになる？','えへへ、また縫ってあげるね','……やぶれちゃった'],
+  L:[['ma_s','縫い針チクチク'],['ma_m','ちぎれた綿'],['ma_l','裁ちばさみ'],['ma_t','呪いのボタン'],['ke_s','うさぎキック'],['ch_m','ぬいぐるみアタック']],
+  tk:{n:'ばんそうこう',c:{t:'even'},dmg:{b:2},fx:{heal:4},ty:'ma'},sp:{n:'ずっといっしょだよ',b:30}},
+ {id:'panpi',no:28,name:'パンピ',img:'img/panpi.webp',color:'#E8892B',role:'爆発型・かぼちゃのおばけ',vol:'hw',hw:true,types:['ke'],
+  passive:{k:'rage',n:'かぼちゃの怒り',d:'体力が半分以下のとき、攻撃ダメージ+2'},
+  lines:['トリック・オア・トリート！ お菓子くれなきゃ、ドカンだよ！','パンピの勝ち〜！','……中身、出ちゃった'],
+  L:[['ke_s','かぼちゃ頭突き'],['ke_m','肉球パンチ'],['ke_l','ジャック・オ・ランタン'],['ke_t','しっぽフック'],['ma_s','コウモリの羽ばたき'],['de_m','ランタンの火']],
+  tk:{n:'お菓子ちょうだい',c:{t:'min',n:5},dmg:{b:2},fx:{heal:4},ty:'ke'},sp:{n:'ハッピー・パンプキン・ボム',b:24}}];
+HWC.forEach(c=>{const ty=c.types[0];
+  c.moves=c.L.map(([k,n])=>{const m=Object.assign({n,t:1,slot:k,jn:n},JSON.parse(JSON.stringify(T4[k])));m.tier=k.slice(3);if(m.hits)m.dmg.h=m.hits;if(k.slice(0,2)!==ty)m.sub=1;return m})
+   .concat([Object.assign({t:2,tk:1,jn:c.tk.n},JSON.parse(JSON.stringify(c.tk))),{n:c.sp.n,jn:c.sp.n,c:{t:'pair'},dmg:{b:c.sp.b},t:3,ty,sp:1}]);delete c.L;delete c.tk;delete c.sp});
+/* 10Fのボス：ハロウィン・ネロ（倒すと仲間） */
+const NEROHW={id:'nerohw',no:29,name:'ハロウィン・ネロ',img:'img/nero-hw.webp',color:'#6B3FA0',role:'ハロウィンの塔10Fの主・いたずらの魔女',reward:'hw10',types:['ma'],
+  passive:{k:'chainW',n:'黒猫の誓い',d:'「相手の次の攻撃−」の効果がさらに−2'},
+  lines:['トリック・オア・トリート？ ……どっちを選んでも、あたしのいたずらからは逃げられないよ','ハッピーハロウィン♪ お菓子はぜーんぶ、いただき','……今夜は、あたしの負け。そのお菓子、特別にあげる'],moves:[
+  {n:'ジャック・オ・キッス',c:{t:'in',v:[2,3,4]},dmg:{b:1,m:2},fx:{weak:2},ty:'ma'},
+  {n:'黒猫のひっかき',c:{t:'odd'},dmg:{b:2,m:1},ty:'ma'},
+  {n:'お菓子の結界',c:{t:'even'},fx:{guard:5}},
+  {n:'コウモリの羽ばたき',c:{t:'min',n:4},dmg:{b:3},fx:{weak:3},t:2,ty:'ma'},
+  {n:'かぼちゃ爆弾',c:{t:'eq',n:6},dmg:{b:15},t:2,ty:'ma'},
+  {n:'甘いワナ',c:{t:'max',n:2},fx:{heal:4,pow:3},t:2},
+  {n:'トリック・オア・トリート',c:{t:'pair'},dmg:{b:30},fx:{weak:3},t:3,ty:'ma',sp:1}]};
+NEROHW.moves.forEach(m=>m.jn=m.n);
 CHARS.forEach(c=>c.vol=c.vol||1);
-const ALL=[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN];ORIGIN.moves.forEach(m=>m.jn=m.n);
+const ALL=[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,...HWC,NEROHW];ORIGIN.moves.forEach(m=>m.jn=m.n);
 ALL.forEach(c=>c.moves.forEach(m=>m.t=m.t||1));
 const byId=id=>ALL.find(c=>c.id===id);
 
@@ -364,6 +398,10 @@ let LANG='ja';
 const L=(ja,zh)=>LANG==='zh'?zh:ja;
 const ZH={
  chars:{
+  keta:{name:'小丑咯咯',role:'恶作剧型·听天由命的小丑',pn:'小丑铃铛',pd:'每回合骰子+1个。但回合开始时受到2点伤害',lines:['来来，表演开始啦！ 咯咯咯！','掌声呢？ 喂，掌声呢？','……咦，笑不出来了呀']},
+  tsugi:{name:'补补',role:'回复型·缝补的玩偶',pn:'缝补之躯',pd:'自己回合结束时回复4点体力',lines:['这孩子和我永远在一起。……你也要加入吗？','嘻嘻，我再给你缝一次哦','……破掉了呢']},
+  panpi:{name:'派派',role:'爆发型·南瓜幽灵',pn:'南瓜之怒',pd:'体力在一半以下时，攻击伤害+2',lines:['不给糖就捣蛋！ 不给就炸开哦！','派派的胜利～！','……东西漏出来了']},
+  nerohw:{name:'万圣节·尼禄',role:'万圣节之塔10层之主·恶作剧魔女',pn:'黑猫之誓',pd:'「对方下次攻击-」的效果再-2',lines:['不给糖就捣蛋？……不管选哪个，你都逃不过我的恶作剧哦','万圣节快乐♪ 糖果全部归我啦','……今晚是我输了。这颗糖，特别送你']},
   dodo:{name:'多多前辈',role:'防守型·悠闲回复',pn:'蓬松羽毛',pd:'自己的回合开始时获得护盾4',lines:['慢慢来嘛～不过我可不会输哦？','呼，这就是前辈的骨气','好像……午觉睡太久了']},
   fox:{name:'齿轮狐',role:'技巧型·擅长重掷',pn:'灵巧双手',pd:'回合开始时，点数为1的骰子全部重掷',lines:['把你的结构全部拆开！','和设计的一样！','可恶，少了一颗螺丝……']},
   wolf:{name:'沃夫',role:'攻击型·越危险越燃',pn:'热血',pd:'体力在一半以下时，攻击伤害+2',lines:['在国家资格考试之前，先打倒你！','好耶，过关了！','下次……一定要考过！']},
@@ -391,6 +429,36 @@ const ZH={
   eclipse:{name:'日蚀',role:'审判之塔20F之主·黑白之兽',pn:'审判宣告',pd:'自己回合开始时宣告「偶数」或「奇数」。用宣告点数的攻击+3，相反点数的攻击−3（双方适用，对子技能除外）',lines:['阴与阳，皆由我裁决。来吧','判决已下','……漂亮。你的光是真的']},
  },
  moves:{
+  '鈴の音':'铃声',
+  'おどけステップ':'滑稽步',
+  'びっくり箱':'惊吓盒',
+  '道化のおじぎ':'小丑鞠躬',
+  'ケタケタパンチ':'咯咯拳',
+  'ゼンマイ仕掛け':'发条机关',
+  'ぐるぐるの目':'转转眼',
+  'ショータイム・ジャックポット':'表演·大奖',
+  '縫い針チクチク':'缝衣针戳戳',
+  'ちぎれた綿':'裂开的棉花',
+  '裁ちばさみ':'裁布剪刀',
+  '呪いのボタン':'诅咒纽扣',
+  'うさぎキック':'兔子踢',
+  'ぬいぐるみアタック':'玩偶冲撞',
+  'ばんそうこう':'创可贴',
+  'ずっといっしょだよ':'永远在一起哦',
+  'かぼちゃ頭突き':'南瓜头槌',
+  '肉球パンチ':'肉垫拳',
+  'ジャック・オ・ランタン':'杰克南瓜灯',
+  'しっぽフック':'尾巴勾拳',
+  'コウモリの羽ばたき':'蝙蝠振翅',
+  'ランタンの火':'提灯之火',
+  'お菓子ちょうだい':'给我糖果',
+  'ハッピー・パンプキン・ボム':'快乐南瓜炸弹',
+  'ジャック・オ・キッス':'杰克之吻',
+  '黒猫のひっかき':'黑猫抓击',
+  'お菓子の結界':'糖果结界',
+  'かぼちゃ爆弾':'南瓜炸弹',
+  '甘いワナ':'甜蜜陷阱',
+  'トリック・オア・トリート':'不给糖就捣蛋',
   'はじまりの羽ばたき':'起始振翅','作業帽ガード':'工作帽防御','スパナ一閃':'扳手一闪','ごきげんな歌':'愉快的歌','光のくちばし':'光之喙','始源の光':'始源之光',
   'ステージダイブ':'舞台跳水','バッテリー放電':'电池放电','ゴリラパンチ':'猩猩拳','ウルフファング':'狼牙','王者の威光':'王者威光','ドリルアーム':'钻头臂','防護ゴーグル':'防护护目镜','荒削り':'粗加工','ラチェット回し':'棘轮扳手','しっぽアタック':'尾巴攻击','連続ねこパンチ':'连续猫猫拳',
   'まどわしの羽':'迷惑之羽','歯車ショット':'齿轮射击','水分補給':'补充水分','つつき':'啄击','騎士の一撃':'骑士一击','鎖の盾':'锁链之盾','しっぽ叩きつけ':'尾巴拍击','月光の舞':'月光之舞','雷符':'雷符','聖なる羽':'神圣之羽','天秤の守り':'天秤守护',
@@ -472,6 +540,41 @@ const FLOORS_J=[
 ];
 /* 塔ごとの設定：出てくる敵（vol）と10F・20Fのボス。hp20 は20Fボスの体力の上乗せ */
 const TOWER={meister:{floors:FLOORS,vol:1,b10:'takumi',b20:'sora',hp20:0},judge:{floors:FLOORS_J,vol:2,b10:'verdict',b20:'eclipse',hp20:4}};
+/* ハロウィンの塔：10階・全部の階が「トリック・オア・トリート」 */
+const TOT_RULE={k:'tot',d:'トリック・オア・トリート：階の前にカードを1枚選ぶ'};
+const FLOORS_H=[['迷いの入口','迷途入口'],['お菓子の部屋','糖果之屋'],['奇数の夜','奇数之夜'],['霧の廊下','雾之走廊'],['中ボスの間','中头目之间'],['鏡の間','镜之间'],['嵐の夜','风暴之夜'],['入れかわる月','交替之月'],['魔法陣','魔法阵'],['ハロウィン・ネロの間','万圣节尼禄之间']].map(([n,zn])=>({n,zn,rule:TOT_RULE}));
+TOWER.halloween={floors:FLOORS_H,vol:'hw',b10:'nerohw',b20:'nerohw',hp20:0,top:10,event:true};
+/* トリート（小さなごほうび・ネロのレベル+1）とトリック（大きなごほうび＋いたずら） */
+const TOT={
+ treat:[{id:'candy',ja:'キャンディ',zh:'糖果',dja:'味方の最大体力+8',dzh:'我方最大体力+8',e:{php:8}},
+  {id:'cookie',ja:'クッキー',zh:'饼干',dja:'最初のターンもサイコロが減らない・味方の最大体力+4',dzh:'第一回合骰子也不会减少·我方最大体力+4',e:{first:1,php:4}},
+  {id:'gummy',ja:'グミ',zh:'软糖',dja:'味方の攻撃ダメージ+2',dzh:'我方攻击伤害+2',e:{atk:2}},
+  {id:'juice',ja:'ジュース',zh:'果汁',dja:'敵の体力−18%',dzh:'敌人体力−18%',e:{ehp:-0.18}},
+  {id:'mallow',ja:'マシュマロ',zh:'棉花糖',dja:'味方のゾロ目技+10',dzh:'我方对子技能+10',e:{pair:10}},
+  {id:'choco',ja:'チョコレート',zh:'巧克力',dja:'敵の攻撃ダメージ−2',dzh:'敌人攻击伤害−2',e:{eatk:-2}}],
+ trick:[{id:'ghost',ja:'おばけ屋敷',zh:'鬼屋',dja:'敵の体力−15%',dzh:'敌人体力−15%',bja:'お互いターン開始時に1ダメージ',bzh:'双方回合开始时受到1点伤害',e:{ehp:-0.15,rule:'storm'}},
+  {id:'witch',ja:'魔女の鍋',zh:'魔女之锅',dja:'味方の攻撃ダメージ+4',dzh:'我方攻击伤害+4',bja:'敵の攻撃ダメージ+3',bzh:'敌人攻击伤害+3',e:{atk:4,eatk:3}},
+  {id:'cat',ja:'黒猫の横切り',zh:'黑猫横穿',dja:'毎ターン 自分のサイコロ+1個',dzh:'每回合自己的骰子+1个',bja:'敵の体力+35%',bzh:'敌人体力+35%',e:{dice:1,ehp:0.35}},
+  {id:'mirror',ja:'鏡の魔法',zh:'镜之魔法',dja:'敵の体力−10%',dzh:'敌人体力−10%',bja:'お互い、攻撃した側も与えたダメージの1/4を受ける',bzh:'双方攻击方也会受到造成伤害的1/4',e:{ehp:-0.1,rule:'mirror'}},
+  {id:'bats',ja:'コウモリの群れ',zh:'蝙蝠群',dja:'敵が1人少ない',dzh:'敌人少1个',bja:'残りの敵の攻撃ダメージ+4',bzh:'剩下的敌人攻击伤害+4',e:{cut:1,eatk:4}},
+  {id:'pumpkin',ja:'かぼちゃの呪い',zh:'南瓜诅咒',dja:'味方の最大体力+6',dzh:'我方最大体力+6',bja:'お互い回復量が半分',bzh:'双方回复量减半',e:{php:6,rule:'silence'}}]};
+const TOT_RULES={storm:'ターン開始時、そのターンの人が1ダメージ',gavel:'出目1のサイコロが消える',mirror:'攻撃した側も、与えたダメージの1/4を受ける',silence:'回復量が半分'};
+/* 階ごとの敵：[人数, ★, 体力, Lv]。5Fは中ボス、10Fはハロウィン・ネロ。レアキャラは3体目としてまれに出る */
+const HWF=[[2,2,40,0],[2,3,42,1],[3,3,40,1],[3,3,43,2],[1,3,44,2],[3,3,45,3],[3,3,46,3],[3,3,46,4],[3,3,48,4],[2,3,44,4]];
+const HW={rareHp:1.2,mid:'seraph',midHp:46,bossHp:44,bossHpLv:3,bossLv0:1,rareIds:['keta','tsugi','panpi']};
+function hwEnemies(f,R=Math.random,o={}){const [n,st,hp,lv]=HWF[f-1],ma=CHARS.filter(c=>(c.types||[])[0]==='ma').map(c=>c.id),other=CHARS.filter(c=>(c.types||[])[0]!=='ma').map(c=>c.id),out=[];
+  while(out.length<n){const pool=R()<.7?ma:other,id=pool[Math.floor(R()*pool.length)];if(out.some(e=>e.id===id))continue;out.push({id,star:st,hp,lv,bonus:lvBonus(lv)})}
+  if(f===5)out.push({id:HW.mid,star:3,hp:HW.midHp,lv:lv+1,bonus:lvBonus(lv+1),boss:true});
+  if(f===10){const nl=Math.max(0,o.nlv|0),bl=HW.bossLv0+nl;out.push({id:'nerohw',star:3,hp:HW.bossHp+HW.bossHpLv*nl,lv:bl,bonus:lvBonus(bl),boss:true})}
+  if(o.rare&&f<10&&f!==5){const id=HW.rareIds.includes(o.rare)?o.rare:HW.rareIds[Math.floor(R()*3)],e={id,star:3,hp:Math.round(hp*HW.rareHp),lv,bonus:lvBonus(lv),rare:true};if(out.length>=3)out[2]=e;else out.push(e)}
+  const t=o.card&&o.card.e;
+  if(t&&t.cut){const k=out.findIndex(e=>!e.boss&&!e.rare);if(k>=0&&out.length>1)out.splice(k,1)}
+  return out.map(e=>({...e,hp:t&&t.ehp?Math.max(1,Math.round(e.hp*(1+t.ehp))):e.hp,bonus:(e.bonus||0)+(t&&t.eatk||0),mv:autoPick(byId(e.id),e.star,1.5,R)}))}
+/* 選んだカードをバトルに反映（味方の体力・攻撃、最初のターン、ゾロ目、サイコロ、ルール） */
+function applyTot(S,card){const t=card&&card.e;if(!t)return;S.tot={pair:t.pair||0,dice:t.dice||0,name:card.ja};
+  S.sides[0].team.forEach(f=>{if(t.php){f.hp+=t.php;f.max+=t.php}if(t.atk){f.bonus=(f.bonus||0)+t.atk;f.bonusN=L(card.ja,card.zh)}});
+  if(t.first)S.sides[0].first=false;
+  if(t.rule){S.rule={k:t.rule,d:TOT_RULES[t.rule]};S.fl={...S.fl,rule:S.rule}}}
 const towerOf=t=>TOWER[t]||TOWER.meister;
 const BK={chars:{},floors:FLOORS.map(f=>({n:f.n,d:f.rule&&f.rule.d})),floorsJ:FLOORS_J.map(f=>({n:f.n,d:f.rule&&f.rule.d}))};
 ALL.forEach(c=>BK.chars[c.id]={name:c.name,role:c.role,pn:c.passive.n,pd:c.passive.d,lines:[...c.lines],moves:c.moves.map(m=>m.n)});
@@ -553,6 +656,7 @@ function newBattle(o){/* o:{floor,lap,party:[{id,star,mv,lv}],enemies:[{id,star,
   const S={floor:o.floor,lap:o.lap||1,tower:o.tower||'meister',fl,rule:fl.rule,turn:0,over:-1,ev:[],choose:[false,false],ultOK:[true,false],
     sides:[{team:o.party.map(p=>mkFighter(p.id,p.star,p.mv,p.lv,p.hp||PLAYER_HP)),idx:0,dice:[],used:new Set(),first:true},
            {team:o.enemies.map(e=>mkFighter(e.id,e.star,e.mv,null,e.hp,e.lv||0,e.bonus||0,!!e.raid)),idx:0,dice:[],used:new Set(),first:false}]};
+  if(o.card)applyTot(S,o.card);
   return S}
 const act=(S,i)=>S.sides[i].team[S.sides[i].idx];
 const rk=S=>S.rule&&S.rule.k;
@@ -594,7 +698,7 @@ function startTurn(S,i,R=S.R||Math.random){if(S.over>=0)return take(S);
 /* ターン開始のサイコロ（倒れて次のキャラを選んだあとにも使う） */
 function rollPart(S,i,R){const sd=S.sides[i];
   const g=act(S,i),gk=g.ch.passive.k;g.firstHit=true;
-  let n=DICE+g.dMod+(rk(S)==='dice'?1:0)+(gk==='gamble'?1:0)+(g.raid?2:0)-(sd.first?1:0);n=Math.max(1,Math.min(MAXD,n));g.dMod=0;
+  let n=DICE+g.dMod+(rk(S)==='dice'?1:0)+(i===0&&S.tot?S.tot.dice:0)+(gk==='gamble'?1:0)+(g.raid?2:0)-(sd.first?1:0);n=Math.max(1,Math.min(MAXD,n));g.dMod=0;
   const firstNote=sd.first?L('（最初のターンは1個少ない）','（第一回合少1个）'):'';sd.first=false;
   sd.dice=Array.from({length:n},()=>({v:r6(R),used:false}));
   E(S,'roll',L(`サイコロ${n}個 → `,`骰子${n}个 → `)+`${sd.dice.map(d=>d.v).join(L('・','·'))}${firstNote}`,{side:i});
@@ -679,7 +783,8 @@ function calcDmg(S,i,m,v){const f=act(S,i),o=act(S,1-i),pk=f.ch.passive.k,notes=
   if(pk==='first'&&f.firstHit)add(2,f.ch.passive.n);
   if(pk==='wb'&&!f.white)add(2,L('黒の羽','黑之羽'));
   if(pk==='master')add(1,f.ch.passive.n);
-  if(f.bonus)add(f.bonus,'Lv'+f.lv);
+  if(f.bonus)add(f.bonus,f.bonusN||'Lv'+f.lv);
+  if(S.tot&&S.tot.pair&&i===0&&m.c.t==='pair')add(S.tot.pair,S.tot.name);
   if(f.pow)add(f.pow,L('溜め','蓄力'));
   if(f.weak)add(-f.weak,L('弱体','削弱'));
   if(o.ch.passive.k==='armor')add(-1,o.ch.passive.n);
@@ -800,7 +905,7 @@ const WORDS=[[
 function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],w[1]);
   if(t.includes('{c}')){const c=byId(String(w[2]).split(':')[1]);t=t.replace('{c}',c?c.name:'？')}return t}
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
-const API={TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
+const API={TOT,HW,HWF,HWC,NEROHW,hwEnemies,applyTot,TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg,
   T4,V4,OLD23,OLD24,TYPES,BEATS,TMULT,typePts,typeParts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG,ultDmg};
 G.ENGINE=API;if(typeof module!=='undefined')module.exports=API;
