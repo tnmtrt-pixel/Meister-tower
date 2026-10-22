@@ -560,7 +560,7 @@ const TOT={
   {id:'pumpkin',ja:'かぼちゃの呪い',zh:'南瓜诅咒',dja:'味方の最大体力+6',dzh:'我方最大体力+6',bja:'お互い回復量が半分',bzh:'双方回复量减半',e:{php:6,rule:'silence'}}]};
 const TOT_RULES={storm:'ターン開始時、そのターンの人が1ダメージ',gavel:'出目1のサイコロが消える',mirror:'攻撃した側も、与えたダメージの1/4を受ける',silence:'回復量が半分'};
 /* 階ごとの敵：[人数, ★, 体力, Lv]。5Fは中ボス、10Fはハロウィン・ネロ。レアキャラは3体目としてまれに出る */
-const HWF=[[2,2,40,0],[2,3,42,1],[3,3,40,1],[3,3,43,2],[1,3,44,2],[3,3,45,3],[3,3,46,3],[3,3,46,4],[3,3,48,4],[2,3,44,4]];
+const HWF=[[2,2,30,0],[2,3,32,1],[3,3,30,1],[3,3,33,2],[1,3,34,2],[3,3,35,3],[3,3,36,3],[3,3,36,4],[3,3,38,4],[2,3,34,4]];
 const HW={rareHp:1.2,mid:'seraph',midHp:46,bossHp:44,bossHpLv:3,bossLv0:1,rareIds:['keta','tsugi','panpi']};
 function hwEnemies(f,R=Math.random,o={}){const [n,st,hp,lv]=HWF[f-1],ma=CHARS.filter(c=>(c.types||[])[0]==='ma').map(c=>c.id),other=CHARS.filter(c=>(c.types||[])[0]!=='ma').map(c=>c.id),out=[];
   while(out.length<n){const pool=R()<.7?ma:other,id=pool[Math.floor(R()*pool.length)];if(out.some(e=>e.id===id))continue;out.push({id,star:st,hp,lv,bonus:lvBonus(lv)})}

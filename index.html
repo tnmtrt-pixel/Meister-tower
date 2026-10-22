@@ -774,7 +774,7 @@ hr{border-color:var(--line)!important}
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=ee55fe3c"></script>
+<script src="engine.js?v=f5df8046"></script>
 <script>
 const VERSION='2.8.0';
 const G=window.ENGINE;
@@ -1709,7 +1709,7 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
 const HW_FROM=Date.parse('2026-10-24T00:00:00+09:00'),HW_TO=Date.parse('2026-11-04T00:00:00+09:00');
 function hwOpen(){if(/[?&]hwtest=1\b/.test(location.search))return true;/* 動作確認用：アドレスに ?hwtest=1 をつけると期間外でも遊べる */const t=Date.now();return t>=HW_FROM&&t<HW_TO}
 const HWREW={floor:6,boss:30};/* 初回クリアのコイン（1〜9階・10階） */
-const hwRare=()=>Math.min(1,.10+.03*(save.hw.pity||0));/* レアキャラに会える確率：10%＋会えないと1回ごとに+3% */
+const hwRare=()=>Math.min(1,.20+.05*(save.hw.pity||0));/* レアキャラに会える確率：20%＋会えないと1回ごとに+5% */
 function hwSub(){const r=save.hw.run;return r?L(`挑戦中 ${r.f}F`,`挑战中 ${r.f}F`):save.hw.clears?L(`制覇 ${save.hw.clears}回`,`制霸 ${save.hw.clears}次`):save.hw.best?L(`最高 ${save.hw.best}F`,`最高 ${save.hw.best}F`):L('期間限定','限时活动')}
 function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/24〜11/3の期間限定です','万圣节之塔为10/24〜11/3限定开放'));return}
   fixParty();if(!save.party.length)return;
