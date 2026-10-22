@@ -103,11 +103,6 @@ export const RaidMixin = {
     if (r.killed) return json({ err: 'killed', raid: this.raidPub(r, b.id) }, 409);
     const u = this.sql.exec('SELECT tries FROM raid_u WHERE day = ? AND id = ?', r.day, b.id).toArray()[0];
     if (u && u.tries >= RAID.tries) return json({ err: 'tries', raid: this.raidPub(r, b.id) }, 409);
-    /* 回数は始めたときに数える（途中でやめてもやり直せない） */
-    this.sql.exec('INSERT INTO raid_u (day, id, tries, last) VALUES (?,?,1,?) ON CONFLICT(day, id) DO UPDATE SET tries = tries + 1, last = excluded.last', r.day, b.id, Date.now());
-    this.sql.exec('UPDATE raid_d SET tries = tries + 1 WHERE day = ?', r.day);
-    /* 紫の羽：挑戦した日に1枚（10枚で紫翼皇が仲間になる。仲間になったあとはかけら） */
-    if (!u) this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', b.id, 'rfeather', r.day * 10, 0, RAID.feather);
     const E = globalThis.ENGINE, ch = E.byId(RAID.boss);
     const boss = { id: RAID.boss, star: 3, mv: E.autoPick(ch, 3, 0), lv: {}, hp: Math.max(1, r.hp), max: r.max, elv: RAID.elv, bonus: RAID.bonus };
     const mul = this.rallyNow && this.rallyNow() ? RAID.rally : 1;
@@ -119,6 +114,11 @@ export const RaidMixin = {
     const stub = this.env.ROOM.get(this.env.ROOM.idFromName(code));
     const res = await stub.fetch('https://int/setup', { method: 'POST', body: JSON.stringify({ kind: 'raid', slots, day: r.day, hp0: boss.hp, mul, first: 0, maxRound: RAID.maxRound }) });
     if (!res.ok) return json({ err: 'room' }, 500);
+    /* 回数は部屋ができてから数える（作成に失敗した挑戦は数えない）。途中でやめてもやり直せない */
+    this.sql.exec('INSERT INTO raid_u (day, id, tries, last) VALUES (?,?,1,?) ON CONFLICT(day, id) DO UPDATE SET tries = tries + 1, last = excluded.last', r.day, b.id, Date.now());
+    this.sql.exec('UPDATE raid_d SET tries = tries + 1 WHERE day = ?', r.day);
+    /* 紫の羽：挑戦した日に1枚（10枚で紫翼皇が仲間になる。仲間になったあとはかけら） */
+    if (!u) this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', b.id, 'rfeather', r.day * 10, 0, RAID.feather);
     return json({ ok: true, room: code, ticket, boss, mul });
   },
   /* Room から届く結果（外からは呼べない） */
@@ -127,15 +127,24 @@ export const RaidMixin = {
     const r = this.sql.exec('SELECT * FROM raid_d WHERE day = ?', b.day).toArray()[0];
     if (!r || !b.id) return { err: 'day' };
     const dmg = Math.round(raw * (+b.mul || 1));
+    /* 数えるのは実際にHPを削った分だけ（倒した後の分・残りHPを超えた分は数えない） */
     const hit = r.killed ? 0 : Math.min(r.hp, dmg), hp = r.hp - hit, kill = !r.killed && hp <= 0 && hit > 0;
     this.sql.exec('UPDATE raid_d SET hp = ?, killed = ?, killer = ? WHERE day = ?', hp, kill ? Date.now() : r.killed, kill ? b.id : r.killer, b.day);
-    this.sql.exec('UPDATE raid_u SET dmg = dmg + ?, best = MAX(best, ?), last = ? WHERE day = ? AND id = ?', dmg, dmg, Date.now(), b.day, b.id);
-    this.sql.exec('INSERT INTO raid_log (t, day, id, dmg, kill) VALUES (?,?,?,?,?)', Date.now(), b.day, b.id, dmg, kill ? 1 : 0);
+    this.sql.exec('UPDATE raid_u SET dmg = dmg + ?, best = MAX(best, ?), last = ? WHERE day = ? AND id = ?', hit, hit, Date.now(), b.day, b.id);
+    this.sql.exec('INSERT INTO raid_log (t, day, id, dmg, kill) VALUES (?,?,?,?,?)', Date.now(), b.day, b.id, hit, kill ? 1 : 0);
     this.sql.exec('DELETE FROM raid_log WHERE t < ?', Date.now() - 3 * DAY);
-    const coins = RAID.coin(dmg);
-    this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', b.id, 'raid', Date.now() * 10 + Math.floor(Math.random() * 10), dmg, coins);
-    if (kill) this.raidSettle(b.day);
+    const coins = RAID.coin(hit);
+    this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', b.id, 'raid', Date.now() * 10 + Math.floor(Math.random() * 10), hit, coins);
+    /* 日が変わったあとに届いた撃破は、その日の締めが済んでいるので個別に配る */
+    if (kill) { if (r.done) this.raidLateKill(b.day); else this.raidSettle(b.day); }
     const me = this.sql.exec('SELECT tries, dmg FROM raid_u WHERE day = ? AND id = ?', b.day, b.id).toArray()[0] || { tries: 0, dmg: 0 };
-    return { dmg, raw, mul: +b.mul || 1, coins, hp, max: r.max, kill, killedBefore: !!r.killed, myTotal: me.dmg, tries: me.tries, triesMax: RAID.tries };
+    return { dmg: hit, raw, mul: +b.mul || 1, coins, hp, max: r.max, kill, killedBefore: !!r.killed, myTotal: me.dmg, tries: me.tries, triesMax: RAID.tries };
+  },
+  /* 締めのあとに届いた撃破：その日の挑戦者全員に撃破のごほうびを配る */
+  raidLateKill(day) {
+    for (const u of this.sql.exec('SELECT id FROM raid_u WHERE day = ? AND tries > 0', day).toArray()) {
+      this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', u.id, 'raid', Date.now() * 10 + Math.floor(Math.random() * 10), 0, RAID.killCoin);
+      this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', u.id, 'rshard', -(day * 10 + 2), 4, RAID.killShard);
+    }
   },
 };

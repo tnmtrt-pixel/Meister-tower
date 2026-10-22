@@ -777,7 +777,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.11.3';
+const VERSION='2.11.4';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -870,7 +870,7 @@ function busyBy(k,skip){
   if(typeof B!=='undefined'&&B&&!B.done&&B.pidx===k)return L('対戦中','对战中');
   if(typeof LAD!=='undefined'&&LAD.state&&LAD.state!=='idle'&&LAD.pidx===k)return L('ランクバトル','排位赛');
   if(skip!=='inf'&&save.inf&&save.inf.run&&save.inf.run.pidx===k)return L('無限の塔','无限之塔');
-  if(skip!=='hw'&&save.hw&&save.hw.run&&save.hw.run.pidx===k)return L('ハロウィンの塔','万圣节之塔');
+  if(skip!=='hw'&&save.hw&&save.hw.run&&save.hw.run.pidx===k&&hwOpen())return L('ハロウィンの塔','万圣节之塔');
   return null}
 function partyBusy(k){return busyBy(k,null)}
 function partyGuard(){const b=partyBusy(save.pidx);if(!b)return false;toast(L(`このパーティは${b}で出撃中です。ほかのパーティを選んでください`,`该队伍正在${b}中出战，请选择其他队伍`));return true}
@@ -986,7 +986,7 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 /* ボスの階：倒すとそのボスが仲間に（★が上がる。★3のあとはかけら） */
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
-function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';renderTowers();renderMission();
+function renderTower(){fixParty();if(save.hw&&save.hw.run&&!hwOpen()){save.hw.run=null;persist()}rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';renderTowers();renderMission();
   const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;$('#infbar').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
@@ -1016,7 +1016,8 @@ $('#start').onclick=()=>{ac();sfx('tap');beginBattle()};
 let sel=null;
 /* 編成：枠をタップ → 仲間をタップで入れ替え。枠どうしなら並び替え */
 let slotSel=null;
-function partySet(k,id){const P=save.party.slice(),j=P.indexOf(id);
+function partyLocked(){const b=partyBusy(save.pidx);if(b){toast(L(`このパーティは${b}で出撃中のため編成できません`,`该队伍正在${b}中出战，无法编辑`));return true}return false}
+function partySet(k,id){if(partyLocked())return;const P=save.party.slice(),j=P.indexOf(id);
   if(j>=0){const t=P[k];P[k]=id;if(t)P[j]=t;else P.splice(j,1)}/* もうパーティにいる → 位置を交換 */
   else if(k<P.length)P[k]=id;else P.push(id);
   save.party=P.filter(Boolean).slice(0,3);persist()}
@@ -1033,7 +1034,7 @@ function renderParty(){fixParty();bindPsets('#psets-p',renderParty);if(!sel||!ow
   $('#psort').querySelectorAll('[data-psort]').forEach(b=>b.onclick=()=>{sfx('tap');save.psort=b.dataset.psort;persist();renderParty()});
   const TO=Object.keys(G.TYPES),tk=c=>{const k=TO.indexOf((c.types||[])[0]);return k<0?99:k};
   $('#owned').innerHTML=(save.psort==='type'?mine.slice().sort((a,b)=>tk(a)-tk(b)):mine).map(cb).join('');
-  document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.slot;
+  document.querySelectorAll('#slots [data-slot]').forEach(b=>b.onclick=()=>{sfx('tap');if(partyLocked())return;const k=+b.dataset.slot;
     if(slotSel==null){slotSel=k;if(save.party[k])sel=save.party[k]}
     else if(slotSel===k)slotSel=null;
     else{const a=save.party[slotSel],c=save.party[k];if(a&&c){partySet(k,a)}else if(a&&!c){/* 空き枠へ移動＝末尾へ */save.party=[...save.party.filter(x=>x!==a),a];persist()}else if(!a&&c){save.party=[...save.party.filter(x=>x!==c),c];persist()}slotSel=null}
@@ -1136,7 +1137,7 @@ function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vo
   $('#dex').innerHTML=DEXG().map(([t,fn])=>`<div class="label" style="grid-column:1/-1;margin-top:4px">${t}</div>`+ALL.filter(fn).map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.reward?'？':'')}</span><span class="${nmc(o?c.name:'')}">${o?c.name:L('？？？','？？？')}</span></button>`}).join('')).join('');
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 /* ボスキャラの入手方法 */
-const REWARD_TXT={meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
+const REWARD_TXT={hw10:['ハロウィンの塔 10Fのボス','万圣节之塔 10F的头目'],meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
 const rewardHow=c=>{if(c.reward==='raid')return L(`レイドバトルに挑戦した日に「紫の羽」1枚、みんなで倒した日はさらに2枚。10枚集めると★3で仲間になります（いま ${Math.min(10,save.feather||0)}/10枚）。仲間になったあとの羽は、かけら1個になります。ガチャには出ません。`,`参加团队战的那天获得「紫之羽」1根，大家一起打倒的那天再获得2根。集齐10根即可以★3成为伙伴（现在 ${Math.min(10,save.feather||0)}/10根）。成为伙伴后的羽毛会变成碎片1个。不会出现在扭蛋中。`);const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   if(!o){el.innerHTML=`<p class="hint">${c.reward?L('まだ出会っていないボス。','尚未遇见的头目。')+rewardHow(c):L(`まだ出会っていないキャラ。ガチャ（vol.${c.vol}）で仲間にしよう。`,`尚未遇见的角色。用扭蛋（vol.${c.vol}）让它成为伙伴吧。`)}</p>`;return}
@@ -1679,8 +1680,10 @@ function renderCup(){const el=$('#cup'),d=CUP.data,c=d&&d.cup;if(!c){el.hidden=t
   on('cup-entry',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:true})});
   on('cup-cancel',()=>{sfx('tap');cupAct('/api/cup/entry',{tid:c.id,on:false})});
   on('cup-chk',()=>{sfx('tap');const code=c.online?'':($('#cup-code').value||'').trim();if(!c.online&&!/^\d{4}$/.test(code)){toast(L('4けたの数字を入れてください','请输入4位数字'));return}
-    fixParty();if(!save.party.length){toast(L('先にパーティを組んでください','请先组建队伍'));return}cupAct('/api/cup/checkin',{tid:c.id,code,party:onlineParty()})});
-  on('cup-sit',()=>{sfx('tap');const m=me.match;onlineConnect(m.room,false,{tid:c.id,r:m.r,party:me.party,ticket:m.ticket||''});renderCup()});
+    fixParty();if(!save.party.length){toast(L('先にパーティを組んでください','请先组建队伍'));return}if(partyGuard())return;CUP.pidx=save.pidx;cupAct('/api/cup/checkin',{tid:c.id,code,party:onlineParty()})});
+  on('cup-sit',()=>{sfx('tap');if(typeof LAD!=='undefined'&&LAD.state&&LAD.state!=='idle'){toast(L('ランクバトルのマッチング中は大会に出られません','排位赛匹配中无法参加大会'));return}
+    if(CUP.pidx!=null&&save.pidx!==CUP.pidx){if(partyBusy(CUP.pidx)){toast(L('このパーティは出撃中です','该队伍正在出战中'));return}setPidx(CUP.pidx)}
+    if(partyGuard())return;const m=me.match;onlineConnect(m.room,false,{tid:c.id,r:m.r,party:me.party,ticket:m.ticket||''});renderCup()});
   on('cup-unsit',()=>{sfx('tap');ON.cup=null;onlineClose();ON.state='idle';renderCup()});
   on('cup-claim',async()=>{sfx('tap');try{const r=await api('/api/cup/claim',auth());if(r.coins>0){save.coins+=r.coins;persist();updCoins();sfx('reveal',3);toast(L(`コイン +${r.coins}`,`金币 +${r.coins}`))}syncCupFlags(r.flags);if(CUP.data.rew)CUP.data.rew.coins=0;renderCup()}catch(e){toast(L('サーバーにつながりませんでした','无法连接服务器'))}})}
 function renderCupRec(){const el=$('#cuprec'),d=CUP.data;const hist=(d&&d.hist)||[],hall=(d&&d.hall)||[];
