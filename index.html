@@ -629,6 +629,7 @@ hr{border-color:var(--line)!important}
 @media (max-width:380px){.hw-cards{grid-template-columns:1fr}}
 
 .hw-pick{display:flex;flex-direction:column;gap:2px;padding:6px 4px;border-bottom:1px solid var(--line)}.hw-pick small{font-size:12px;opacity:.8}.hw-pick span{font-size:13px}.hw-pick em{font-size:12px;color:#B0304A;font-style:normal}
+.partybar{padding:8px 12px}.partybar .psets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.partybar .pset:disabled{opacity:.55}.pb-busy{display:block;font-size:11px;color:#B0304A}
 </style>
 </head>
 <body>
@@ -641,6 +642,7 @@ hr{border-color:var(--line)!important}
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
       <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="成绩">成績</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
+    <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div></div>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
       <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="cup" aria-pressed="false" data-zh="大赛">大会</button></nav>
   </header>
@@ -661,7 +663,6 @@ hr{border-color:var(--line)!important}
         <div><span class="rule" id="floor-rule">特別ルールなし</span></div>
         <p class="hint" id="floor-info"></p>
         <div class="label" data-zh="选择队伍">パーティを選ぶ</div>
-        <div class="psets" id="psets-t"></div>
         <div class="party-strip" id="party-strip"></div>
         <button class="btn small" id="go-party" style="align-self:flex-start" data-zh="更改编队">編成を変える</button>
       </div>
@@ -821,9 +822,9 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.pidx=Math.min(2,Math.max(0,v.pidx|0));s.parties=[0,1,2].map(k=>(Array.isArray(v.parties)&&Array.isArray(v.parties[k])?v.parties[k]:[]).filter(id=>typeof id==='string'&&byId(id)).slice(0,3));
   s.hpLv={};for(const k in (v.hpLv||{}))if(byId(k))s.hpLv[k]=Math.min(5,Math.max(0,v.hpLv[k]|0));
   {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),pend:Math.max(0,I.pend|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0),f:(Array.isArray((I.day||{}).f)?I.day.f:[]).filter(n=>Number.isInteger(n)&&n>0).slice(0,2000)},
-    run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
+    run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)])),pidx:Math.min(2,Math.max(0,Math.floor(+r.pidx||0)))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
-  {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0))),picks:(Array.isArray(hr.picks)?hr.picks:[]).filter(id=>[...G.TOT.treat,...G.TOT.trick].some(c=>c.id===id)).slice(0,10)}:null}}
+  {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0))),picks:(Array.isArray(hr.picks)?hr.picks:[]).filter(id=>[...G.TOT.treat,...G.TOT.trick].some(c=>c.id===id)).slice(0,10),pidx:Math.min(2,Math.max(0,Math.floor(+hr.pidx||0)))}:null}}
   s.dexReward2=!!v.dexReward2;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0));
   s.feather=Math.max(0,Math.floor(+v.feather||0)); /* レイドの「紫の羽」（10枚で紫翼皇が仲間に） */ /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
@@ -864,6 +865,20 @@ function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.s
 function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
   return`<button type="button" class="pset" data-ps="${k}" aria-pressed="${k===save.pidx}"><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span></button>`}).join('')}
 function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');slotSel=null;setPidx(+b.dataset.ps);after()})}
+
+/* 出撃中のパーティ：無限・ハロウィンの挑戦中、対戦待ち（ランク）、対戦中（塔・レイド・ランク・大会）は、そのパーティを他の対戦に使えない */
+function partyBusy(k){
+  if(save.inf&&save.inf.run&&save.inf.run.pidx===k)return L('無限の塔','无限之塔');
+  if(save.hw&&save.hw.run&&save.hw.run.pidx===k)return L('ハロウィンの塔','万圣节之塔');
+  if(typeof B!=='undefined'&&B&&!B.done&&B.pidx===k)return L('対戦中','对战中');
+  if(typeof LAD!=='undefined'&&LAD.state&&LAD.state!=='idle'&&LAD.pidx===k)return L('ランクバトル','排位赛');
+  return null}
+function partyGuard(){const b=partyBusy(save.pidx);if(!b)return false;toast(L(`このパーティは${b}で出撃中です。ほかのパーティを選んでください`,`该队伍正在${b}中出战，请选择其他队伍`));return true}
+function renderPartyBar(){const el=$('#psets-bar');if(!el)return;
+  el.innerHTML=[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns)),bz=partyBusy(k),cur=k===save.pidx;
+    return`<button type="button" class="pset${cur?' on':''}" data-ps="${k}" aria-pressed="${cur}" ${bz?'disabled':''}><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span>${bz?`<small class="pb-busy">${bz}${L('で出撃中','出战中')}</small>`:''}</button>`}).join('');
+  el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.ps;if(partyBusy(k)){toast(L('このパーティは出撃中です','该队伍正在出战中'));return}setPidx(k);renderPartyBar();if(!$('#v-tower').hidden)renderTower();if(!$('#v-online').hidden)renderOnline()});
+  const pe=$('#pb-edit');if(pe)pe.onclick=()=>{sfx('tap');nav('party')}}
 function fixParty(){save.party=save.party.filter(owns).slice(0,3);
   if(!save.party.length&&hasAny())save.party=Object.keys(save.owned).sort((a,b)=>starOf(b)-starOf(a)).slice(0,3)}
 function grant(id,st){const cur=starOf(id);
@@ -934,7 +949,7 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'?'tower':'online'):v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
-  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
+  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle';if(main==='battle')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
@@ -991,7 +1006,6 @@ function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyL
   $('#floor-info').innerHTML=rp?`${enemyTxt}<br>${L('再挑戦の報酬：勝利で','再挑战奖励：胜利获得')} <b style="color:var(--gold-hi)">${replayCoins(f)}</b> ${L(`コイン（初回クリアは${G.floorCoins(f)}）。負けたときのコインはなし。塔の進み具合は変わりません。`,`金币（首次通关为${G.floorCoins(f)}）。失败不获得金币，塔的进度不变。`)}${bossTxt(f)}<br><button type="button" class="btn small" id="back-now" style="margin-top:6px">${L(`挑戦中の${T.floor}Fに戻る`,`返回挑战中的${T.floor}F`)}</button>`
     :`${enemyTxt}　${L(`勝利で ${G.floorCoins(f)} コイン`,`胜利获得 ${G.floorCoins(f)} 金币`)}${bossTxt(f)}${T.floor>1||T.clears?`<br><span style="font-size:12px">${L('クリアした階をタップすると再挑戦できます','点击已通关的楼层可以再挑战')}</span>`:''}`;
   const bn=$('#back-now');if(bn)bn.onclick=()=>{tsel=TP().floor;renderTower()};
-  bindPsets('#psets-t',renderTower);
   $('#party-strip').innerHTML=save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<span class="rar">${stars(starOf(id))}</span></div>`).join('')||`<span class="hint">${L('パーティが空です','队伍是空的')}</span>`;
   $('#start').textContent=rp?L(`${f}F に再挑戦`,`再挑战 ${f}F`):f===TOP||f===TOP2?L(`${byId(f===TOP?TW.b10:TW.b20).name}に挑む`,`挑战${byId(f===TOP?TW.b10:TW.b20).name}`):L(`${f}F に挑戦`,`挑战 ${f}F`);$('#start').disabled=!save.party.length;
   $('#start-hint').textContent=save.party.length<3&&Object.keys(save.owned).length>save.party.length?L('パーティに空きがあります','队伍还有空位'):''}
@@ -1424,10 +1438,10 @@ function ladChange(r){const a=r.before,b=r.after;
   return`<span class="lad-chg${r.gain<0?' dn':''}">${rankName(b.rank)} ${starsHTML(b.stars,b.need)} ${r.gain>0?'★+'+r.gain:r.gain<0?'★'+r.gain:'±0'}</span>`}
 async function ladLoad(){if(!save.prof.reg)return;try{const j=await api('/api/lad/me',auth());LAD.me=j.me;LAD.sv=j.v}catch(e){LAD.me=LAD.me||null}if(!$('#v-online').hidden&&!(B&&!B.done))renderLad()}
 function ladCancel(){const ws=LAD.ws;LAD.ws=null;LAD.state='idle';clearInterval(LAD.tick);if(ws){try{ws.close()}catch(e){}}}
-function ladQueue(){ac();LAD.err='';fixParty();
+function ladQueue(){ac();LAD.err='';fixParty();if(partyGuard())return;
   if(!save.party.length){LAD.err=L('先にパーティを組んでください','请先组建队伍');renderLad();return}
   const short=save.party.find(id=>loadout(id).length!==4);if(short){LAD.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderLad();return}
-  ladCancel();LAD.state='connect';renderLad();
+  ladCancel();LAD.pidx=save.pidx;LAD.state='connect';renderLad();
   let ws;try{ws=new WebSocket(ONLINE_URL.replace(/^http/,'ws').replace(/\/$/,'')+'/mm')}catch(e){LAD.state='idle';LAD.err=L('接続できませんでした','无法连接');renderLad();return}
   LAD.ws=ws;
   ws.onopen=()=>ws.send(JSON.stringify({t:'q',...auth(),v:ENGINE_V,party:onlineParty()}));
@@ -1535,7 +1549,7 @@ function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo
     ${r.log&&r.log.length?`<div class="label" style="margin-top:8px">${L('さいきんの攻撃','最近的攻击')}</div>${list(r.log,x=>`<div>${nameOf(x.w)} <b>${x.kill?'🎉 ':''}${x.dmg}${L('ダメージ','伤害')}</b></div>`)}`:''}
     <details class="hint" style="margin-top:6px"><summary>${L('ルールとごほうび','规则和奖励')}</summary>${L(`始原の紫翼皇の体力を、みんなで1日かけて削ります（毎朝5時に入れかわり）。1人1日${r.triesMax}回、パーティ全員が倒れるまで戦い、与えたダメージがみんなの体力から減ります。集合タイム中はダメージ${r.rallyMul||1.5}倍。挑戦するたびにダメージに応じたコイン。その日が終わったとき（倒したときはすぐ）、挑戦した人全員に、残りHP 75%・50%・25%を切るごとに選べるかけら${R.stageShard||1}個、倒したらさらにかけら${R.killShard||3}個と${R.killCoin||10}コイン。ダメージ上位3人には ${(R.top||[30,20,10]).join('・')}コイン。挑戦した日に「紫の羽」1枚、倒した日はさらに2枚。10枚集めると紫翼皇が仲間になります。`,`大家用一天的时间一起削减始原紫翼皇的体力（每天早上5点更换）。每人每天${r.triesMax}次，战斗到全队倒下为止，造成的伤害会从大家的体力中扣除。集合时间内伤害${r.rallyMul||1.5}倍。每次挑战按伤害获得金币。当天结束时（打倒时立即），所有挑战者每当剩余HP低于75%·50%·25%各获得自选碎片${R.stageShard||1}个，打倒后再获得碎片${R.killShard||3}个和${R.killCoin||10}金币。伤害前3名获得 ${(R.top||[30,20,10]).join('·')}金币。参加的那天获得「紫之羽」1根，打倒的那天再获得2根。集齐10根紫翼皇即可成为伙伴。`)}</details>`;
   const g=$('#raid-go');if(g)g.onclick=()=>{sfx('tap');raidGo()}}
-async function raidGo(){if(RD.busy)return;ac();RD.err='';fixParty();
+async function raidGo(){if(RD.busy)return;ac();RD.err='';fixParty();if(partyGuard())return;
   if(!save.party.length){RD.err=L('先にパーティを組んでください','请先组建队伍');renderRaid();return}
   const short=save.party.find(id=>loadout(id).length!==4);if(short){RD.err=L(`${byId(short).name}の技が4つそろっていません`,`${byId(short).name}的技能不足4个`);renderRaid();return}
   ladCancel();RD.busy=true;renderRaid();
@@ -1662,13 +1676,13 @@ const HP_MAX_LV=5,HP_COST=[3,4,5,6,7];/* 体力強化：1段階+2（最大+10）
 const hpOf=id=>G.PLAYER_HP+2*(save.hpLv[id]||0);
 const infOpen=()=>Math.max(save.best||1,save.floor)>TOP;
 let towerMode='meister';
-function infStart(){fixParty();if(!save.party.length)return;
+function infStart(){fixParty();if(!save.party.length)return;if(partyGuard())return;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
-  save.inf.run={f:1,party:save.party.slice(),hp:Object.fromEntries(save.party.map(id=>[id,hpOf(id)]))};persist();beginInf()}
+  save.inf.run={f:1,pidx:save.pidx,party:save.party.slice(),hp:Object.fromEntries(save.party.map(id=>[id,hpOf(id)]))};persist();beginInf()}
 function beginInf(){const run=save.inf.run;if(!run)return;
   const party=run.party.filter(owns).map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
   const enemies=G.infEnemies(run.f,Math.random,run.party);
-  TUT.on=false;B={inf:true,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  TUT.on=false;B={inf:true,pidx:save.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
@@ -1700,9 +1714,8 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
     <p class="hint">${L(`報酬：1Fクリアで${INF_REW.floor}コイン、ボスのFはさらに+${INF_REW.boss}（同じFのコインは1日1回まで。1日の合計に上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1F${INF_REW.floor}金币，头目F再+${INF_REW.boss}（同一F的金币每天限1次，每天合计无上限）。刷新最佳+${INF_REW.best}`)}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
       <div class="row"><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
-    :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
+    :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
       `}`;
-  if(!run)bindPsets('#psets-i',renderInf);
   const ib=$('#inf-bar-go');ib.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
   ib.onclick=()=>{ac();sfx('tap');if(save.inf.run)beginInf();else infStart()};
   const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1F开始')))return;save.inf.run=null;persist();renderTower()}}
@@ -1716,7 +1729,7 @@ function hwSub(){const r=save.hw.run;return r?L(`挑戦中 ${r.f}F`,`挑战中 $
 function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/24〜11/3の期間限定です','万圣节之塔为10/24〜11/3限定开放'));return}
   fixParty();if(!save.party.length)return;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
-  save.hw.run={f:1,nlv:0,picks:[]};persist();hwPick()}
+  if(partyGuard())return;save.hw.run={f:1,nlv:0,picks:[],pidx:save.pidx};persist();hwPick()}
 /* 階の前：カードを2枚見せて1枚選ぶ（トリート1・トリック1をランダムに） */
 function hwPick(){const run=save.hw.run;if(!run||!hwOpen())return;const f=run.f,FL=G.towerOf('halloween').floors[f-1];
   const T=G.TOT.treat[Math.floor(Math.random()*G.TOT.treat.length)],K=G.TOT.trick[Math.floor(Math.random()*G.TOT.trick.length)];
@@ -1734,7 +1747,7 @@ function hwBattle(card){const run=save.hw.run;if(!run)return;const f=run.f,FL=G.
   const enemies=G.hwEnemies(f,Math.random,{rare,nlv:run.nlv,card});
   const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
   TUT.on=false;
-  B={hw:true,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  B={hw:true,pidx:save.pidx,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].idx=B.S.sides[0].team.findIndex(x=>x.hp>0);
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=`${f}F ${L(FL.n,FL.zn)}${f===10?L(`｜ネロ Lv${run.nlv}`,`｜尼禄 Lv${run.nlv}`):''}｜${L(card.ja,card.zh)}`;
@@ -1776,24 +1789,23 @@ function renderHW(){const el=$('#hwpanel'),run=save.hw.run,left=Math.max(0,Math.
     <div class="label" style="margin-top:8px">${L('この挑戦で選んだカード','本次挑战选择的卡牌')}</div>
     ${run&&run.picks&&run.picks.length?run.picks.map(id=>{const c=[...G.TOT.treat,...G.TOT.trick].find(x=>x.id===id),t=G.TOT.treat.includes(c);return`<div class="hw-pick"><small>${t?L('トリート','款待'):L('トリック','捣蛋')}</small><b>${L(c.ja,c.zh)}</b><span>${L(c.dja,c.dzh)}</span>${c.bja?`<em>${L(c.bja,c.bzh)}</em>`:''}</div>`}).join(''):`<p class="hint">${L('まだありません（階の前にカードを選ぶと、ここに効果が出ます）','还没有（每层前选择卡牌后，效果会显示在这里）')}</p>`}
     ${run&&run.picks&&run.picks.length?`<p class="hint">${L(`ネロのレベル：${run.nlv}`,`尼禄等级：${run.nlv}`)}</p>`:''}
-    ${run?`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div>`:`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-h"></div>`}
+    ${run?`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div>`:`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div>`}
     <div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
     ${run?`<div class="row"><button class="btn small" id="hw-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const bg=$('#hw-bar-go');bg.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
   bg.onclick=()=>{ac();sfx('tap');if(save.hw.run)hwPick();else hwStart()};
-  if(!run)bindPsets('#psets-h',renderHW);
   const q=$('#hw-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1层开始')))return;save.hw.run=null;persist();renderTower()}
 }
 
 /* ================= バトル ================= */
 let B=null;
-function beginBattle(raid=false){fixParty();if(!save.party.length)return;
+function beginBattle(raid=false){fixParty();if(!save.party.length)return;if(partyGuard())return;
   TUT.on=!save.tutDone&&!raid;TUT.first=false;TUT.second=false;TUT.wait=null;TUT.resolve=null;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
   const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));persist();
   const TW=curTower(),T=TP(),BF=raid?T.floor:((tsel!=null&&canPlay(tsel))?tsel:T.floor),RP=raid?false:isReplay(BF);
   const enemies=raid?[G.raidEnemy()]:G.enemiesFor(BF,T.lap,Math.random,save.party,TW);
-  B={raid,tower:TW,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:T.lap,tower:TW,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  B={raid,pidx:save.pidx,tower:TW,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:T.lap,tower:TW,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   if(raid)B.S.rule=null;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:B.S.fl;
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
@@ -2103,7 +2115,7 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
     if(!mine)B.timedOut=false},250)}
 function beginOnline(m){
   TUT.on=false;
-  B={online:true,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
+  B={online:true,pidx:save.pidx,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
   B.oraid=m.kind==='raid';B.mul=m.mul||1;const kind=m.kind==='raid'?L('レイドバトル','团队战'):m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
