@@ -1311,7 +1311,7 @@ function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   else if(rtype==='raid'){hint=L(`始原の紫翼皇に、今日みんなが与えたダメージの順位です（毎朝5時にリセット）。残りHP ${Math.ceil(d.hp/d.max*100)}%・今日の挑戦 ${d.tries}回。`,`今天大家对始原紫翼皇造成的伤害排名（每天早上5点重置）。剩余HP ${Math.ceil(d.hp/d.max*100)}%·今天挑战 ${d.tries}次。`);
     body=`<div class="rlist">${(d.top||[]).map(r=>row(r.n,r.icon,r.title,r.w,'',`${r.dmg}`,r.me)).join('')||`<p class="hint">${L('まだだれも挑戦していません','还没有人挑战')}</p>`}</div>
     <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.myRank?`${d.myRank}${L('位','名')} / ${d.people}${L('人','人')}（${d.me.dmg}${L('ダメージ','伤害')}）`:L('今日はまだ挑戦していません','今天还没有挑战')}</b></div>`}
-  else{hint=rtype==='inf'?L('無限の塔の最高到達階（これまでの記録）です。','无限之塔的最高到达层（历来记录）。'):L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')+(d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):'');
+  else{hint=rtype==='inf'?L('無限の塔の最高到達F（これまでの記録）です。','无限之塔的最高到达F（历来记录）。'):L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')+(d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):'');
     body=`<div class="rlist">${d.top.map(r=>row(r.n,r.icon,r.title,r.w,r.id,rtype==='inf'?`${r.v}F`:ladTxt(r),p.reg&&r.id===myTag)).join('')||`<p class="hint">${rtype==='inf'?L('まだ誰もいません。','还没有人上榜。'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
     <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rtype==='inf'?`${d.me.v}F`:ladTxt(d.me)}）`:(rtype==='inf'?L('圏外','未上榜'):L('まだ対戦していません','还没有对战'))}</b></div>`}
   el.innerHTML=head+(hint?`<p class="hint">${hint}</p>`:'')+body;
@@ -1691,21 +1691,21 @@ async function finishInf(win,me,foe){const run=save.inf.run,f=run.f;let coins=0,
   await W(900);
   showOverlay({word:win?(f%10===0?'BOSS CLEAR!':`${f}F CLEAR`):'GAME OVER',ch:win?me.ch:foe.ch,win,coins,
     sub:win?L(`無限の塔 ${f}F 突破！`,`突破无限之塔 ${f}F！`)+(msg?'<br>'+msg:''):L(`無限の塔 ${f}Fで力尽きた…<br>自己ベスト ${save.inf.best}F`,`在无限之塔 ${f}F 倒下了……<br>个人最佳 ${save.inf.best}F`),
-    hint:win?L('続けて登るか、ここで中断できます（続きはタワー画面から）','可以继续攀登，也可以在此中断（之后可从塔画面继续）'):L('また1階から挑戦できます','可以再从1层开始挑战'),
+    hint:win?L('続けて登るか、ここで中断できます（続きはタワー画面から）','可以继续攀登，也可以在此中断（之后可从塔画面继续）'):L('また1Fから挑戦できます','可以再从1F开始挑战'),
     go:win?[['inf-next',L(`${f+1}Fへ進む`,`前往 ${f+1}F`)],['tower',L('中断する','中断')]]:[['inf-again',L('もう一度挑戦する（1Fから）','再次挑战（从1F开始）'),()=>{towerMode='inf';infStart()}],['tower',L('タワーへ','前往塔')],['party',L('編成へ','前往编队')]]})}
 function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d===today()?save.inf.day.c:0;
   el.innerHTML=`<h2>🗼 ${L('無限の塔','无限之塔')}</h2>
-    <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎階全回復、たおれた仲間は10階ごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每层完全恢复，倒下的伙伴在打倒每10层的头目后复活。')}</p>
+    <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎F全回復、たおれた仲間は10Fごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每F完全恢复，倒下的伙伴在打倒每10F的头目后复活。')}</p>
     <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D}${L('コイン','金币')}</b></div>
-    <p class="hint">${L(`報酬：1階クリアで${INF_REW.floor}コイン、ボスの階はさらに+${INF_REW.boss}（同じ階のコインは1日1回まで。1日の合計に上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1层${INF_REW.floor}金币，头目层再+${INF_REW.boss}（同一层的金币每天限1次，每天合计无上限）。刷新最佳+${INF_REW.best}`)}</p>
+    <p class="hint">${L(`報酬：1Fクリアで${INF_REW.floor}コイン、ボスのFはさらに+${INF_REW.boss}（同じFのコインは1日1回まで。1日の合計に上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1F${INF_REW.floor}金币，头目F再+${INF_REW.boss}（同一F的金币每天限1次，每天合计无上限）。刷新最佳+${INF_REW.best}`)}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div><div class="party-strip">${run.party.filter(owns).map(id=>{const h=run.hp[id]??hpOf(id);return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;${h<=0?'opacity:.4;filter:grayscale(1)':''}">${crest(byId(id))}<small>${h>0?L('体力','体力')+' '+h:L('ダウン','倒下')}</small></div>`}).join('')}</div>
       <div class="row"><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
     :`<div class="label">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-i"></div><div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
       `}`;
   if(!run)bindPsets('#psets-i',renderInf);
-  const ib=$('#inf-bar-go');ib.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1階から挑戦する','从1层开始挑战');
+  const ib=$('#inf-bar-go');ib.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
   ib.onclick=()=>{ac();sfx('tap');if(save.inf.run)beginInf();else infStart()};
-  const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1階からです','要放弃吗？下次将从1层开始')))return;save.inf.run=null;persist();renderTower()}}
+  const q=$('#inf-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1F开始')))return;save.inf.run=null;persist();renderTower()}}
 
 /* ================= ハロウィンの塔（期間限定・10階・全階でカードを1枚選ぶ） ================= */
 const HW_FROM=Date.parse('2026-10-24T00:00:00+09:00'),HW_TO=Date.parse('2026-11-04T00:00:00+09:00');
