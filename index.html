@@ -1776,11 +1776,12 @@ function renderHW(){const el=$('#hwpanel'),run=save.hw.run,left=Math.max(0,Math.
     <div class="label" style="margin-top:8px">${L('この挑戦で選んだカード','本次挑战选择的卡牌')}</div>
     ${run&&run.picks&&run.picks.length?run.picks.map(id=>{const c=[...G.TOT.treat,...G.TOT.trick].find(x=>x.id===id),t=G.TOT.treat.includes(c);return`<div class="hw-pick"><small>${t?L('トリート','款待'):L('トリック','捣蛋')}</small><b>${L(c.ja,c.zh)}</b><span>${L(c.dja,c.dzh)}</span>${c.bja?`<em>${L(c.bja,c.bzh)}</em>`:''}</div>`}).join(''):`<p class="hint">${L('まだありません（階の前にカードを選ぶと、ここに効果が出ます）','还没有（每层前选择卡牌后，效果会显示在这里）')}</p>`}
     ${run&&run.picks&&run.picks.length?`<p class="hint">${L(`ネロのレベル：${run.nlv}`,`尼禄等级：${run.nlv}`)}</p>`:''}
-    <div class="label" style="margin-top:8px">${L('挑戦するパーティ','挑战队伍')}</div>
+    ${run?`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div>`:`<div class="label" style="margin-top:8px">${L('挑戦するパーティ（挑戦中は変更できません）','挑战队伍（挑战中无法更改）')}</div><div class="psets" id="psets-h"></div>`}
     <div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
     ${run?`<div class="row"><button class="btn small" id="hw-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const bg=$('#hw-bar-go');bg.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
   bg.onclick=()=>{ac();sfx('tap');if(save.hw.run)hwPick();else hwStart()};
+  if(!run)bindPsets('#psets-h',renderHW);
   const q=$('#hw-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ 次は1Fからです','要放弃吗？下次将从1层开始')))return;save.hw.run=null;persist();renderTower()}
 }
 
