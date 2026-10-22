@@ -2257,6 +2257,21 @@ if(!save.wnote.includes('#2')){save.keepW=save.prof.id?[...(save.prof.w||[])]:[]
 if(!save.wnote.includes('#')){W3.forEach((l,p)=>l.forEach((w,i)=>{if(w[2]!=null&&wordOk(p,i)){save.wnote.push(p+':'+i);save.wseen.push(p+':'+i)}}));save.wnote.push('#','#2')}/* 前からある単語は通知しない */
 persist();loadNews();setTimeout(claimRank,4000);
 nav(hasAny()?'tower':'gacha');
+/* 期間限定イベントの予告（開始前・1日1回・画面を暗くして表示） */
+function hwTeaser(){if(Date.now()>=HW_FROM)return;
+  let day=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);try{if(localStorage.getItem('hwTeaser')===day)return}catch(e){}
+  if(document.querySelector('.overlay')){setTimeout(hwTeaser,3000);return}
+  const ov=document.createElement('div');ov.className='overlay';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.style.background='rgba(0,0,0,.9)';
+  ov.innerHTML=`<div style="text-align:center;color:#FFE08A;display:flex;flex-direction:column;gap:12px;align-items:center;padding:16px">
+    <div style="font:800 14px var(--f-body);letter-spacing:.2em">${L('期間限定イベント','限时活动')}</div>
+    <div style="font:800 26px var(--f-display);color:#fff">${L('ハロウィンの塔','万圣节之塔')}</div>
+    <div style="font:800 22px var(--f-display);color:#FFB347">${L('10/24（金）スタート！','10/24（五）开始！')}</div>
+    <p style="margin:0;color:#e8e8f0;font-size:14px">${L('10/24〜11/3の期間限定。新しい仲間にも会えます。','10/24〜11/3限定。还能遇到新的伙伴。')}</p>
+    <button class="btn primary" id="hw-teaser-ok">${L('わかった','知道了')}</button></div>`;
+  document.body.append(ov);
+  ov.querySelector('#hw-teaser-ok').onclick=()=>{try{localStorage.setItem('hwTeaser',day)}catch(e){}ov.remove()};
+}
+setTimeout(hwTeaser,2500);
 </script>
 </body>
 </html>
