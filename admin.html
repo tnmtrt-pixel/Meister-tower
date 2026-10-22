@@ -70,6 +70,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <button class="btn small" id="new">＋ 新しい大会</button>
     <button class="btn small" id="rk-open">ランキング管理</button>
     <button class="btn small" id="ra-open">📣 集合タイム</button>
+    <button class="btn small" id="rd-open">レイドの体力</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
@@ -86,6 +87,18 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
+  </div>
+  <div id="rd" class="card hide">
+    <div class="big">レイドの体力（今日）</div>
+    <p class="st">今日のレイドの体力を増やしたり減らしたりします。倒されたあとは変えられません。明日は前の日の挑戦回数で自動的に決まります。</p>
+    <div id="rd-now" class="st"></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button class="btn small" data-rdadd="1000">＋1000</button>
+      <button class="btn small" data-rdadd="500">＋500</button>
+      <button class="btn small" data-rdadd="-500">−500</button>
+      <input id="rd-add" type="number" step="100" placeholder="ほかの数（マイナスも可）" style="width:200px">
+      <button class="btn small" id="rd-apply">この数で変える</button>
+    </div>
   </div>
   <div id="ra" class="card hide">
     <div class="big">📣 集合タイム（ランクバトル）</div>
@@ -176,6 +189,11 @@ function raShow(list,daily){const now=Date.now(),el=$('#ra-list');if(daily){cons
   el.innerHTML=list.length?'<table style="width:100%;border-collapse:collapse">'+list.map(r=>`<tr style="border-top:1px solid var(--line)"><td>${raW(r.start)}〜${new Date(r.end).getHours()}:${String(new Date(r.end).getMinutes()).padStart(2,'0')}</td><td>${r.daily?'毎日':'特別'} ${esc(r.label)}</td><td>${now>=r.end?'終了':now>=r.start?'<b>開催中</b>':'予定'}</td><td><button class="btn small danger" data-rdel="${esc(r.id)}">消す</button></td></tr>`).join('')+'</table>':'<p class="st">まだ決まっていません</p>';
   el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{if(!confirm('この集合タイムを消しますか？'))return;try{raShow((await rkAdmin({rally:'del',id:b.dataset.rdel})).list)}catch(e){toast(String(e.message||e))}})}
 async function raLoad(){try{const j=await rkAdmin({rally:'list'});raShow(j.list,j.daily)}catch(e){$('#ra-list').textContent='読みこめませんでした：'+(e.message||e)}}
+/* レイドの体力（今日）：/api/admin {raid:'hp', add} */
+async function rdApply(add){try{const j=await rkAdmin({raid:'hp',add});$('#rd-now').textContent=`今日の体力：${j.hp.toLocaleString()} / ${j.max.toLocaleString()}（挑戦 ${j.tries}回${j.killed?'・倒されました':''}）`;toast('変えました')}catch(e){toast(String(e.message||e))}}
+$('#rd-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rd').classList.toggle('hide');if(!$('#rd').classList.contains('hide'))rdApply(0)};
+document.querySelectorAll('[data-rdadd]').forEach(b=>b.onclick=()=>rdApply(+b.dataset.rdadd));
+$('#rd-apply').onclick=()=>{const v=Math.round(+$('#rd-add').value||0);if(!v){toast('数を入れてください');return}rdApply(v)};
 $('#ra-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}const f=$('#raf');if(!f.start.value){const d=new Date(Date.now()+86400e3);d.setHours(12,30,0,0);f.start.value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}$('#ra').classList.remove('hide');raLoad()};
 $('#rad-save').onclick=async()=>{const f=$('#rad'),hours=f.hours.value.split(/[,、\s]+/).filter(Boolean).map(Number).filter(x=>x>=0&&x<=23);
   if(!confirm(`毎日 ${hours.join('時・')}時 から ${+f.min.value||30}分 にしますか？${hours.length?'':'（空なので毎日の集合タイムはなくなります）'}`))return;

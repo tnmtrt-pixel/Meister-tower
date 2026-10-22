@@ -30,6 +30,19 @@ export const RaidMixin = {
     this.sql.exec('CREATE TABLE IF NOT EXISTS raid_u (day INTEGER NOT NULL, id TEXT NOT NULL, tries INTEGER NOT NULL DEFAULT 0, dmg INTEGER NOT NULL DEFAULT 0, best INTEGER NOT NULL DEFAULT 0, last INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, id))');
     this.sql.exec('CREATE TABLE IF NOT EXISTS raid_log (t INTEGER NOT NULL, day INTEGER NOT NULL, id TEXT NOT NULL, dmg INTEGER NOT NULL, kill INTEGER NOT NULL DEFAULT 0)');
   },
+  /* 運営：今日の体力を増やす・減らす（{raid:'hp', add:1000}）。倒した後や今日のレイドがないときは変えない */
+  raidAdmin(b, json) {
+    const r = this.raidToday();
+    if (b.raid === 'hp') {
+      const add = Math.round(+b.add || 0);
+      if (!r.killed && add) {
+        const max = Math.max(1, r.max + add), hp = Math.max(1, Math.min(max, r.hp + add));
+        this.sql.exec('UPDATE raid_d SET max = ?, hp = ? WHERE day = ?', max, hp, r.day);
+      }
+    }
+    const t = this.raidToday();
+    return json({ ok: true, day: t.day, max: t.max, hp: t.hp, killed: t.killed, tries: t.tries });
+  },
   /* 今日のレイド。なければ作る。終わった日はここで締める */
   raidToday(now = Date.now()) {
     const d = raidDayNo(now);

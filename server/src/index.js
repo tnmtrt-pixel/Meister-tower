@@ -513,6 +513,7 @@ export class Rank {
     const key = this.env && this.env.ADMIN_KEY;
     if (!key || b.key !== key) return json({ err: 'auth' }, 403);
     if (b.rally) return this.rallyAdmin(b, json);
+    if (b.raid) return this.raidAdmin(b, json);
     if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });
     if (!ID_RE.test(b.id || '') && !/^[0-9a-f]{4}$/.test(b.id || '')) return json({ err: 'id' }, 400);
     const hide = b.hide === false ? 0 : 1;
