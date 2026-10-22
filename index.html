@@ -775,7 +775,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.9.0';
+const VERSION='2.9.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -857,7 +857,9 @@ function loadout(id){const ch=byId(id),st=starOf(id);let l=save.load[id];
   if(!l||!l.length||l.length>4||l.some(k=>!ch.moves[k]||ch.moves[k].t>st)){l=G.autoPick(ch,st,0,Math.random,save.lv[id]||{});save.load[id]=l}
   return mvSort(ch,l)}
 /* パーティは3組まで。選んでいる組が save.party */
-function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
+/* 無限・ハロウィンの挑戦中は、その挑戦のパーティ以外に変えられない */
+function runLock(){const r=(save.inf&&save.inf.run)||(save.hw&&save.hw.run);return r?r.pidx:null}
+function setPidx(k){if(k===save.pidx)return;const lk=runLock();if(lk!==null&&k!==lk){toast(L('挑戦中のパーティは変えられません（挑戦を終えてから選んでください）','挑战中无法更换队伍（结束挑战后再选择）'));return}save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
 function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
   return`<button type="button" class="pset" data-ps="${k}" aria-pressed="${k===save.pidx}"><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span></button>`}).join('')}
 function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');slotSel=null;setPidx(+b.dataset.ps);after()})}
@@ -871,8 +873,8 @@ function partyBusy(k){
   return null}
 function partyGuard(){const b=partyBusy(save.pidx);if(!b)return false;toast(L(`このパーティは${b}で出撃中です。ほかのパーティを選んでください`,`该队伍正在${b}中出战，请选择其他队伍`));return true}
 function renderPartyBar(){const el=$('#psets-bar');if(!el)return;
-  el.innerHTML=[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns)),bz=partyBusy(k),cur=k===save.pidx;
-    return`<button type="button" class="pset${cur?' on':''}" data-ps="${k}" aria-pressed="${cur}" ${bz?'disabled':''}><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span>${bz?`<small class="pb-busy">${bz}${L('で出撃中','出战中')}</small>`:''}</button>`}).join('');
+  el.innerHTML=[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns)),bz=partyBusy(k),cur=k===save.pidx,lk=runLock(),lockd=lk!==null&&k!==lk;
+    return`<button type="button" class="pset${cur?' on':''}" data-ps="${k}" aria-pressed="${cur}" ${bz||lockd?'disabled':''}><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span>${bz?`<small class="pb-busy">${bz}${L('で出撃中','出战中')}</small>`:''}</button>`}).join('');
   el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.ps;if(partyBusy(k)){toast(L('このパーティは出撃中です','该队伍正在出战中'));return}setPidx(k);renderPartyBar();if(!$('#v-tower').hidden)renderTower();if(!$('#v-online').hidden)renderOnline()});
   const pe=$('#pb-edit');if(pe)pe.onclick=()=>{sfx('tap');nav('party')}}
 function fixParty(){save.party=save.party.filter(owns).slice(0,3);
@@ -1677,7 +1679,7 @@ function infStart(){fixParty();if(!save.party.length)return;if(partyGuard())retu
 function beginInf(){const run=save.inf.run;if(!run)return;
   const party=run.party.filter(owns).map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
   const enemies=G.infEnemies(run.f,Math.random,run.party);
-  TUT.on=false;B={inf:true,pidx:save.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  TUT.on=false;B={inf:true,pidx:run.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
@@ -1723,7 +1725,7 @@ function hwSub(){const r=save.hw.run;return r?L(`挑戦中 ${r.f}F`,`挑战中 $
 function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/24〜11/3の期間限定です','万圣节之塔为10/24〜11/3限定开放'));return}
   fixParty();if(!save.party.length)return;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
-  if(partyGuard())return;save.hw.run={f:1,nlv:0,picks:[],pidx:save.pidx};persist();hwPick()}
+  if(partyGuard())return;save.hw.run={f:1,nlv:0,picks:[],pidx:save.pidx,party:save.party.slice()};persist();hwPick()}
 /* 階の前：カードを2枚見せて1枚選ぶ（トリート1・トリック1をランダムに） */
 function hwPick(){const run=save.hw.run;if(!run||!hwOpen())return;const f=run.f,FL=G.towerOf('halloween').floors[f-1];
   const T=G.TOT.treat[Math.floor(Math.random()*G.TOT.treat.length)],K=G.TOT.trick[Math.floor(Math.random()*G.TOT.trick.length)];
@@ -1739,9 +1741,9 @@ function hwBattle(card){const run=save.hw.run;if(!run)return;const f=run.f,FL=G.
   let rare=null;if(f!==5&&f<10){if(Math.random()<hwRare()){rare=G.HW.rareIds[Math.floor(Math.random()*G.HW.rareIds.length)];save.hw.pity=0}else save.hw.pity=(save.hw.pity||0)+1}
   persist();
   const enemies=G.hwEnemies(f,Math.random,{rare,nlv:run.nlv,card});
-  const party=save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
+  const party=(run.party||save.party).filter(owns).map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
   TUT.on=false;
-  B={hw:true,pidx:save.pidx,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
+  B={hw:true,pidx:run.pidx,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].idx=B.S.sides[0].team.findIndex(x=>x.hp>0);
   ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=`${f}F ${L(FL.n,FL.zn)}${f===10?L(`｜ネロ Lv${run.nlv}`,`｜尼禄 Lv${run.nlv}`):''}｜${L(card.ja,card.zh)}`;
