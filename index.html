@@ -628,6 +628,7 @@ hr{border-color:var(--line)!important}
 .hw-row.done{opacity:.7}.hw-row.now{font-weight:800}
 @media (max-width:380px){.hw-cards{grid-template-columns:1fr}}
 
+.hw-pick{display:flex;flex-direction:column;gap:2px;padding:6px 4px;border-bottom:1px solid var(--line)}.hw-pick small{font-size:12px;opacity:.8}.hw-pick span{font-size:13px}.hw-pick em{font-size:12px;color:#B0304A;font-style:normal}
 </style>
 </head>
 <body>
@@ -820,7 +821,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),pend:Math.max(0,I.pend|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0),f:(Array.isArray((I.day||{}).f)?I.day.f:[]).filter(n=>Number.isInteger(n)&&n>0).slice(0,2000)},
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)]))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
-  {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0)))}:null}}
+  {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0))),picks:(Array.isArray(hr.picks)?hr.picks:[]).filter(id=>[...G.TOT.treat,...G.TOT.trick].some(c=>c.id===id)).slice(0,10)}:null}}
   s.dexReward2=!!v.dexReward2;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0));
   s.feather=Math.max(0,Math.floor(+v.feather||0)); /* レイドの「紫の羽」（10枚で紫翼皇が仲間に） */ /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
@@ -956,7 +957,7 @@ const towerName=id=>{const t=TOWERS.find(x=>x.id===id);return t?L(t.ja,t.zh):''}
 function renderTowers(){const el=$('#towers');if(!hasAny()){el.hidden=true;return}el.hidden=false;
   const prog=id=>{const p=TPof(id);return p.clears||p.lap>1?L(`${p.lap}周目 ${p.floor}F`,`第${p.lap}轮 ${p.floor}F`):`${p.floor}F`};
   el.innerHTML=`<div class="label">${L('塔を選ぶ','选择塔')}</div><div class="tw-list">${TOWERS.map((t,k)=>t.hw&&!hwOpen()&&!(save.hw&&save.hw.best)?'':`<button type="button" class="tw${t.soon?' soon':''}${t.img?' has-img':''}${t.inf&&!infOpen()?' locked':''}" data-tw="${k}" aria-pressed="false">
-    ${t.img?`<span class="tw-img"><img src="${t.img}" alt="${L(t.ja,t.zh)}">${t.soon?'<span class="tw-soon">COMING SOON</span>':''}${t.inf&&!infOpen()?'<span class="tw-soon">🔒</span>':''}</span>`:''}<span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.hw?hwSub():t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog(t.id)}</small></span><span class="tw-v">${t.inf?'∞':t.hw?'🎃':'vol.'+t.vol}</span></button>`).join('')}</div>`;
+    ${t.img?`<span class="tw-img"><img src="${t.img}" alt="${L(t.ja,t.zh)}">${t.soon?'<span class="tw-soon">COMING SOON</span>':''}${t.inf&&!infOpen()?'<span class="tw-soon">🔒</span>':''}</span>`:''}<span class="tw-i">${t.icon}</span><span class="tw-n">${L(t.ja,t.zh)}<small>${t.soon?'COMING SOON':t.hw?hwSub():t.inf?(infOpen()?L(`自己ベスト ${save.inf.best}F${save.inf.run?`・挑戦中 ${save.inf.run.f}F`:''}`,`最佳 ${save.inf.best}F${save.inf.run?`·挑战中 ${save.inf.run.f}F`:''}`):'🔒 '+L('マイスターの塔の10Fをクリアで解放','通关迈斯特之塔10F后解锁')):prog(t.id)}</small></span><span class="tw-v">${t.inf?'∞':t.hw?L('期間限定','限时'):'vol.'+t.vol}</span></button>`).join('')}</div>`;
   el.querySelectorAll('.tw').forEach(b=>b.setAttribute('aria-pressed',TOWERS[+b.dataset.tw].id===towerMode));
   el.querySelectorAll('.tw:not(.soon)').forEach(b=>b.onclick=()=>{const t=TOWERS[+b.dataset.tw];if(t.inf&&!infOpen()){toast(L('マイスターの塔の10Fをクリアすると挑戦できます','通关迈斯特之塔10F后即可挑战'));return}sfx('tap');if(towerMode!==t.id){tsel=null;tview=null}towerMode=t.id;renderTower()});
   el.querySelectorAll('.tw.soon').forEach(b=>b.onclick=()=>{sfx('tap');const t=TOWERS[+b.dataset.tw];toast(L(`vol.${t.vol}のキャラが待ちかまえる新しい塔。近日公開！`,`vol.${t.vol}角色等待着的新塔，即将开放！`))})}
@@ -1713,7 +1714,7 @@ function hwSub(){const r=save.hw.run;return r?L(`挑戦中 ${r.f}F`,`挑战中 $
 function hwStart(){if(!hwOpen()){toast(L('ハロウィンの塔は10/24〜11/3の期間限定です','万圣节之塔为10/24〜11/3限定开放'));return}
   fixParty();if(!save.party.length)return;
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
-  save.hw.run={f:1,nlv:0};persist();hwPick()}
+  save.hw.run={f:1,nlv:0,picks:[]};persist();hwPick()}
 /* 階の前：カードを2枚見せて1枚選ぶ（トリート1・トリック1をランダムに） */
 function hwPick(){const run=save.hw.run;if(!run||!hwOpen())return;const f=run.f,FL=G.towerOf('halloween').floors[f-1];
   const T=G.TOT.treat[Math.floor(Math.random()*G.TOT.treat.length)],K=G.TOT.trick[Math.floor(Math.random()*G.TOT.trick.length)];
@@ -1723,7 +1724,7 @@ function hwPick(){const run=save.hw.run;if(!run||!hwOpen())return;const f=run.f,
     <p class="hint">${L('カードを1枚選んでください。トリートを選ぶと、10階のネロがつよくなります。','请选择1张卡牌。选择款待，10层的尼禄会变强。')}</p>
     <div class="hw-cards">${card(T,'t')}${card(K,'k')}</div></div>`;
   document.body.append(ov);
-  ov.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.hc;ov.remove();if(k==='t')run.nlv=Math.min(10,run.nlv+1);persist();hwBattle(k==='t'?T:K)});
+  ov.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.hc;ov.remove();const c=k==='t'?T:K;if(k==='t')run.nlv=Math.min(10,run.nlv+1);run.picks=[...(run.picks||[]),c.id];persist();hwBattle(c)});
 }
 function hwBattle(card){const run=save.hw.run;if(!run)return;const f=run.f,FL=G.towerOf('halloween').floors[f-1];
   let rare=null;if(f!==5&&f<10){if(Math.random()<hwRare()){rare=G.HW.rareIds[Math.floor(Math.random()*G.HW.rareIds.length)];save.hw.pity=0}else save.hw.pity=(save.hw.pity||0)+1}
@@ -1770,6 +1771,9 @@ function renderHW(){const el=$('#hwpanel'),run=save.hw.run,left=Math.max(0,Math.
     <div class="t-rec"><span>${L('最高到達','最高到达')}</span><b>${save.hw.best}F</b><span>${L('制覇','制霸')}</span><b>${save.hw.clears}${L('回','次')}</b><span>${L('終わるまで','距结束')}</span><b>${left}${L('日','天')}</b></div>
     <p class="hint">${L(`レアキャラ（1〜9F・5Fをのぞく）に会える確率：このバトルは ${Math.round(hwRare()*100)}%（会えないと+3%）`,`遇到稀有角色（1〜9层，不含5层）的概率：本场 ${Math.round(hwRare()*100)}%（没遇到会+3%）`)}</p>
     <div class="hw-list">${rows}</div>
+    <div class="label" style="margin-top:8px">${L('この挑戦で選んだカード','本次挑战选择的卡牌')}</div>
+    ${run&&run.picks&&run.picks.length?run.picks.map(id=>{const c=[...G.TOT.treat,...G.TOT.trick].find(x=>x.id===id),t=G.TOT.treat.includes(c);return`<div class="hw-pick"><small>${t?L('トリート','款待'):L('トリック','捣蛋')}</small><b>${L(c.ja,c.zh)}</b><span>${L(c.dja,c.dzh)}</span>${c.bja?`<em>${L(c.bja,c.bzh)}</em>`:''}</div>`}).join(''):`<p class="hint">${L('まだありません（階の前にカードを選ぶと、ここに効果が出ます）','还没有（每层前选择卡牌后，效果会显示在这里）')}</p>`}
+    ${run&&run.picks&&run.picks.length?`<p class="hint">${L(`ネロのレベル：${run.nlv}`,`尼禄等级：${run.nlv}`)}</p>`:''}
     <div class="label" style="margin-top:8px">${L('挑戦するパーティ','挑战队伍')}</div>
     <div class="party-strip">${save.party.map(id=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px">${crest(byId(id))}<small>${L('体力','体力')} ${hpOf(id)}</small></div>`).join('')}</div>
     ${run?`<div class="row"><button class="btn primary" id="hw-go">${L(`${run.f}F から続ける`,`从 ${run.f}F 继续`)}</button><button class="btn small" id="hw-quit">${L('リタイア','放弃')}</button></div>`
