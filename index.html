@@ -671,7 +671,7 @@ hr{border-color:var(--line)!important}
       <p class="hint" data-zh="角色和技能有属性（电·机械·力量·野兽·幻影），每个角色1种。属性之间没有克制关系。越难使出的技能伤害越大。回合结束时，未使用骰子的点数合计变为护盾。★3角色掷出属性数字的对子时，可以使用1次超必杀技。">キャラと技には「タイプ」（でんき・メカ・ちから・けもの・まぼろし）があり、キャラのタイプは1つです。タイプの相性はありません。出しにくい技ほどダメージが大きくなります。ターンの終わりに、使わなかったサイコロの目の合計がガードになります。★3のキャラは、タイプの数字のゾロ目で「超必殺技」を1回使えます。</p>
       <p class="hint" data-zh="角色分为★1〜★3，★2可使用专属技能，★3可使用必杀技和超必杀技。扭蛋抽到同一角色更高的★时★提升；★相同或更低则获得「碎片」，可用来强化技能。">キャラには★1〜★3があり、★2で固有技、★3で必殺技と超必殺技が使えるようになります。ガチャで同じキャラの★が多い方が出ると★アップ、同じ★以下なら「かけら」が手に入り、技を強化できます。</p>
       <button class="btn small" id="tut-again" style="margin-top:8px" data-zh="下次对战时再看一次教学">次のバトルでチュートリアルをもう一度</button></details>
-    <div class="row startbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
+    <div class="row startbar" id="mainbar"><span class="hint" id="start-hint"></span><button class="btn primary" id="start">1F に挑戦</button></div>
   </section>
 
   <section class="view" id="v-party" hidden>
@@ -946,9 +946,8 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
-const TOWERS=[{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
-  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},
-  {id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
+const TOWERS=[{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
+  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
 /* 塔ごとの進み具合（マイスターの塔は今までどおり save の直下、ほかの塔は save.tw） */
 const TPof=id=>id==='meister'?save:save.tw[id];
 const curTower=()=>towerMode==='judge'?'judge':'meister';
@@ -972,8 +971,8 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';renderTowers();renderMission();
-  const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;document.querySelector('#v-tower .startbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
-  const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;document.querySelector('#v-tower .startbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
+  const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
+  const inf=towerMode==='inf';$('#infpanel').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
   const tabs=`<div class="ttabs"><button type="button" data-tv="hi" aria-pressed="${!lo}" ${upperOpen()?'':'disabled'}>${L('上層','上层')} 11-20F${upperOpen()?'':`<br><small>${L('10F突破で解放','突破10F后解锁')}</small>`}</button><button type="button" data-tv="lo" aria-pressed="${lo}">${L('下層','下层')} 1-10F</button></div>`;
   $('#tower').innerHTML=tabs+`<div class="roof">${lo?L('▲ 上層へ','▲ 通往上层'):L('▲ 頂上','▲ 塔顶')}</div>`+Array.from({length:TOP},(_,j)=>base+TOP-j).map(n=>{const ok=canPlay(n),cls=`fl${n!==T.floor&&ok?' done':n===T.floor?' now':''}${n===TOP||n===TOP2?' boss':''}${ok?' can':''}${n===f?' sel':''}${n>TOP?' up':''}`;
