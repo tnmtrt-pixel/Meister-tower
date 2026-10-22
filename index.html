@@ -638,10 +638,10 @@ hr{border-color:var(--line)!important}
   <header>
     <div class="hrow"><h1><span data-zh="迈斯特">マイスター</span><span class="h1-to" data-zh="之塔">の塔</span></h1>
       <div class="row"><span class="coins"><span data-zh="金币">コイン</span> <b id="coin">0</b></span>
-        <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="snd-se" aria-pressed="true" data-zh="音效">効果音</button><button class="snd" id="snd-bgm" aria-pressed="true">BGM</button></div></div>
+        <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="set-btn" data-zh="设置">設定</button><button class="snd" id="dex-btn" data-zh="图鉴">図鑑</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="成绩">成績</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button></nav>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="成绩">成績</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button></nav>
     <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div></div>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
       <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="cup" aria-pressed="false" data-zh="大赛">大会</button></nav>
@@ -650,7 +650,6 @@ hr{border-color:var(--line)!important}
   <section class="view" id="v-tower">
     <div id="raid-tw"></div>
     <div class="panel towers" id="towers"></div>
-    <div class="panel" id="mission"></div>
     <div class="panel" id="infpanel" hidden></div>
     <div class="row startbar" id="infbar" hidden><button class="btn primary" id="inf-bar-go"></button></div>
     <div class="panel" id="hwpanel" hidden></div>
@@ -703,6 +702,15 @@ hr{border-color:var(--line)!important}
     </div>
   </section>
 
+  <section class="view" id="v-reward" hidden>
+    <div class="panel" id="mission"></div>
+    <div class="panel">
+      <h2 data-zh="礼物代码">プレゼントコード</h2>
+      <p class="hint" data-zh="输入代码即可获得礼物。每个代码在同一设备上只能使用一次。">コードを入れるとプレゼントがもらえます。同じ端末で使えるのは1回だけです。</p>
+      <div class="row"><input id="gift-code" class="code-out" style="height:auto;flex:1;min-width:0;font:700 18px var(--f-body);letter-spacing:.12em;text-transform:uppercase" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="プレゼントコード" data-zh-aria="礼物代码" placeholder="CODE"><button class="btn" id="gift-go" data-zh="领取">受け取る</button></div>
+    </div>
+  </section>
+
   <section class="view" id="v-dex" hidden>
     <div class="panel">
       <div class="row between"><h2 data-zh="角色图鉴">キャラ図鑑</h2><span class="label" id="dex-count"></span></div>
@@ -711,18 +719,6 @@ hr{border-color:var(--line)!important}
       <div class="grid5" id="dex"></div>
     </div>
     <div class="panel" id="dex-detail"><p class="hint" data-zh="点击角色可以查看特性和台词。">キャラをタップすると、能力やセリフが見られます。</p></div>
-    <div class="panel">
-      <h2 data-zh="礼物代码">プレゼントコード</h2>
-      <p class="hint" data-zh="输入代码即可获得礼物。每个代码在同一设备上只能使用一次。">コードを入れるとプレゼントがもらえます。同じ端末で使えるのは1回だけです。</p>
-      <div class="row"><input id="gift-code" class="code-out" style="height:auto;flex:1;min-width:0;font:700 18px var(--f-body);letter-spacing:.12em;text-transform:uppercase" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="プレゼントコード" data-zh-aria="礼物代码" placeholder="CODE"><button class="btn" id="gift-go" data-zh="领取">受け取る</button></div>
-    </div>
-    <div class="panel">
-      <h2 data-zh="转移存档">セーブデータの引っ越し</h2>
-      <p class="hint" data-zh="可以把进度转移到其他设备。导出代码后，在目标设备上读取即可。">別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込んでください。</p>
-      <div class="row"><button class="btn small" id="exp" data-zh="导出代码">コードを書き出す</button><button class="btn small" id="copy" hidden data-zh="复制">コピー</button></div>
-      <textarea class="code-out" id="code" placeholder="OKS2. で始まるコードを貼り付けて「読み込む」" aria-label="セーブコード" data-zh-ph="粘贴以 OKS2. 开头的代码后点「读取」" data-zh-aria="存档代码"></textarea>
-      <div class="row" style="justify-content:flex-end"><button class="btn small" id="imp" data-zh="读取">読み込む</button></div>
-    </div>
   </section>
 
   <section class="view" id="v-online" hidden>
@@ -775,7 +771,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.9.3';
+const VERSION='2.10.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -920,9 +916,9 @@ const BGM={timer:null,step:0,next:0,
   note(f,d,type,vol,when){const a=ac();const t=a.currentTime+Math.max(0,when),o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;
     g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)},
   stop(){clearInterval(this.timer);this.timer=null}};
-function setSnd(){$('#snd-se').setAttribute('aria-pressed',save.se);$('#snd-bgm').setAttribute('aria-pressed',save.bgm)}
-$('#snd-se').onclick=()=>{save.se=!save.se;persist();setSnd();sfx('tap')};
-$('#snd-bgm').onclick=()=>{save.bgm=!save.bgm;persist();setSnd();if(!save.bgm){BGM.stop();TBGM.stop()}else if(document.getElementById('title'))TBGM.start();else if(B&&!B.done)BGM.start()};
+function setSnd(){}
+$('#dex-btn').onclick=()=>{sfx('tap');nav('dex')};
+$('#set-btn').onclick=()=>{sfx('tap');openSettings()};
 
 /* ================= 共通表示 ================= */
 /* Ver 3.0：タイプのマーク。二つ名＝前の「○○型」を除いた部分 */
@@ -944,16 +940,16 @@ function updCoins(){$('#coin').textContent=save.coins}
 const NAV={sub:'tower'};const SUBS=['tower','raid','lad','cup'];
 function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついてから移動できます','正在对战中，分出胜负后才能移动'));return}
   if(v==='online')v=NAV.sub!=='tower'?NAV.sub:'lad';if(v==='battle')v=NAV.sub;
-  if(!hasAny()&&v!=='gacha'&&v!=='dex'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
+  if(!hasAny()&&v!=='gacha'&&v!=='dex'&&v!=='reward'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'?'tower':'online'):v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
   document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle';if(main==='battle')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
-  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
+  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
   dailyCheck();
   refundNotice();
-  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView})[view]();window.scrollTo(0,0)}
+  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView,reward:renderMission})[view]();window.scrollTo(0,0)}
 document.querySelectorAll('#subnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.s)});
 document.querySelectorAll('#rsubnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');rtype=b.dataset.r;document.querySelectorAll('#rsubnav button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRank();if(!rdata[rtype]||rtype==='raid')loadRank();if(rtype==='cup')cupLoad()});
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
@@ -1149,11 +1145,38 @@ function checkDexReward(){if(save.dexReward||!CHARS.filter(c=>c.vol===1).every(c
   const res=grant('takumi',owns('takumi')?Math.min(3,starOf('takumi')+1):1);persist();updCoins();
   showOverlay({word:'COMPLETE!',ch:HIDDEN,sub:L(`図鑑 vol.1 コンプリート！<br>隠しキャラ「匠」が${res==='new'?'仲間になった':res==='up'?'★アップした':'かけらをくれた'}`,`图鉴全收集！<br>隐藏角色「匠」${res==='new'?'成为了伙伴':res==='up'?'★提升了':'给了你碎片'}`),coins:10,hint:L('編成画面でパーティに入れられます','可以在编队画面加入队伍'),win:true})}
 
-$('#exp').onclick=()=>{const b=new TextEncoder().encode(JSON.stringify(save));let s='';b.forEach(x=>s+=String.fromCharCode(x));$('#code').value='OKS2.'+btoa(s);$('#copy').hidden=false};
+function xferBind(){$('#exp').onclick=()=>{const b=new TextEncoder().encode(JSON.stringify(save));let s='';b.forEach(x=>s+=String.fromCharCode(x));$('#code').value='OKS2.'+btoa(s);$('#copy').hidden=false};
 $('#copy').onclick=async()=>{const t=$('#code');try{await navigator.clipboard.writeText(t.value);toast(L('コピーしました','已复制'))}catch(e){t.select();toast(L('選択しました。長押しでコピーしてください','已选中，请长按复制'))}};
 $('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsWith('OKS2.')){toast(L('「OKS2.」で始まるコードを貼り付けてください','请粘贴以「OKS2.」开头的代码'));return}
   try{const s=atob(c.slice(5));save=sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))));persist();updCoins();setSnd();toast(L('セーブデータを読み込みました','已读取存档'));nav(hasAny()?'tower':'gacha')}
   catch(e){toast(L('コードが途中で切れているようです。全部コピーできているか確認してください','代码似乎不完整，请确认是否已全部复制'))}};
+}
+function openSettings(){const zh=G.getLang()==='zh';
+  openSheet(`<h2>${L('設定','设置')}</h2>
+    <div class="row between"><span>${L('言語','语言')} / Language</span><div class="seg" style="flex:none"><button type="button" data-lang="ja" aria-pressed="${!zh}">日本語</button><button type="button" data-lang="zh" aria-pressed="${zh}">简体中文</button></div></div>
+    <div class="row between"><span>${L('効果音・タイトルコール','音效·标题语音')}</span><button class="snd" id="set-se" aria-pressed="${save.se}">${save.se?'ON':'OFF'}</button></div>
+    <div class="row between"><span>BGM</span><button class="snd" id="set-bgm" aria-pressed="${save.bgm}">${save.bgm?'ON':'OFF'}</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    <div class="label">${L('セーブデータの引っ越し','存档迁移')}</div>
+    <p class="hint">${L('別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込みます。','可以把进度转移到其他设备。导出代码后，在目标设备上读取即可。')}</p>
+    <div class="row"><button class="btn small" id="exp">${L('コードを書き出す','导出代码')}</button><button class="btn small" id="copy" hidden>${L('コピー','复制')}</button></div>
+    <textarea class="code-out" id="code" placeholder="OKS2. で始まるコードを貼り付けて「読み込む」" aria-label="セーブコード"></textarea>
+    <div class="row" style="justify-content:flex-end"><button class="btn small" id="imp">${L('読み込む','读取')}</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    <div class="label">${L('データ','数据')}</div>
+    <p class="hint">${L('セーブデータを消して、最初からやり直せます。元には戻せません。','可以删除存档从头开始，删除后无法恢复。')}</p>
+    <div id="set-reset-box"><button class="btn small" id="set-reset" style="color:var(--low);border-color:var(--low)">${L('セーブデータを消す','删除存档')}</button></div>
+    <div class="row between"><span>${L('バージョン','版本')}</span><b>Ver ${VERSION}</b></div>`);
+  const sb=document.querySelector('.sheet');
+  sb.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{sfx('tap');applyLang(b.dataset.lang);openSettings()});
+  $('#set-se').onclick=()=>{save.se=!save.se;persist();sfx('tap');openSettings()};
+  $('#set-bgm').onclick=()=>{save.bgm=!save.bgm;persist();if(!save.bgm){BGM.stop();TBGM.stop()}else if(B&&!B.done)BGM.start();else TBGM.start();openSettings()};
+  xferBind();
+  $('#set-reset').onclick=()=>{$('#set-reset-box').innerHTML=`<p class="hint" style="color:var(--low)">${L('本当に消しますか？ 仲間・コイン・塔の進み具合がすべて消えます。','真的要删除吗？伙伴、金币、塔的进度将全部消失。')}</p><div class="row"><button class="btn small" id="set-yes" style="color:var(--low);border-color:var(--low)">${L('消す','删除')}</button><button class="btn small" id="set-no">${L('やめる','取消')}</button></div>`;
+    $('#set-yes').onclick=()=>{const keep={se:save.se,bgm:save.bgm,lang:save.lang};save=Object.assign(blank(),keep);persist();updCoins();toast(L('セーブデータを消しました','已删除存档'));nav('gacha')};
+    $('#set-no').onclick=()=>openSettings()}
+}
+
 
 /* ================= プレゼントコード ================= */
 /* コードそのものは書かず、ハッシュだけを置く（make_gift.py で作る） */
@@ -1684,7 +1707,7 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   TUT.on=false;B={inf:true,pidx:run.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
-  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const boss=run.f%10===0;$('#floor-tag').textContent=L(`無限の塔 ${run.f}F${boss?'｜ボス戦':''}`,`无限之塔 ${run.f}F${boss?'｜头目战':''}`);
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
@@ -1750,7 +1773,7 @@ function hwBattle(card){const run=save.hw.run;if(!run)return;
   TUT.on=false;
   B={hw:true,pidx:run.pidx,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].idx=B.S.sides[0].team.findIndex(x=>x.hp>0);
-  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=`${f}F ${L(FL.n,FL.zn)}${f===10?L(`｜ネロ Lv${run.nlv}`,`｜尼禄 Lv${run.nlv}`):''}｜${L(card.ja,card.zh)}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`ハロウィンの塔 ${f}F。相手は${B.S.sides[1].team.length}人！`,`万圣节之塔 ${f}F。对手共${B.S.sides[1].team.length}人！`));
@@ -1807,7 +1830,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;if(part
   B={raid,pidx:save.pidx,tower:TW,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:T.lap,tower:TW,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   if(raid)B.S.rule=null;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:B.S.fl;
-  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{const e=G.act(B.S,1);
@@ -2114,7 +2137,7 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
 function beginOnline(m){
   TUT.on=false;
   B={online:true,pidx:save.pidx,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
-  ['tower','party','gacha','dex','online','rank'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
   B.oraid=m.kind==='raid';B.mul=m.mul||1;const kind=m.kind==='raid'?L('レイドバトル','团队战'):m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
   $('#floor-tag').innerHTML=kind+(m.oppWho&&m.oppWho.w&&m.oppWho.w.length?' vs '+nameOf(m.oppWho.w):on?' vs '+on.name:'');
@@ -2261,7 +2284,7 @@ function applyLang(l){l=l==='zh'?'zh':'ja';G.setLang(l);save.lang=l;persist();co
   document.querySelectorAll('[data-zh-aria]').forEach(e=>{if(e.dataset.jaAria==null)e.dataset.jaAria=e.getAttribute('aria-label');e.setAttribute('aria-label',zh?e.dataset.zhAria:e.dataset.jaAria)});
   document.querySelectorAll('[data-zh-ph]').forEach(e=>{if(e.dataset.jaPh==null)e.dataset.jaPh=e.placeholder;e.placeholder=zh?e.dataset.zhPh:e.dataset.jaPh});
   updCoins();
-  const vis=['tower','party','gacha','dex','online','rank'].find(x=>!$('#v-'+x).hidden);
+  const vis=['tower','party','gacha','dex','online','rank','reward'].find(x=>!$('#v-'+x).hidden);
   if(vis&&!(B&&!B.done))({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView})[vis]()}
 
 /* ================= 起動 ================= */
