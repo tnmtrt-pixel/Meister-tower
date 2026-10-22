@@ -775,7 +775,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.9.1';
+const VERSION='2.9.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -857,24 +857,20 @@ function loadout(id){const ch=byId(id),st=starOf(id);let l=save.load[id];
   if(!l||!l.length||l.length>4||l.some(k=>!ch.moves[k]||ch.moves[k].t>st)){l=G.autoPick(ch,st,0,Math.random,save.lv[id]||{});save.load[id]=l}
   return mvSort(ch,l)}
 /* パーティは3組まで。選んでいる組が save.party */
-/* 無限・ハロウィンの挑戦中は、その挑戦のパーティ以外に変えられない */
-function runLock(){const r=(save.inf&&save.inf.run)||(save.hw&&save.hw.run);return r?r.pidx:null}
-function setPidx(k){if(k===save.pidx)return;const lk=runLock();if(lk!==null&&k!==lk){toast(L('挑戦中のパーティは変えられません（挑戦を終えてから選んでください）','挑战中无法更换队伍（结束挑战后再选择）'));return}save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
+function setPidx(k){if(k===save.pidx)return;save.parties[save.pidx]=save.party.slice(0,3);save.pidx=k;save.party=(save.parties[k]||[]).slice();fixParty();persist()}
 function psetsHTML(){return[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns));
   return`<button type="button" class="pset" data-ps="${k}" aria-pressed="${k===save.pidx}"><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span></button>`}).join('')}
 function bindPsets(sel,after){const el=$(sel);el.innerHTML=psetsHTML();el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');slotSel=null;setPidx(+b.dataset.ps);after()})}
 
 /* 出撃中のパーティ：無限・ハロウィンの挑戦中、対戦待ち（ランク）、対戦中（塔・レイド・ランク・大会）は、そのパーティを他の対戦に使えない */
 function partyBusy(k){
-  if(save.inf&&save.inf.run&&save.inf.run.pidx===k)return L('無限の塔','无限之塔');
-  if(save.hw&&save.hw.run&&save.hw.run.pidx===k)return L('ハロウィンの塔','万圣节之塔');
   if(typeof B!=='undefined'&&B&&!B.done&&B.pidx===k)return L('対戦中','对战中');
   if(typeof LAD!=='undefined'&&LAD.state&&LAD.state!=='idle'&&LAD.pidx===k)return L('ランクバトル','排位赛');
   return null}
 function partyGuard(){const b=partyBusy(save.pidx);if(!b)return false;toast(L(`このパーティは${b}で出撃中です。ほかのパーティを選んでください`,`该队伍正在${b}中出战，请选择其他队伍`));return true}
 function renderPartyBar(){const el=$('#psets-bar');if(!el)return;
-  el.innerHTML=[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns)),bz=partyBusy(k),cur=k===save.pidx,lk=runLock(),lockd=lk!==null&&k!==lk;
-    return`<button type="button" class="pset${cur?' on':''}" data-ps="${k}" aria-pressed="${cur}" ${bz||lockd?'disabled':''}><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span>${bz?`<small class="pb-busy">${bz}${L('で出撃中','出战中')}</small>`:''}</button>`}).join('');
+  el.innerHTML=[0,1,2].map(k=>{const pt=(k===save.pidx?save.party:(save.parties[k]||[]).filter(owns)),bz=partyBusy(k),cur=k===save.pidx;
+    return`<button type="button" class="pset${cur?' on':''}" data-ps="${k}" aria-pressed="${cur}" ${bz?'disabled':''}><span class="pn">${L('パーティ','队伍')}${k+1}</span><span class="pc">${pt.map(id=>`<img src="${byId(id).img}" alt="">`).join('')||`<small>${L('空き','空')}</small>`}</span>${bz?`<small class="pb-busy">${bz}${L('で出撃中','出战中')}</small>`:''}</button>`}).join('');
   el.querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{sfx('tap');const k=+b.dataset.ps;if(partyBusy(k)){toast(L('このパーティは出撃中です','该队伍正在出战中'));return}setPidx(k);renderPartyBar();if(!$('#v-tower').hidden)renderTower();if(!$('#v-online').hidden)renderOnline()});
   const pe=$('#pb-edit');if(pe)pe.onclick=()=>{sfx('tap');nav('party')}}
 function fixParty(){save.party=save.party.filter(owns).slice(0,3);
@@ -1677,6 +1673,8 @@ function infStart(){fixParty();if(!save.party.length)return;if(partyGuard())retu
   const short=save.party.find(id=>loadout(id).length!==4);if(short){toast(L(`${byId(short).name}の技が4つそろっていません（編成で選んでください）`,`${byId(short).name}的技能不足4个（请在编队中选择）`));return}
   save.inf.run={f:1,pidx:save.pidx,party:save.party.slice(),hp:Object.fromEntries(save.party.map(id=>[id,hpOf(id)]))};persist();beginInf()}
 function beginInf(){const run=save.inf.run;if(!run)return;
+  {const bz=partyBusy(run.pidx);if(bz){toast(L(`このパーティは${bz}で出撃中です`,`该队伍正在${bz}中出战`));return}}
+  if(save.pidx!==run.pidx)setPidx(run.pidx);
   const party=run.party.filter(owns).map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{},hp:hpOf(id)}));
   const enemies=G.infEnemies(run.f,Math.random,run.party);
   TUT.on=false;B={inf:true,pidx:run.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
@@ -1709,7 +1707,7 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
     <p class="hint">${L('負けるまで登り続ける塔。生き残った仲間は毎F全回復、たおれた仲間は10Fごとのボスを倒すと復活します。','一直攀登到落败为止。存活的伙伴每F完全恢复，倒下的伙伴在打倒每10F的头目后复活。')}</p>
     <div class="t-rec"><span>${L('自己ベスト','个人最佳')}</span><b>${save.inf.best}F</b><span>${L('今日の報酬','今日奖励')}</span><b>${D}${L('コイン','金币')}</b></div>
     <p class="hint">${L(`報酬：1Fクリアで${INF_REW.floor}コイン、ボスのFはさらに+${INF_REW.boss}（同じFのコインは1日1回まで。1日の合計に上限はなし）。自己ベスト更新で+${INF_REW.best}`,`奖励：每通关1F${INF_REW.floor}金币，头目F再+${INF_REW.boss}（同一F的金币每天限1次，每天合计无上限）。刷新最佳+${INF_REW.best}`)}</p>
-    ${run?`<div class="label">${L(`挑戦中：${run.f}F から`,`挑战中：从 ${run.f}F 开始`)}</div>
+    ${run?`<div class="label">${L(`挑戦中：${run.f}F から（パーティ${run.pidx+1}）`,`挑战中：从 ${run.f}F 开始（队伍${run.pidx+1}）`)}</div>
       <div class="row"><button class="btn small" id="inf-quit">${L('リタイア','放弃')}</button></div>`
     :''}`;
   const ib=$('#inf-bar-go');ib.textContent=run?L(`${run.f}F から続ける`,`从 ${run.f}F 继续`):L('1Fから挑戦する','从1F开始挑战');
@@ -1737,7 +1735,9 @@ function hwPick(){const run=save.hw.run;if(!run||!hwOpen())return;const f=run.f,
   document.body.append(ov);
   ov.querySelectorAll('[data-hc]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.hc;ov.remove();const c=k==='t'?T:K;if(k==='t')run.nlv=Math.min(10,run.nlv+1);run.picks=[...(run.picks||[]),c.id];persist();hwBattle(c)});
 }
-function hwBattle(card){const run=save.hw.run;if(!run)return;const f=run.f,FL=G.towerOf('halloween').floors[f-1];
+function hwBattle(card){const run=save.hw.run;if(!run)return;
+  {const bz=partyBusy(run.pidx);if(bz){toast(L(`このパーティは${bz}で出撃中です`,`该队伍正在${bz}中出战`));return}}
+  if(save.pidx!==run.pidx)setPidx(run.pidx);const f=run.f,FL=G.towerOf('halloween').floors[f-1];
   let rare=null;if(f!==5&&f<10){if(Math.random()<hwRare()){rare=G.HW.rareIds[Math.floor(Math.random()*G.HW.rareIds.length)];save.hw.pity=0}else save.hw.pity=(save.hw.pity||0)+1}
   persist();
   const enemies=G.hwEnemies(f,Math.random,{rare,nlv:run.nlv,card});
