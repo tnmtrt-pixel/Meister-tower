@@ -705,6 +705,7 @@ hr{border-color:var(--line)!important}
   <section class="view" id="v-reward" hidden>
     <div class="panel" id="mission"></div>
     <div class="panel" id="rw-login"></div>
+    <div class="panel" id="rw-hist"></div>
     <div class="panel" id="rw-top">
       <h2 data-zh="排行奖励">ランク・大会・レイドの報酬</h2>
       <p class="hint" data-zh="デイリー・ウィークリーの上位、集合タイム、レイド、ランクバトルの報酬です。届いていれば、ここを開いたときに自動で受け取ります。">デイリー・ウィークリーの上位、集合タイム、レイド、ランクバトルの報酬です。届いていれば、ここを開いたときに自動で受け取ります。</p>
@@ -777,7 +778,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.11.5';
+const VERSION='2.11.6';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -806,6 +807,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
   if(!v.v3&&(s.lap>1||(+v.clears||0)>0)){s.floor=Math.max(s.floor,TOP+1);s.best=Math.max(s.best,s.floor);s.lap=1}/* 旧版で10Fを制覇済みなら上層へ */
   s.v3=true;s.clears=Math.max(0,Math.floor(+v.clears||0));
+  s.rhist=Array.isArray(v.rhist)?v.rhist.slice(0,30).filter(x=>x&&Array.isArray(x.lines)).map(x=>({t:+x.t|0,lines:x.lines.slice(0,12).map(String),coins:+x.coins|0})):[];
   s.gifts=Array.isArray(v.gifts)?v.gifts.filter(x=>typeof x==='string'&&/^[0-9a-f]{64}$/.test(x)).slice(0,50):[];{const p=v.prof&&typeof v.prof==='object'?v.prof:{};if(/^[0-9a-f]{24}$/.test(p.id||'')&&/^[0-9a-f]{32}$/.test(p.sec||''))s.prof={id:p.id,sec:p.sec,reg:!!p.reg,on:p.on!==false,
     w:(Array.isArray(p.w)?p.w:[0,0,0]).slice(0,3).map(n=>Math.max(0,Math.floor(+n||0))),icon:String(p.icon||'').slice(0,16),title:Math.max(0,Math.floor(+p.title||0))}}
   {const t=v.st||{};s.st={wins:Math.max(0,+t.wins|0),pvp:Math.max(0,+t.pvp|0),days:Math.max(0,+t.days|0),ms:Math.max(0,+t.ms|0),pulls:Math.max(0,+t.pulls|0)}}
@@ -1359,12 +1361,14 @@ function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   const re=$('#r-re');if(re)re.onclick=()=>{sfx('tap');loadRank()}}
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
+/* 受け取った報酬の履歴（報酬タブに表示。直近30回） */
+function addRhist(lines,coins){if(!lines.length)return;save.rhist=[{t:Date.now(),lines,coins:coins|0},...(save.rhist||[])].slice(0,30);persist()}
 async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;claimBusy=true;
   try{const j=await api('/api/rank/claim',{id:p.id,sec:p.sec,feather:1});const all=(j.items||[]).filter(x=>x.kind!=='rfeather');if(j.feathers>0)featherAdd(j.feathers|0,quiet);
     /* 集合タイム・レイドの1戦ごとのコインと、選べるかけらは、その場で受け取る（結果画面に出ているので静かに） */
     const SILENT=x=>x.kind==='rally'||x.kind==='raid'||x.kind==='rshard';const tsh=all.filter(x=>x.kind==='rshard'&&x.pkey<0);
     const items=all.filter(x=>!SILENT(x)),rc=all.filter(x=>x.kind==='rally'||x.kind==='raid').reduce((t,x)=>t+x.coins,0),sh=Math.max(0,j.shards|0),oc=Math.max(0,(j.coins|0)-rc);
-    if(rc>0||sh>0){save.coins+=rc;save.rshard=(save.rshard||0)+sh;persist();updCoins();rallyPaint();
+    if(rc>0||sh>0){save.coins+=rc;save.rshard=(save.rshard||0)+sh;persist();updCoins();rallyPaint();addRhist([L(`集合タイム・レイド：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`集合时间·团队战：+${rc}金币${sh?`·自选碎片+${sh}`:''}`)],rc);
       if(!quiet&&!items.length)toast(L(`ごほうび：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`奖励：+${rc}金币${sh?`·自选碎片+${sh}`:''}`))}
     if(oc>0||items.some(x=>x.kind==='raidday')){if(oc>0){save.coins+=oc;persist();updCoins()}sfx('reveal',3);
     const nm={infd:L('デイリー','日榜'),infw:L('ウィークリー','周榜')};
@@ -1373,6 +1377,7 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
       if(x.kind==='raidday'){const st=x.rank>>4,tp=x.rank&15,ks=shOf(-(x.pkey*10+1));return L(`レイド（${st>=4?'撃破！':`HP${[100,75,50,25][st]||100}%まで`}${tp?`・ダメージ${tp}位`:''}）：${x.coins?`+${x.coins}コイン`:''}${ks?`・選べるかけら+${ks}`:''}`,`团队战（${st>=4?'击破！':`削到HP${[100,75,50,25][st]||100}%`}${tp?`·伤害第${tp}名`:''}）：${x.coins?`+${x.coins}金币`:''}${ks?`·自选碎片+${ks}`:''}`)}
       if(x.kind==='lad')return L(`ランクバトル シーズン${x.pkey}（最高 ${rankName(x.rank)}）：+${x.coins}`,`排位赛 第${x.pkey}赛季（最高 ${rankName(x.rank)}）：+${x.coins}`);
       return`${nm[x.kind]||''} ${x.rank}${L('位','名')}：+${x.coins}`};
+    addRhist(items.map(line),oc);
     showOverlay({word:'REWARD!',ch:byId(p.icon)||byId(save.party[0])||HIDDEN,win:true,coins:oc,noCoin:!oc,
       sub:L('報酬が届きました！','奖励到了！')+'<br>'+items.map(line).join('<br>'),
       go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['rank',L('成績へ','前往成绩')],['tower',L('タワーへ','前往塔')]]})}}
@@ -1421,6 +1426,8 @@ function renderReward(){
   $('#rw-login').innerHTML=`<h2>${L('ログインボーナス','登录奖励')}</h2>
     <p class="hint">${L('毎日ログインでコインがもらえます。7日目は15コイン！ 7日で一周し、次は1日目から始まります。','每天登录可获得金币，第7天为15金币！7天为一轮，之后从第1天重新开始。')}</p>
     <div class="lb7">${LB.map((v,i)=>`<div class="${i+1<n?'done':i+1===n?'today':''}">${L(`${i+1}日目`,`第${i+1}天`)}<b>${v}</b></div>`).join('')}</div>`;
+  const H=save.rhist||[];
+  $('#rw-hist').innerHTML=`<h2>${L('受け取った報酬','已领取的奖励')}</h2>`+(H.length?H.map(h=>`<div class="rk"><span class="n" style="min-width:auto;font-size:12px">${new Date(h.t).toLocaleString(G.getLang()==='zh'?'zh-CN':'ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span><span class="nm" style="font-size:13px;font-weight:600">${h.lines.map(x=>`<span style="display:block">${x}</span>`).join('')}</span></div>`).join(''):`<p class="hint">${L('まだ受け取った報酬はありません。','还没有领取过奖励。')}</p>`);
   renderMission();
   $('#rw-claim').onclick=()=>{sfx('tap');if(!save.prof.reg){toast(L('ランクに登録すると受け取れます','注册排位后即可领取'));return}claimRank()};
   if(save.prof.reg)claimRank(true);
