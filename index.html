@@ -704,6 +704,12 @@ hr{border-color:var(--line)!important}
 
   <section class="view" id="v-reward" hidden>
     <div class="panel" id="mission"></div>
+    <div class="panel" id="rw-login"></div>
+    <div class="panel" id="rw-top">
+      <h2 data-zh="排行奖励">ランク・大会・レイドの報酬</h2>
+      <p class="hint" data-zh="デイリー・ウィークリーの上位、集合タイム、レイド、ランクバトルの報酬です。届いていれば、ここを開いたときに自動で受け取ります。">デイリー・ウィークリーの上位、集合タイム、レイド、ランクバトルの報酬です。届いていれば、ここを開いたときに自動で受け取ります。</p>
+      <div class="row"><button class="btn small" id="rw-claim" data-zh="领取奖励">報酬を受け取る</button></div>
+    </div>
     <div class="panel">
       <h2 data-zh="礼物代码">プレゼントコード</h2>
       <p class="hint" data-zh="输入代码即可获得礼物。每个代码在同一设备上只能使用一次。">コードを入れるとプレゼントがもらえます。同じ端末で使えるのは1回だけです。</p>
@@ -771,7 +777,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=f5df8046"></script>
 <script>
-const VERSION='2.10.0';
+const VERSION='2.11.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -949,7 +955,7 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
   dailyCheck();
   refundNotice();
-  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView,reward:renderMission})[view]();window.scrollTo(0,0)}
+  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView,reward:renderReward})[view]();window.scrollTo(0,0)}
 document.querySelectorAll('#subnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.s)});
 document.querySelectorAll('#rsubnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');rtype=b.dataset.r;document.querySelectorAll('#rsubnav button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRank();if(!rdata[rtype]||rtype==='raid')loadRank();if(rtype==='cup')cupLoad()});
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
@@ -1408,6 +1414,16 @@ function dailyCheck(){if(!hasAny())return;const d=today();
 function mission(k,n=1){const D=save.daily;if(!D||D.d!==today())return;let up=false;
   D.ids.forEach(id=>{const m=MS.find(x=>x.id===id);if(m&&m.k===k&&!D.c.includes(id)){const was=D.p[id]||0;D.p[id]=Math.min(m.n,was+n);if(D.p[id]>=m.n&&was<m.n){up=true;setTimeout(()=>toast(L(`ミッション達成！「${m.ja}」 タワー画面で受け取ろう`,`任务完成！「${m.zh}」 去塔的画面领取吧`)),1200)}}});
   persist()}
+/* 報酬タブ：ログインボーナス・排行の報酬（受け取り）・ミッション・プレゼントコード */
+function renderReward(){
+  const n=save.login.n||0;
+  $('#rw-login').innerHTML=`<h2>${L('ログインボーナス','登录奖励')}</h2>
+    <p class="hint">${L('毎日ログインでコインがもらえます。7日目は15コイン！','每天登录可获得金币，第7天为15金币！')}</p>
+    <div class="lb7">${LB.map((v,i)=>`<div class="${i+1<n?'done':i+1===n?'today':''}">${L(`${i+1}日目`,`第${i+1}天`)}<b>${v}</b></div>`).join('')}</div>`;
+  renderMission();
+  $('#rw-claim').onclick=()=>{sfx('tap');if(!save.prof.reg){toast(L('ランクに登録すると受け取れます','注册排位后即可领取'));return}claimRank()};
+  if(save.prof.reg)claimRank(true);
+}
 let msOpen=false;/* ミッションはタップで開く */
 function renderMission(){const el=$('#mission'),D=save.daily;if(!hasAny()||!D||D.d!==today()){el.hidden=true;return}el.hidden=false;
   const done=D.ids.filter(id=>D.c.includes(id)).length,ready=D.ids.filter(id=>{const m=MS.find(x=>x.id===id);return m&&!D.c.includes(id)&&(D.p[id]||0)>=m.n}).length;
@@ -2086,8 +2102,8 @@ function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id)
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
 function onlineQueue(fn){B.chain=(B.chain||Promise.resolve()).then(()=>B&&!B.done?fn():null).catch(e=>console.error(e));return B.chain}
-function renderRankView(){renderProf();renderRank();loadRank();if(rtype==='cup')cupLoad();claimRank()}
-function renderOnline(){renderCup();cupLoad();renderRaid();raidLoad();renderLad();ladLoad();rallyLoad();claimRank();
+function renderRankView(){renderProf();renderRank();loadRank();if(rtype==='cup')cupLoad()}
+function renderOnline(){renderCup();cupLoad();renderRaid();raidLoad();renderLad();ladLoad();rallyLoad();
   const el=$('#on-body');
   if(!ONLINE_URL){el.innerHTML=`<p class="hint">${L('通信対戦のサーバーを準備中です。もう少しお待ちください。','联机服务器正在准备中，请稍候。')}</p>`;return}
   if(ON.state==='waiting'){el.innerHTML=`<div class="oncode">${ON.code}</div><p class="hint" style="text-align:center">${L('この合言葉を相手に伝えてね。相手が入ると対戦が始まります。','把这个暗号告诉对方。对方加入后对战就会开始。')}</p><div class="row" style="justify-content:center"><button class="btn" id="on-cancel">${L('やめる','取消')}</button></div>`;
