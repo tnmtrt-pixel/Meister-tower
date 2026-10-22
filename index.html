@@ -946,7 +946,7 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
 const TOWERS=[{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
-  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'hw',icon:'🎃',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},
+  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},
   {id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
 /* 塔ごとの進み具合（マイスターの塔は今までどおり save の直下、ほかの塔は save.tw） */
 const TPof=id=>id==='meister'?save:save.tw[id];
