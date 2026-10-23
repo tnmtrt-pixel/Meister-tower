@@ -778,7 +778,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=5f01a0de"></script>
 <script>
-const VERSION='2.11.7';
+const VERSION='2.11.8';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -807,7 +807,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
   if(!v.v3&&(s.lap>1||(+v.clears||0)>0)){s.floor=Math.max(s.floor,TOP+1);s.best=Math.max(s.best,s.floor);s.lap=1}/* 旧版で10Fを制覇済みなら上層へ */
   s.v3=true;s.clears=Math.max(0,Math.floor(+v.clears||0));
-  s.rhist=Array.isArray(v.rhist)?v.rhist.slice(0,30).filter(x=>x&&Array.isArray(x.lines)).map(x=>({t:+x.t|0,lines:x.lines.slice(0,12).map(String),coins:+x.coins|0})):[];
+  s.rhist=Array.isArray(v.rhist)?v.rhist.slice(0,30).filter(x=>x&&Array.isArray(x.lines)).map(x=>({t:Math.floor(+x.t)||0,lines:x.lines.slice(0,12).map(String),coins:+x.coins|0})):[];
   s.gifts=Array.isArray(v.gifts)?v.gifts.filter(x=>typeof x==='string'&&/^[0-9a-f]{64}$/.test(x)).slice(0,50):[];{const p=v.prof&&typeof v.prof==='object'?v.prof:{};if(/^[0-9a-f]{24}$/.test(p.id||'')&&/^[0-9a-f]{32}$/.test(p.sec||''))s.prof={id:p.id,sec:p.sec,reg:!!p.reg,on:p.on!==false,
     w:(Array.isArray(p.w)?p.w:[0,0,0]).slice(0,3).map(n=>Math.max(0,Math.floor(+n||0))),icon:String(p.icon||'').slice(0,16),title:Math.max(0,Math.floor(+p.title||0))}}
   {const t=v.st||{};s.st={wins:Math.max(0,+t.wins|0),pvp:Math.max(0,+t.pvp|0),days:Math.max(0,+t.days|0),ms:Math.max(0,+t.ms|0),pulls:Math.max(0,+t.pulls|0)}}
@@ -1427,7 +1427,7 @@ function renderReward(){
     <p class="hint">${L('毎日ログインでコインがもらえます。7日目は15コイン！ 7日で一周し、次は1日目から始まります。','每天登录可获得金币，第7天为15金币！7天为一轮，之后从第1天重新开始。')}</p>
     <div class="lb7">${LB.map((v,i)=>`<div class="${i+1<n?'done':i+1===n?'today':''}">${L(`${i+1}日目`,`第${i+1}天`)}<b>${v}</b></div>`).join('')}</div>`;
   const H=save.rhist||[];
-  $('#rw-hist').innerHTML=`<h2>${L('受け取った報酬','已领取的奖励')}</h2>`+(H.length?H.map(h=>`<div class="rk"><span class="n" style="min-width:auto;font-size:12px">${new Date(h.t).toLocaleString(G.getLang()==='zh'?'zh-CN':'ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span><span class="nm" style="font-size:13px;font-weight:600">${h.lines.map(x=>`<span style="display:block">${x}</span>`).join('')}</span></div>`).join(''):`<p class="hint">${L('まだ受け取った報酬はありません。','还没有领取过奖励。')}</p>`);
+  $('#rw-hist').innerHTML=`<h2>${L('受け取った報酬','已领取的奖励')}</h2>`+(H.length?H.map(h=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:none;width:92px;font-size:12px;font-weight:700;white-space:nowrap">${h.t>1e12?new Date(h.t).toLocaleString(G.getLang()==='zh'?'zh-CN':'ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}</span><span style="flex:1;min-width:0;font-size:13px;font-weight:600">${h.lines.map(x=>`<span style="display:block">${x}</span>`).join('')}</span></div>`).join(''):`<p class="hint">${L('まだ受け取った報酬はありません。','还没有领取过奖励。')}</p>`);
   renderMission();
   $('#rw-claim').onclick=()=>{sfx('tap');if(!save.prof.reg){toast(L('ランクに登録すると受け取れます','注册排位后即可领取'));return}claimRank()};
   if(save.prof.reg)claimRank(true);
