@@ -778,7 +778,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=5f01a0de"></script>
 <script>
-const VERSION='2.12.0';
+const VERSION='2.12.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1465,7 +1465,7 @@ function showNews(){sfx('tap');newsUn=unread().map(n=>n.id);newsTab='all';newsSh
 function newsSheetOpen(){const tabs=[['all',L('すべて','全部')],...Object.keys(NTAG).map(k=>[k,L(NTAG[k][0],NTAG[k][1])])];
   const list=NEWS.filter(n=>newsTab==='all'||n.tag===newsTab||(newsTab==='info'&&!NTAG[n.tag]));
   openSheet(`<div class="sh-top"><h2>${L('お知らせ','公告')}</h2><button type="button" class="xbtn" data-close aria-label="${L('閉じる','关闭')}">×</button></div>
-    <div class="seg" role="tablist" style="flex-wrap:wrap;margin:6px 0">${tabs.map(([k,t])=>`<button type="button" data-nt="${k}" aria-pressed="${newsTab===k}">${t}</button>`).join('')}</div>`+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${tabs.map(([k,t])=>`<button type="button" class="btn small${newsTab===k?' primary':''}" data-nt="${k}" aria-pressed="${newsTab===k}">${t}</button>`).join('')}</div>`+
     (list.map(n=>{const t=NTAG[n.tag]||NTAG.info;
       return`<div class="news"><div class="nh"><span class="nt ${NTAG[n.tag]?n.tag:'info'}">${L(t[0],t[1])}</span><span class="nd">${esc(n.date)}</span>${newsUn.includes(n.id)?'<span class="new">NEW</span>':''}</div>
       <b>${esc(nTxt(n.title))}</b><p>${esc(nTxt(n.body))}</p></div>`}).join('')||`<p class="hint">${L('お知らせはありません','暂无公告')}</p>`),L('閉じる','关闭'));
