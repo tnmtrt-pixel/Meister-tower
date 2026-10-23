@@ -13,7 +13,7 @@
  *  WS   /mm                             マッチング（{t:'q', id, sec, v, party} を送ると、相手が見つかったら {t:'match', room, ticket, ...}）
  */
 
-export const ENGINE_V = 16; /* ゲーム側の hello の v と同じにする（技やルールが変わったら両方上げる） */
+export const ENGINE_V = 17; /* ゲーム側の hello の v と同じにする（技やルールが変わったら両方上げる） */
 export const MASTER = 11;
 export const SEASON_MS = 14 * 86400e3;
 /* シーズン1の始まり：2026-10-19（月）15:00 日本時間 */

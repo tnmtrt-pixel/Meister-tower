@@ -908,6 +908,11 @@ const WORDS=[[
 function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],w[1]);
   if(t.includes('{c}')){const c=byId(String(w[2]).split(':')[1]);t=t.replace('{c}',c?c.name:'？')}return t}
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
+/* Ver 2.13.1：必殺技（ゾロ目）の最終値。効果なしは36、効果つきは30。ちょこまかは3回攻撃 */
+for(const c of [...CHARS,...HWC,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,NEROHW]){if(!c)continue;(c.moves||[]).forEach(m=>{
+  if(m.c&&m.c.t==='pair'&&m.dmg)m.dmg.b=(m.fx&&Object.keys(m.fx).length)?30:36;
+  if(m.n==='ちょこまか'&&m.dmg)m.dmg.h=3;
+})}
 const API={TOT,HW,HWF,HWC,NEROHW,hwEnemies,applyTot,TOWER,towerOf,FLOORS_J,VERDICT,ECLIPSE,WORDS,TITLE_NAMES,wordText,INF,infEnemies,rng,newPvP,raidEnemy,SORA,L,setLang,getLang,FATIGUE,DICE,MAXD,PLAYER_HP,TOP,TOP2,enemyLv,lvBonus,CHARS,HIDDEN,ALL,byId,FLOORS,floorStar,floorCount,floorHP,bossHP,floorCoins,
   condLabel,condOk,dmgLabel,fxLabel,applyLv,moveValue,autoPick,enemiesFor,newBattle,act,startTurn,diceFor,useMove,endTurn,cpuChoose,simulate,calcDmg,
   T4,V4,OLD23,OLD24,TYPES,BEATS,TMULT,typePts,typeParts,typeName,effLabel,moveTy,OLDMOVES,pickNext,needPick,bestPick,matchScore,canSwitch,switchTo,ultOf,ultDice,useUlt,ultNum,ULT_DMG,ultDmg};
