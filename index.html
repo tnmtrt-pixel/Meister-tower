@@ -628,7 +628,7 @@ hr{border-color:var(--line)!important}
 .exc.can{cursor:pointer;box-shadow:0 0 0 3px #F2C94C,0 4px 10px rgba(0,0,0,.5);animation:exPulse 1.4s ease-in-out infinite}
 .exc.far{filter:brightness(.55) grayscale(.4)}
 .exc-art{flex:1;min-height:0;border-radius:5px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#FFF7D1,#F2C94C 40%,#C98B2A)}
-.exc-art img{width:100%;height:100%;object-fit:contain}.exc-art i{font-style:normal;font-size:clamp(20px,7vw,40px)}
+.exc-art img{width:100%;height:100%;object-fit:contain}.exc-svg{position:absolute;inset:0;display:block}.exc-svg svg{width:100%;height:100%;display:block}.exc-svg .exc-pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.exc-art i{font-style:normal;font-size:clamp(20px,7vw,40px)}
 .exc-art em{position:absolute;right:3px;bottom:2px;font-style:normal;font-weight:800;font-size:12px;background:rgba(0,0,0,.6);border-radius:6px;padding:0 5px}
 .exc-art.k-elite{background:radial-gradient(circle at 50% 40%,#FFD9D2,#E0533F 45%,#6E1E2A)}.exc-art.k-boss{background:radial-gradient(circle at 50% 40%,#FFF1B8,#E3A72F 45%,#6B3A12)}
 .exc-art.k-rest{background:radial-gradient(circle,#FFE3B5,#E08A3A 60%,#5A2D16)}.exc-art.k-shop{background:radial-gradient(circle,#D9E8FF,#5D86C8 60%,#1E2E58)}
@@ -1865,9 +1865,46 @@ function exStart(){if(save.ex.run){toast(L('探索はすでに挑戦中です（
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();const id=b.dataset.c;
     const run={fl:1,fm:exGenFloor(1),gear:0,dice:0,boss:0,party:[id],mv:{[id]:exStartMoves(id)},up:{},hp:{}};run.hp[id]=exMax(run,id);
     save.ex.run=run;persist();exMap()})}
+/* 探索カードの絵（SVG）。img/ex-<種類>.webp を置けばそちらを優先して表示する */
+const EX_ART={
+rest:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="exaR1" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#FFE9A8"/><stop offset=".45" stop-color="#F28C38" stop-opacity=".7"/><stop offset="1" stop-color="#2A1630" stop-opacity="0"/></radialGradient><linearGradient id="exaR2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E8461E"/><stop offset=".6" stop-color="#F7A21B"/><stop offset="1" stop-color="#FFF2A0"/></linearGradient></defs>
+<rect width="100" height="100" fill="#241A3A"/><circle cx="50" cy="66" r="44" fill="url(#exaR1)"/>
+<g fill="#FFF6C8"><circle cx="16" cy="16" r="1.4"/><circle cx="82" cy="12" r="1.2"/><circle cx="70" cy="26" r="1"/><circle cx="28" cy="30" r="1"/></g>
+<path d="M50 22c6 10 14 14 13 28 0 9-6 16-13 16s-14-7-14-16c0-8 5-11 7-17 2 5 5 6 7 6-2-6-3-11 0-17z" fill="url(#exaR2)"/>
+<path d="M50 44c3 5 7 7 6 14 0 4-3 8-6 8s-7-4-7-8c0-4 3-6 4-9 1 2 2 3 3 3-1-3 0-5 0-8z" fill="#FFF3B0"/>
+<g stroke="#5A3218" stroke-width="7" stroke-linecap="round"><path d="M24 80l52-10"/><path d="M24 70l52 10"/></g>
+<g stroke="#8A552C" stroke-width="2.5" stroke-linecap="round"><path d="M27 79l46-9"/><path d="M27 71l46 9"/></g>
+<g fill="#FFC24A"><circle cx="38" cy="30" r="1.6"/><circle cx="62" cy="24" r="1.3"/><circle cx="58" cy="36" r="1"/></g></svg>`,
+train:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="exaT1" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#F6E6FF"/><stop offset=".5" stop-color="#A57BE0"/><stop offset="1" stop-color="#2C1C4E"/></radialGradient></defs>
+<rect width="100" height="100" fill="url(#exaT1)"/>
+<g opacity=".9" fill="#FFF7D0"><path d="M50 8l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/><circle cx="20" cy="22" r="1.6"/><circle cx="82" cy="20" r="1.4"/></g>
+<rect x="46" y="60" width="8" height="32" rx="2" fill="#7A4A26"/><rect x="34" y="88" width="32" height="6" rx="3" fill="#5A3418"/>
+<circle cx="50" cy="44" r="20" fill="#F4E2BC" stroke="#7A4A26" stroke-width="4"/><circle cx="50" cy="44" r="13" fill="none" stroke="#D6452F" stroke-width="4"/><circle cx="50" cy="44" r="5" fill="#D6452F"/>
+<g transform="rotate(-38 26 70)"><rect x="23" y="44" width="6" height="34" rx="1.5" fill="#DDE6F2" stroke="#5B6B86" stroke-width="1.5"/><rect x="18" y="76" width="16" height="4" rx="2" fill="#C9962E"/><rect x="24" y="80" width="4" height="9" rx="1.5" fill="#6B3E1F"/></g>
+<g transform="rotate(38 74 70)"><rect x="71" y="44" width="6" height="34" rx="1.5" fill="#DDE6F2" stroke="#5B6B86" stroke-width="1.5"/><rect x="66" y="76" width="16" height="4" rx="2" fill="#C9962E"/><rect x="72" y="80" width="4" height="9" rx="1.5" fill="#6B3E1F"/></g></svg>`,
+shop:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="exaS1" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="#DCEBFF"/><stop offset=".5" stop-color="#5C86C9"/><stop offset="1" stop-color="#18264A"/></radialGradient></defs>
+<rect width="100" height="100" fill="url(#exaS1)"/>
+<g><circle cx="74" cy="26" r="11" fill="none" stroke="#C9A24A" stroke-width="7" stroke-dasharray="4.3 3.3"/><circle cx="74" cy="26" r="8" fill="#C9A24A" stroke="#6B5016" stroke-width="1.5"/><circle cx="74" cy="26" r="3" fill="#6B5016"/></g>
+<g fill="#9FB0C8" stroke="#3E4B63" stroke-width="2.5" stroke-linejoin="round"><path d="M18 52h56c0 6-6 10-14 11v8h8v8H32v-8h8v-8c-12-1-22-5-22-11z"/></g>
+<rect x="36" y="80" width="28" height="8" rx="2" fill="#3E4B63"/>
+<g transform="rotate(-30 40 38)"><rect x="37" y="22" width="6" height="30" rx="2" fill="#8A552C"/><rect x="28" y="16" width="24" height="10" rx="2" fill="#56606F" stroke="#2E3440" stroke-width="2"/></g>
+<g fill="#FFD25A"><path d="M56 46l3-6 2 6z"/><path d="M62 50l6-2-4 5z"/><path d="M50 44l-1-6 4 5z"/></g></svg>`,
+treasure:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="exaB1" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#FFF8D6"/><stop offset=".45" stop-color="#F2C23C"/><stop offset="1" stop-color="#5A3A10"/></radialGradient><linearGradient id="exaB2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B8642A"/><stop offset="1" stop-color="#6E3514"/></linearGradient></defs>
+<rect width="100" height="100" fill="url(#exaB1)"/>
+<g stroke="#FFF2B0" stroke-width="3" stroke-linecap="round" opacity=".9"><path d="M50 10v12"/><path d="M28 18l6 9"/><path d="M72 18l-6 9"/><path d="M16 36l10 4"/><path d="M84 36l-10 4"/></g>
+<path d="M22 50c0-12 12-18 28-18s28 6 28 18z" fill="url(#exaB2)" stroke="#4A220C" stroke-width="2.5"/>
+<rect x="22" y="50" width="56" height="34" rx="3" fill="url(#exaB2)" stroke="#4A220C" stroke-width="2.5"/>
+<g fill="#E9B83A" stroke="#7A5512" stroke-width="1.5"><rect x="20" y="48" width="60" height="6" rx="2"/><rect x="30" y="34" width="6" height="50"/><rect x="64" y="34" width="6" height="50"/><rect x="44" y="50" width="12" height="14" rx="2"/></g>
+<circle cx="50" cy="57" r="2.4" fill="#4A220C"/><path d="M48 58h4l-1 4h-2z" fill="#4A220C"/>
+<g fill="#FFE27A" stroke="#B8861E" stroke-width="1"><circle cx="40" cy="44" r="4"/><circle cx="58" cy="42" r="4.5"/><circle cx="49" cy="40" r="3.5"/></g></svg>`,
+stairs:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="exaU1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFBE6"/><stop offset=".35" stop-color="#9CC4F0"/><stop offset="1" stop-color="#1E2C52"/></linearGradient></defs>
+<rect width="100" height="100" fill="url(#exaU1)"/><path d="M34 6h32l-4 26H38z" fill="#FFF8D8" opacity=".85"/>
+<g stroke="#2A3858" stroke-width="2"><path d="M12 92h76v-10H12z" fill="#8A97B4"/><path d="M18 82h64v-10H18z" fill="#97A4C0"/><path d="M24 72h52v-10H24z" fill="#A6B2CC"/><path d="M30 62h40v-10H30z" fill="#B6C1D8"/><path d="M36 52h28v-10H36z" fill="#C8D2E6"/><path d="M41 42h18v-10H41z" fill="#DCE4F2"/></g>
+<g fill="#FFF3B0"><circle cx="20" cy="20" r="1.4"/><circle cx="80" cy="26" r="1.2"/><circle cx="74" cy="12" r="1"/></g></svg>`};
+let exArtN=0;const exArt=k=>{const n=++exArtN;return EX_ART[k].replace(/exa([A-Z]\d)/g,'exa$1_'+n)};/* 同じ絵を何枚も出すので、グラデーションの名前を1枚ずつ変える */
 function exCard(k,es,face,small){const K=EXK[k];if(!face)return`<span class="exc-back">？</span>`;
   const lead=es&&es[0]&&byId(es[0].id);
-  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
+  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:EX_ART[k]?`<span class="exc-svg">${exArt(k)}<img class="exc-pic" src="img/ex-${k}.webp" alt="" onerror="this.remove()"></span>`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
 function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll('.overlay.ex-o').forEach(e=>e.remove());
   const fm=run.fm,boss=EX_BOSS.includes(run.fl),n=fm.row+1;
   const party=run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('');
@@ -1875,9 +1912,8 @@ function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll(
     rows.push(`<div class="exb-row d${d}">${(d===1?[-1,0,1]:[-2,-1,0,1,2]).map(o=>{const l=fm.lane+o,c=exCardAt(run,r,l),can=d===1&&Math.abs(o)<=1;
       return`<button type="button" class="exc${can?' can':''}${Math.abs(o)===2?' side':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(c.k,c.k==='boss'?fm.boss:c.e,true,d>1)}</button>`}).join('')}</div>`)}
   persist();
-  const me=`<div class="exb-me"><img src="${byId(run.party[0]).img}" alt=""></div>`;
   const ov=exSheet(L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)+(boss?L('｜ボスの階','｜头目层'):''),`<div class="ex-party">${party}</div>
-    <div class="exb">${rows.join('')}${me}</div>
+    <div class="exb">${rows.join('')}</div>
     <p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-pause">${L('中断する（あとで続きから）','中断（之后继续）')}</button></div>`);
   ov.querySelector('#ex-pause').onclick=()=>{sfx('tap');ov.remove();nav('tower')};
