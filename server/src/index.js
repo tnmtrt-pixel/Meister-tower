@@ -559,7 +559,7 @@ export class Rank {
 
   /* 管理用の合言葉のチェック（Ver 2.19.2）
    *  ・文字列は1文字ずつ全部くらべる（くらべる時間から合言葉を推測されないように）
-   *  ・まちがいが10分間に10回つづくと、10分間だれも入れなくする（総当たりで当てられないように） */
+   *  ・まちがいが10分間に3回つづくと、10分間だれも入れなくする（総当たりで当てられないように） */
   async adminGate(b) {
     const key = (this.env && this.env.ADMIN_KEY) || '';
     const now = Date.now();
@@ -570,7 +570,7 @@ export class Rank {
     for (let i = 0; i < Math.max(key.length, given.length); i++) diff |= (key.charCodeAt(i) || 0) ^ (given.charCodeAt(i) || 0);
     if (!key || diff) {
       const n = now - lock.t > 600e3 ? 1 : lock.n + 1;
-      await this.store.put('admLock', { n, t: now, until: n >= 10 ? now + 600e3 : 0 });
+      await this.store.put('admLock', { n, t: now, until: n >= 3 ? now + 600e3 : 0 });
       return { status: 403, body: { err: 'auth' } };
     }
     if (lock.n) await this.store.put('admLock', { n: 0, t: 0, until: 0 });
