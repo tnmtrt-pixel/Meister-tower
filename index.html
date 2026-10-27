@@ -903,7 +903,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.22.0';
+const VERSION='2.22.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2071,7 +2071,7 @@ stairs:`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="
 let exArtN=0;const exArt=k=>{const n=++exArtN;return EX_ART[k].replace(/exa([A-Z]\d)/g,'exa$1_'+n)};/* 同じ絵を何枚も出すので、グラデーションの名前を1枚ずつ変える */
 function exCard(k,es,face,small){const K=EXK[k];if(!face)return`<span class="exc-back">？</span>`;
   const lead=es&&es[0]&&byId(es[0].id);
-  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:EX_ART[k]?`<span class="exc-svg">${exArt(k)}<img class="exc-pic" src="img/ex-${k}.webp" alt="" onerror="this.remove()"></span>`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
+  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:EX_ART[k]?`<span class="exc-svg">${exArt(k)}<img class="exc-pic" src="img/ex-${k}.webp?v=2" alt="" onerror="this.remove()"></span>`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
 function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll('.ex-o').forEach(e=>e.remove());
   const fm=run.fm,boss=EX_BOSS.includes(run.fl),n=fm.row+1;
   const rows=[];for(let d=3;d>=1;d--){const r=fm.row+d;if(r>=EX_R)continue;
@@ -2149,7 +2149,7 @@ function exWin(big){const run=save.ex.run,i=big?1:0;
  * exGearFly(n,from)：ギアが飛んで上の帯の数字に入り、数字がふえる
  * exPop(icon,txt)：報酬のアイコンが光りながら大きく出る */
 function exChest(){return new Promise(res=>{const ov=document.createElement('div');ov.className='ex-chest';
-  ov.innerHTML=`<div class="exc-rays"></div><img class="exc-c" src="img/ex-treasure.webp" alt=""><img class="exc-o" src="img/ex-treasure-open.webp" alt=""><div class="exc-flash"></div>`;document.body.append(ov);
+  ov.innerHTML=`<div class="exc-rays"></div><img class="exc-c" src="img/ex-treasure.webp?v=2" alt=""><img class="exc-o" src="img/ex-treasure-open.webp" alt=""><div class="exc-flash"></div>`;document.body.append(ov);
   let fin=false;const end=()=>{if(fin)return;fin=true;ov.classList.add('out');setTimeout(()=>ov.remove(),RM?0:220);res()};ov.onclick=end;
   if(RM){ov.classList.add('open');sfx('chest');setTimeout(end,500);return}
   sfx('rattle');setTimeout(()=>{if(fin)return;ov.classList.add('open');sfx('chest')},650);setTimeout(end,1700)})}
