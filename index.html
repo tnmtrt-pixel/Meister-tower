@@ -845,7 +845,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.17.0';
+const VERSION='2.17.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1859,7 +1859,7 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
 /* ================= 探索（ローグライク：15階。フロアを歩いて階段をさがす） ================= */
 /* 1人で出発し、ボスを倒すと仲間がふえる（最大3人）。技は★1の技から始まり、訓練所で覚える。
    体力は持ちこし。探索の中のお金は「ギア」。強化は探索の中だけ（持ち帰らない）。終わるとコイン */
-const EX_FROM=Date.parse('2099-01-01T00:00:00+09:00');/* 公開日（決まったら書きかえる）。それまでは ?extest=1 のときだけ */
+const EX_FROM=Date.parse('2026-10-27T17:00:00+09:00');/* 公開日（決まったら書きかえる）。それまでは ?extest=1 のときだけ */
 function exOpen(){if(/[?&]extest=1\b/.test(location.search))return true;return Date.now()>=EX_FROM}
 const EX_F=15,EX_BOSS=[5,10,15],EX_R=5,EX_BOSS_FL=f=>[5,10,15].includes(f);/* 1フロア：カードが3枚ずつ5列。いちばん奥の列が階段（ボスの階はボス） */
 const EX_REW={floor:2,boss:10,clear:20,cap:80};/* コイン：着いた階×2、ボス1体+10、15階クリア+20（1日の上限80） */
@@ -1873,7 +1873,7 @@ function exSub(){const r=save.ex.run;return r?L(`探索中 ${r.fl}F`,`探索中 
 /* フロアを作る：5×5。下のまん中から出発。階段は4〜6歩先（上の2列）。ボスの階は階段の前にボス */
 function exGenEnemies(fl,k){const party=save.ex.run?save.ex.run.party:[];
   if(k==='boss'){const bi=EX_BOSS.indexOf(fl),es=G.infEnemies(10*(bi+1),Math.random,party).sort((a,b)=>(b.boss?1:0)-(a.boss?1:0));es.forEach(e=>{e.hp=Math.round(e.hp*EX_BOSSM[bi]);e.bonus=(e.bonus||0)+1});return es}
-  const F=Math.max(1,Math.round(fl*1.5))+(k==='elite'?3:0),hm=(fl===1?.3:.4+.08*fl)*(k==='elite'?1.3:1);/* 敵：強さは階×1.5。体力は1階30%、2階から40%+1階ごとに8%（サクサク進む） */
+  const F=Math.max(1,fl)+(k==='elite'?3:0),hm=(.55+.05*fl)*(k==='elite'?1.3:1);/* 敵の体力：1階は55%、1階ごとに+5%（Ver 2.17.1で元にもどした） */
   const es=G.infEnemies(F%10===0?F+1:F,Math.random,party);es.forEach(e=>{e.hp=Math.max(6,Math.round(e.hp*hm));if(k==='elite')e.bonus=(e.bonus||0)+1});return es}
 function exGenFloor(fl){return{c:{},boss:EX_BOSS.includes(fl)?exGenEnemies(fl,'boss'):null,row:-1,lane:0}}
 /* カードは横にどこまでも続く。見えたときに作って覚えておく（いちばん奥の列はぜんぶ階段、ボスの階はぜんぶボス） */
