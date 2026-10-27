@@ -725,6 +725,8 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 /* Ver 2.18 結果画面：いちばん大事なボタンを大きく、ほかは小さく1行に */
 .ov-go{gap:6px}.ov-go .btn.primary{flex:1 1 100%;max-width:320px;font-size:17px;padding:12px 16px}.ov-go .btn:not(.primary){flex:1 1 0;min-width:0;font-size:11px;padding:6px 3px;white-space:nowrap;letter-spacing:-.03em}
+
+.partybar{min-height:55px}.partybar .pb-ex{display:none}.partybar.ex .psets,.partybar.ex #pb-edit{display:none!important}.partybar.ex .pb-ex{display:flex;flex:1;align-items:center;justify-content:center;min-height:36px;font-size:13px;font-weight:700;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -737,9 +739,9 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
       <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排名">順位</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button></nav>
-    <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div></div>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
       <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="ex" aria-pressed="false" data-zh="探索" id="sub-ex" hidden>探索</button></nav>
+    <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div><div class="pb-ex" data-zh="🧭 探索是1人出发（不使用队伍）">🧭 探索は1人で出発します（パーティは使いません）</div></div>
   </header>
 
   <section class="view" id="v-tower">
@@ -877,7 +879,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.19.1';
+const VERSION='2.19.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1067,7 +1069,7 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(!hasAny()&&v!=='gacha'&&v!=='dex'&&v!=='reward'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'||sub==='ex'?'tower':'online'):v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
-  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle'||sub==='ex';if(main==='battle'&&sub!=='ex')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
+  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle';$('#partybar').classList.toggle('ex',sub==='ex');if(main==='battle'&&sub!=='ex')renderPartyBar();/* Ver 2.19.2 タブの下に出撃パーティ。探索のときは同じ高さで「1人で出発」と出す（画面が動かない） */$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
   ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
