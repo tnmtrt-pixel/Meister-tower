@@ -619,16 +619,24 @@ hr{border-color:var(--line)!important}
 .bd-c{display:flex;gap:8px;align-items:center}.bd-mv{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
 .bd-mv span{font-size:11px;padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line)}.bd-mv i{font-style:normal;color:var(--gold-hi,#FFE08A);margin-left:2px}
 .bd-use{display:flex;flex-direction:column;gap:4px}.bd-u{display:flex;align-items:center;gap:8px}.bd-u span{flex:1}.bd-u small{width:70px;text-align:right}
-.ex-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.ex-cell{aspect-ratio:1;max-width:100%;border-radius:8px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:20px;padding:0;min-width:0;cursor:default}
-.ex-cell img{width:90%;height:90%;object-fit:contain}
-.ex-cell.fog{background:#3A4468;color:#8E98BC;border-color:#55608A;font-size:15px}
-.ex-cell.dn:not(.me){background:#C9C2AE}
-.ex-cell.adj{cursor:pointer;box-shadow:0 0 0 3px #F2C94C;animation:exPulse 1.4s ease-in-out infinite}
-.ex-cell.me{background:#FFF4C2;box-shadow:0 0 0 3px #58C27A}
-.ex-cell.k-elite:not(.dn){background:#F3D9D9}.ex-cell.k-boss{background:#F6E3A8}.ex-cell.k-stairs{background:#DDE9F7}.ex-cell.k-rest:not(.dn){background:#DDF1E1}.ex-cell.k-shop:not(.dn){background:#DCE8F6}.ex-cell.k-train:not(.dn){background:#EEE0F6}
-@keyframes exPulse{50%{box-shadow:0 0 0 5px #F2C94C}}
-@media (prefers-reduced-motion:reduce){.ex-cell.adj{animation:none}}
+.exb{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 4px;border-radius:12px;background:radial-gradient(ellipse at 50% 100%,#3B3550 0%,#1C1B2B 70%);perspective:600px}
+.exb-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;transform-origin:50% 100%}
+.exb-row.d3{width:62%;gap:5px}.exb-row.d2{width:80%;gap:6px}.exb-row.d1{width:100%}
+.exc{position:relative;aspect-ratio:3/4;border-radius:8px;padding:4px;border:0;background:linear-gradient(160deg,#D9C27A,#7C5FA8 45%,#3D2F63);box-shadow:0 3px 8px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:3px;min-width:0;font:inherit;color:#fff;cursor:default}
+.exb-row.d3 .exc{filter:brightness(.6)}.exb-row.d2 .exc{filter:brightness(.82)}
+.exc.can{cursor:pointer;box-shadow:0 0 0 3px #F2C94C,0 4px 10px rgba(0,0,0,.5);animation:exPulse 1.4s ease-in-out infinite}
+.exc.far{filter:brightness(.55) grayscale(.4)}
+.exc-art{flex:1;min-height:0;border-radius:5px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#FFF7D1,#F2C94C 40%,#C98B2A)}
+.exc-art img{width:100%;height:100%;object-fit:contain}.exc-art i{font-style:normal;font-size:clamp(20px,7vw,40px)}
+.exc-art em{position:absolute;right:3px;bottom:2px;font-style:normal;font-weight:800;font-size:12px;background:rgba(0,0,0,.6);border-radius:6px;padding:0 5px}
+.exc-art.k-elite{background:radial-gradient(circle at 50% 40%,#FFD9D2,#E0533F 45%,#6E1E2A)}.exc-art.k-boss{background:radial-gradient(circle at 50% 40%,#FFF1B8,#E3A72F 45%,#6B3A12)}
+.exc-art.k-rest{background:radial-gradient(circle,#FFE3B5,#E08A3A 60%,#5A2D16)}.exc-art.k-shop{background:radial-gradient(circle,#D9E8FF,#5D86C8 60%,#1E2E58)}
+.exc-art.k-train{background:radial-gradient(circle,#F0E1FF,#9C6BD6 60%,#3A2363)}.exc-art.k-treasure{background:radial-gradient(circle,#FFF6C9,#E8B93A 60%,#6A4A12)}
+.exc-art.k-stairs{background:radial-gradient(circle,#E3F1FF,#7BA7D6 60%,#26385E)}
+.exc-name{font-size:11px;font-weight:800;text-align:center;background:#14122A;border-radius:4px;padding:1px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exb-row.d3 .exc-name{font-size:9px}
+.exc-back{flex:1;display:flex;align-items:center;justify-content:center;border-radius:5px;background:repeating-linear-gradient(45deg,#3D2F63 0 6px,#4B3B78 6px 12px);font-size:20px;color:#CDBFF0}
+.exb-me{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;height:46px}.exb-me span{display:flex;justify-content:center}.exb-me img{height:46px;object-fit:contain}
 .ex-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;opacity:.85;justify-content:center}
 .ex-chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:52vh;overflow:auto}
 .ex-ch{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);padding:6px 4px;font:inherit;cursor:pointer;min-width:0}
@@ -857,15 +865,16 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)])),pidx:Math.min(2,Math.max(0,Math.floor(+r.pidx||0)))}:null}}
   {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
   {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0))),picks:(Array.isArray(hr.picks)?hr.picks:[]).filter(id=>[...G.TOT.treat,...G.TOT.trick].some(c=>c.id===id)).slice(0,10),pidx:Math.min(2,Math.max(0,Math.floor(+hr.pidx||0)))}:null}}
-  {const X=v.ex||{},xr=X.run,KS=['start','stairs','boss','battle','elite','rest','shop','train','treasure','empty'];
-    const fm=xr&&xr.fm,okRun=xr&&Array.isArray(xr.party)&&xr.party.length&&fm&&Array.isArray(fm.g)&&fm.g.length===25;
-    const cid=id=>typeof id==='string'&&!!byId(id);
-    s.ex={best:Math.min(15,Math.max(0,Math.floor(+X.best||0))),clears:Math.max(0,Math.floor(+X.clears||0)),day:{d:String((X.day||{}).d||'').slice(0,10),c:Math.max(0,Math.floor(+(X.day||{}).c||0))},
-      run:okRun?{fl:Math.min(15,Math.max(1,Math.floor(+xr.fl||1))),fm:{g:fm.g.map(k=>KS.includes(k)?k:'empty'),done:fm.g.map((_,i)=>!!(fm.done||[])[i]),seen:fm.g.map((_,i)=>!!(fm.seen||[])[i]),pos:Math.min(24,Math.max(0,Math.floor(+fm.pos||0)))},
-        gear:Math.max(0,Math.floor(+xr.gear||0)),dice:xr.dice?1:0,boss:Math.max(0,Math.floor(+xr.boss||0)),party:xr.party.filter(cid).slice(0,3),
+  {const X=v.ex||{},xr=X.run,KS=['stairs','boss','battle','elite','rest','shop','train','treasure'];
+    const fm=xr&&xr.fm,okRun=xr&&Array.isArray(xr.party)&&xr.party.length&&fm&&Array.isArray(fm.g)&&fm.g.length===5&&Array.isArray(fm.e)&&fm.e.length===5;
+    const cid=id=>typeof id==='string'&&!!byId(id),N=(x,a,b)=>Math.min(b,Math.max(a,Math.floor(+x||0)));
+    const en=a=>Array.isArray(a)?a.filter(e=>e&&cid(e.id)).slice(0,4).map(e=>({id:e.id,star:N(e.star,1,3),hp:N(e.hp,1,999),lv:N(e.lv,0,30),bonus:N(e.bonus,0,30),boss:!!e.boss})):null;
+    s.ex={best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
+      run:okRun?{fl:N(xr.fl,1,15),fm:{g:fm.g.map(r=>[0,1,2].map(l=>KS.includes((r||[])[l])?r[l]:'battle')),e:fm.e.map(r=>[0,1,2].map(l=>en((r||[])[l]))),row:N(fm.row,-1,4),lane:N(fm.lane,0,2)},
+        gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
-        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:Math.max(0,Math.floor(+(u||{}).hp||0)),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,Math.min(3,Math.max(0,Math.floor(+n||0)))]))}])),
-        hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,Math.max(0,Math.floor(+h||0))])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go'].includes(xr.pend)?xr.pend:null,bossId:cid(xr.bossId)?xr.bossId:null}:null};
+        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
+        hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go'].includes(xr.pend)?xr.pend:null,bossId:cid(xr.bossId)?xr.bossId:null}:null};
     if(s.ex.run&&s.ex.run.party.some(id=>!(s.ex.run.mv[id]||[]).length))s.ex.run=null}
   s.dexReward2=!!v.dexReward2;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0));
@@ -1821,23 +1830,26 @@ function renderInf(){const el=$('#infpanel'),run=save.inf.run,D=save.inf.day.d==
    体力は持ちこし。探索の中のお金は「ギア」。強化は探索の中だけ（持ち帰らない）。終わるとコイン */
 const EX_FROM=Date.parse('2099-01-01T00:00:00+09:00');/* 公開日（決まったら書きかえる）。それまでは ?extest=1 のときだけ */
 function exOpen(){if(/[?&]extest=1\b/.test(location.search))return true;return Date.now()>=EX_FROM}
-const EX_F=15,EX_BOSS=[5,10,15],EX_W=5,EX_H=5,EX_START=22,EX_SEE=2;
+const EX_F=15,EX_BOSS=[5,10,15],EX_R=5;/* 1フロア：カードが3枚ずつ5列。いちばん奥の列が階段（ボスの階はボス） */
 const EX_REW={floor:2,boss:10,clear:20,cap:80};/* コイン：着いた階×2、ボス1体+10、15階クリア+20（1日の上限80） */
 const EX_GEAR={battle:4,elite:9,boss:12};
 const EX_SHOP={mv:6,hp:5,heal:4,rev:8};
 const EXK={battle:{i:'⚔️',ja:'対戦',zh:'对战'},elite:{i:'💀',ja:'強敵',zh:'强敌'},boss:{i:'👑',ja:'ボス',zh:'头目'},stairs:{i:'🪜',ja:'階段',zh:'楼梯'},
   rest:{i:'🔥',ja:'休憩',zh:'休息'},shop:{i:'🔧',ja:'工房',zh:'工坊'},train:{i:'📖',ja:'訓練所',zh:'训练所'},treasure:{i:'🎁',ja:'宝箱',zh:'宝箱'},empty:{i:'',ja:'',zh:''},start:{i:'',ja:'',zh:''}};
-const exXY=i=>[i%EX_W,Math.floor(i/EX_W)],exDist=(a,b)=>{const[x1,y1]=exXY(a),[x2,y2]=exXY(b);return Math.abs(x1-x2)+Math.abs(y1-y2)};
 function exSub(){const r=save.ex.run;return r?L(`探索中 ${r.fl}F`,`探索中 ${r.fl}F`):save.ex.clears?L(`踏破 ${save.ex.clears}回・最高 ${save.ex.best}F`,`踏破 ${save.ex.clears}次·最高 ${save.ex.best}F`):save.ex.best?L(`最高 ${save.ex.best}F`,`最高 ${save.ex.best}F`):L('フロアを歩いて階段をさがす','在楼层中行走寻找楼梯')}
 /* フロアを作る：5×5。下のまん中から出発。階段は4〜6歩先（上の2列）。ボスの階は階段の前にボス */
-function exGenFloor(fl){const g=Array(EX_W*EX_H).fill('empty');g[EX_START]='start';
-  const cand=g.map((_,i)=>i).filter(i=>exXY(i)[1]<=1&&exDist(i,EX_START)>=4&&exDist(i,EX_START)<=6),st=cand[Math.floor(Math.random()*cand.length)];
-  g[st]=EX_BOSS.includes(fl)?'boss':'stairs';
-  const bag=[...Array(7).fill('battle'),...Array(fl>=3?2:0).fill('elite'),'treasure','treasure','shop','rest',...(EX_BOSS.includes(fl+1)||EX_BOSS.includes(fl)?['rest']:[]),'train',...(fl%5===1?['train']:[])];
-  const free=g.map((k,i)=>k==='empty'?i:-1).filter(i=>i>=0).sort(()=>Math.random()-.5);
-  bag.forEach((k,j)=>{if(j<free.length)g[free[j]]=k});
-  const seen=g.map((_,i)=>exDist(i,EX_START)<=EX_SEE);
-  return{g,done:g.map(k=>k==='start'||k==='empty'),seen,pos:EX_START}}
+function exGenEnemies(fl,k){const party=save.ex.run?save.ex.run.party:[];
+  if(k==='boss'){const es=G.infEnemies(10*(EX_BOSS.indexOf(fl)+1),Math.random,party).sort((a,b)=>(b.boss?1:0)-(a.boss?1:0));es.forEach(e=>{e.hp=Math.round(e.hp*.85)});return es}
+  const F=Math.max(1,fl)+(k==='elite'?3:0),hm=(.55+.05*fl)*(k==='elite'?1.3:1);/* 敵の体力：1階は55%、1階ごとに+5% */
+  const es=G.infEnemies(F%10===0?F+1:F,Math.random,party);es.forEach(e=>{e.hp=Math.max(6,Math.round(e.hp*hm));if(k==='elite')e.bonus=(e.bonus||0)+1});return es}
+function exGenFloor(fl){const boss=EX_BOSS.includes(fl),g=[],e=[];
+  const pick=()=>{const x=Math.random();if(fl>=3&&x<.12)return'elite';if(x<.5)return'battle';if(x<.62)return'treasure';if(x<.72)return'rest';if(x<.82)return'train';if(x<.9)return'shop';return'battle'};
+  for(let r=0;r<EX_R-1;r++)g.push([0,1,2].map(()=>r===0&&fl===1?'battle':pick()));
+  if((boss||EX_BOSS.includes(fl+1))&&!g[EX_R-2].includes('rest'))g[EX_R-2][Math.floor(Math.random()*3)]='rest';/* ボスの前後の階は、階段の手前に休憩を1つ */
+  g.push(boss?['boss','boss','boss']:['stairs','stairs','stairs']);
+  for(let r=0;r<EX_R;r++)e.push(g[r].map(k=>k==='battle'||k==='elite'?exGenEnemies(fl,k):null));
+  if(boss){const b=exGenEnemies(fl,'boss');e[EX_R-1]=[b,b,b]}
+  return{g,e,row:-1,lane:1}}
 const exUp=(run,id)=>run.up[id]||(run.up[id]={mv:{},hp:0});
 const exMax=(run,id)=>hpOf(id)+(exUp(run,id).hp||0);
 const exStar=(run,id)=>Math.max(1,...(run.mv[id]||[]).map(j=>byId(id).moves[j].t||1));
@@ -1852,27 +1864,29 @@ function exStart(){if(save.ex.run){toast(L('探索はすでに挑戦中です（
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();const id=b.dataset.c;
     const run={fl:1,fm:exGenFloor(1),gear:0,dice:0,boss:0,party:[id],mv:{[id]:exStartMoves(id)},up:{},hp:{}};run.hp[id]=exMax(run,id);
     save.ex.run=run;persist();exMap()})}
-/* フロアの画面 */
+function exCard(k,es,face){const K=EXK[k];if(!face)return`<span class="exc-back">？</span>`;
+  const lead=es&&es[0]&&byId(es[0].id);
+  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?L('一般戦闘','一般战斗'):L(K.ja,K.zh)}</span>`}
 function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll('.overlay.ex-o').forEach(e=>e.remove());
-  const fm=run.fm,boss=EX_BOSS.includes(run.fl);
-  const cell=i=>{const k=fm.g[i],me=i===fm.pos,adj=exDist(i,fm.pos)===1,sn=fm.seen[i],dn=fm.done[i],K=EXK[k];
-    const show=sn?(dn&&k!=='stairs'?'':K.i):'？';
-    return`<button type="button" class="ex-cell${sn?'':' fog'}${dn&&sn?' dn':''}${adj?' adj':''}${me?' me':''} k-${sn?k:'fog'}" ${adj?`data-m="${i}"`:'disabled'} aria-label="${sn?L(K.ja,K.zh)||L('なにもない','空'):L('まだ見えない','还看不到')}">${me?`<img src="${byId(run.party[0]).img}" alt="">`:`<span>${show}</span>`}</button>`};
+  const fm=run.fm,boss=EX_BOSS.includes(run.fl),n=fm.row+1;
   const party=run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('');
+  const rows=[];for(let d=3;d>=1;d--){const r=fm.row+d;if(r>=EX_R)continue;
+    rows.push(`<div class="exb-row d${d}">${[0,1,2].map(l=>{const can=d===1&&Math.abs(l-fm.lane)<=1;return`<button type="button" class="exc${can?' can':''}${d===1&&!can?' far':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(fm.g[r][l],fm.e[r][l],d<=2||fm.g[r][l]==='stairs'||fm.g[r][l]==='boss')}</button>`}).join('')}</div>`)}
+  const me=`<div class="exb-me">${[0,1,2].map(l=>`<span>${l===fm.lane?`<img src="${byId(run.party[0]).img}" alt="">`:''}</span>`).join('')}</div>`;
+  const left=EX_R-n;
   const ov=exSheet(L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)+(boss?L('｜ボスの階','｜头目层'):''),`<div class="ex-party">${party}</div>
-    <div class="ex-grid">${fm.g.map((_,i)=>cell(i)).join('')}</div>
-    <p class="hint">${boss?L('階段の前にボスがいます。','楼梯前有头目。'):''}${L('となりのマスをタップして進みます。2マス先まで見えます。階段（🪜）を見つけたら次の階へ。','点击相邻的格子前进。可以看到2格以内。找到楼梯（🪜）后前往下一层。')}</p>
-    <div class="ex-legend">${['battle','elite','treasure','shop','rest','train','stairs','boss'].map(k=>`<span>${EXK[k].i}${L(EXK[k].ja,EXK[k].zh)}</span>`).join('')}</div>
+    <div class="exb">${rows.join('')}${me}</div>
+    <p class="hint">${L(`手前の光っているカードから選んで進みます（今の列かとなりの列）。${boss?'いちばん奥にボス':'いちばん奥に階段'}まであと${left}歩。奥のカードは近づくと見えます。`,`从前方发光的卡牌中选择前进（当前列或相邻列）。距离最里面的${boss?'头目':'楼梯'}还有${left}步。远处的卡牌靠近后才能看到。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-pause">${L('中断する（あとで続きから）','中断（之后继续）')}</button></div>`);
   ov.querySelector('#ex-pause').onclick=()=>{sfx('tap');ov.remove();nav('tower')};
-  ov.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{sfx('tap');exMove(+b.dataset.m)})}
-function exMove(i){const run=save.ex.run,fm=run.fm;fm.pos=i;fm.g.forEach((_,j)=>{if(exDist(j,i)<=EX_SEE)fm.seen[j]=true});persist();
-  const k=fm.g[i];if(fm.done[i]&&k!=='stairs')return exMap();
-  if(k==='stairs')return exStairs();
+  ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx('tap');exMove(+b.dataset.l)})}
+function exMove(l){const run=save.ex.run,fm=run.fm;fm.row+=1;fm.lane=l;persist();
+  const k=fm.g[fm.row][l];
+  if(k==='stairs')return exNextFloor();
   if(k==='battle'||k==='elite'||k==='boss')return exBattle(k);
   document.querySelectorAll('.overlay.ex-o').forEach(e=>e.remove());
   if(k==='rest')return exRest();if(k==='shop')return exShop();if(k==='train')return exTrain();if(k==='treasure')return exTreasure();exMap()}
-function exCellDone(){const run=save.ex.run;run.fm.done[run.fm.pos]=true;persist();exMap()}
+function exCellDone(){exMap()}
 function exStairs(){const run=save.ex.run;
   const ov=exSheet(L(`${run.fl}F 階段`,`${run.fl}F 楼梯`),`<p class="hint">${L(`${run.fl+1}階へ上がりますか？ この階にはもどれません。`,`要前往${run.fl+1}层吗？无法返回本层。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn primary" id="ex-up">${L('上がる','上楼')}</button><button class="btn" id="ex-stay">${L('もう少し歩く','再走走看')}</button></div>`);
@@ -1881,9 +1895,8 @@ function exStairs(){const run=save.ex.run;
 function exNextFloor(){const run=save.ex.run;if(run.fl>=EX_F)return exEnd(true);run.party.forEach(id=>{const mx=exMax(run,id),h=run.hp[id]||0;if(h>0)run.hp[id]=Math.min(mx,h+Math.round(mx*.3))});/* 階段をのぼると30%回復 */
   run.fl+=1;run.fm=exGenFloor(run.fl);persist();toast(L(`${run.fl}Fへ（体力が少し回復）`,`前往${run.fl}F（体力少量恢复）`));exMap()}
 /* 敵：無限の塔の敵の作り方を使う。人数は今の仲間の数まで。強敵は体力+30%・強さ+1 */
-function exEnemies(k){const run=save.ex.run,fl=run.fl,n=Math.max(1,run.party.filter(id=>(run.hp[id]||0)>0).length);
-  let es;if(k==='boss'){es=G.infEnemies(10*(EX_BOSS.indexOf(fl)+1),Math.random,run.party).sort((a,b)=>(b.boss?1:0)-(a.boss?1:0));es.forEach(e=>{e.hp=Math.round(e.hp*.85)})}
-  else{const F=Math.max(1,fl)+(k==='elite'?3:0),hm=(.55+.05*fl)*(k==='elite'?1.3:1);/* 敵の体力：1階は55%、1階ごとに+5% */es=G.infEnemies(F%10===0?F+1:F,Math.random,run.party);es.forEach(e=>{e.hp=Math.max(6,Math.round(e.hp*hm));if(k==='elite')e.bonus=(e.bonus||0)+1})}
+function exEnemies(k){const run=save.ex.run,fm=run.fm,n=Math.max(1,run.party.filter(id=>(run.hp[id]||0)>0).length);
+  const es=JSON.parse(JSON.stringify((fm.e[fm.row]||[])[fm.lane]||exGenEnemies(run.fl,k)));
   return es.slice(0,k==='boss'?Math.max(1,n):n)}
 function exParty(run){return run.party.map(id=>{const lv=Object.assign({},save.lv[id]||{}),u=exUp(run,id);for(const j in u.mv)lv[j]=(lv[j]||0)+u.mv[j];return{id,star:exStar(run,id),mv:run.mv[id],lv,hp:exMax(run,id)}})}
 function exBattle(k){const run=save.ex.run;if(!run)return;document.querySelectorAll('.overlay.ex-o').forEach(e=>e.remove());
@@ -1900,7 +1913,7 @@ async function finishEx(win,me,foe){const run=save.ex.run,k=B.exk;if(!run)return
   const ok=win&&!B.retired;
   if(!ok){await say(`${foe.ch.name}「${foe.ch.lines[1]}」`,400);sfx('lose');await W(700);return exEnd(false)}
   B.S.sides[0].team.forEach(x=>{run.hp[x.ch.id]=Math.max(0,x.hp)});
-  const g=EX_GEAR[k]||EX_GEAR.battle;run.gear+=g;if(k==='boss')run.boss+=1;run.curK=null;run.fm.done[run.fm.pos]=true;run.pend=k==='boss'?'boss':k==='elite'?'elite':'go';
+  const g=EX_GEAR[k]||EX_GEAR.battle;run.gear+=g;if(k==='boss')run.boss+=1;run.curK=null;run.pend=k==='boss'?'boss':k==='elite'?'elite':'go';
   save.st.wins=(save.st.wins||0)+1;mission('win');B.S.sides[0].team.forEach(x=>{save.use[x.ch.id]=(save.use[x.ch.id]||0)+1});persist();
   await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1]);await W(700);
   showOverlay({word:k==='boss'?'BOSS CLEAR!':'WIN!',ch:me.ch,win:true,coins:0,noCoin:true,
