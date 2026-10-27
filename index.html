@@ -674,6 +674,26 @@ hr{border-color:var(--line)!important}
 
 .hw-pick{display:flex;flex-direction:column;gap:2px;padding:6px 4px;border-bottom:1px solid var(--line)}.hw-pick small{font-size:12px;opacity:.8}.hw-pick span{font-size:13px}.hw-pick em{font-size:12px;color:#B0304A;font-style:normal}
 .partybar{padding:8px 12px}.partybar .psets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.partybar .pset:disabled{opacity:.55}.pb-busy{display:block;font-size:11px;color:#B0304A}
+
+/* Ver 2.17 戦闘画面をコンパクトに（スマホ1画面に収める） */
+body:has(#arena:not([hidden])) header .hrow{display:none}
+#arena{gap:6px}
+#arena .fighter{padding:6px 10px;gap:10px}#arena .crest.big{width:64px}#arena .fname{font-size:16px}#arena .finfo{gap:2px}#arena .chips{min-height:0}
+#arena .log{height:3.2em;font-size:13px;padding:5px 10px;line-height:1.55}
+#control{min-height:0!important;padding:8px;gap:6px}
+.bmoves{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bmv{display:grid!important;grid-template-columns:auto 1fr;grid-template-areas:"bc bd" "bn bn" "bf bf";gap:2px 6px;align-items:center;padding:6px 8px!important;min-height:76px;text-align:left;width:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .12s,opacity .12s,box-shadow .12s}
+.bmv .bc{grid-area:bc;font-size:11px;font-weight:800;padding:1px 6px;border-radius:4px;background:linear-gradient(180deg,#5EA6FF,#1F55C8);color:#fff;white-space:nowrap;justify-self:start}
+.bmv .bd{grid-area:bd;justify-self:end;font:15px var(--f-display);color:#FF8A73;white-space:nowrap}
+.bmv .bn{grid-area:bn;font-weight:800;font-size:14px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bmv .bn .lv{margin-left:3px}.bmv .bn .tg{margin-left:4px}
+.bmv .bf{grid-area:bf;font-size:11px;line-height:1.3;opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}.bmv .bf b{font-size:14px;color:#FFE08A}
+.bmv.wait{opacity:.7;cursor:default}
+#control.dragging .bmv.ng{opacity:.3}#control.dragging .bmv.ok{box-shadow:0 0 0 2px var(--gold-hi),0 0 14px rgba(242,193,78,.6)}#control .bmv.hover{transform:scale(1.04);box-shadow:0 0 0 3px #fff,0 0 18px rgba(255,255,255,.7)!important}
+.bbar{display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid rgba(217,174,69,.35)}.bbar .tray{flex:1;min-height:52px;justify-content:center;gap:8px}.bbar .blab{display:none}
+.bbar #auto{flex:none;line-height:1.1;font-size:11px;padding:6px 8px}
+.bbar .die{touch-action:none}.die.lift{opacity:.25}
+.die.ghost{position:fixed;left:0;top:0;z-index:99;pointer-events:none;transform:translate(-50%,-115%) scale(1.15);box-shadow:0 10px 22px rgba(0,0,0,.5)}
+#control .ultinfo{font-size:11px;margin:0;opacity:.75}#control .ultbtn{padding:6px 10px}
 </style>
 </head>
 <body>
@@ -825,7 +845,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.16.0';
+const VERSION='2.17.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2261,31 +2281,57 @@ async function endMyTurn(){if(!B||B.busy)return;if(tutBlock('end'))return;if(TUT
   if(B.online){onlineSend({t:'end'});return onlineQueue(async()=>{await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();await runTurn(1)})}
   await play(G.endTurn(B.S,0));if(B.S.over>=0)return finish();runTurn(1)}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+/* Ver 2.17 戦闘の操作：技は田の字（2×2）、サイコロは下。サイコロを技までドラッグして発動（タップでも使える）。技は長押しでくわしく */
+function estTxt(mi,ks){const sd=B.S.sides[0],f=sd.team[sd.idx],m=f.moves[mi];if(!ks||!m.dmg)return'';
+  const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),fx=m.fx||{},gd=fx.gclr?0:Math.max(0,o.guard-(fx.pierce||0)-(f.ch.passive.k==='sky'?2:0)),after=Math.max(0,(r.d+((fx.gbonus&&o.guard)?fx.gbonus:0))*(m.hits||1)-gd);
+  return`${ks.map(k=>sd.dice[k].v).join('・')}→<b>${after}</b>${L('ダメージ','伤害')}${r.q&&(r.q.rel||r.q.stab)?` <span class="eff ${r.q.rel<0?'dn':'up'}">${G.effLabel(r.q)}</span>`:''}`}
+function bmvHTML(m,mi,st,est){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
+  return`<button class="mv bmv ${st}" data-mi="${mi}"><span class="bc">${G.condLabel(m.c)}${m.c.t==='pair'?L('・2個','·2个'):''}</span><span class="bd">${d||'—'}</span><span class="bn">${m.n}${m.lv?`<span class="lv">+${m.lv}</span>`:''}${m.sp?`<span class="tg">${L('必殺','必杀')}</span>`:''}</span><span class="bf">${est||fx.join(L('・','·'))||L('ダメージのみ','仅伤害')}</span></button>`}
 function renderControl(rolled){if(!B)return;const el=$('#control');
   if(B.done){el.innerHTML='';el.style.minHeight='';B.ctlHTML='';return}
-  const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],f=sd.team[v.idx],human=i===0;
-  const html=`<div class="row between"><span class="label">${human?L('あなたのサイコロ（タップで選択）','你的骰子（点击选择）'):L('相手のサイコロ','对方的骰子')}</span>${TUT.on?(human&&!B.busy?`<button class="btn" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO ${save.auto?'ON':'OFF'}</button>`}</div>
-  <div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>
-  ${human?`${ultHTML()}<div class="label">${L(f.ch.name+'の技',f.ch.name+'的技能')}</div><div class="moves">${f.moves.map((m,mi)=>{const used=v.used.includes(mi),ks=used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
-    let est='';if(ks&&m.dmg){const v=sd.dice[ks[0]].v,r=G.calcDmg(B.S,0,m,v),o=G.act(B.S,1),fx=m.fx||{},gd=fx.gclr?0:Math.max(0,o.guard-(fx.pierce||0)-(f.ch.passive.k==='sky'?2:0)),after=Math.max(0,(r.d+((fx.gbonus&&o.guard)?fx.gbonus:0))*(m.hits||1)-gd);
-      const GD=L('ガード−','护盾−');est=`<span class="fx" style="grid-column:2/4">${L('出目','点数')}${ks.map(k=>sd.dice[k].v).join(L('・','·'))}${L('で','：')} <span class="est">${after}${L('ダメージ','伤害')}${r.q&&(r.q.rel||r.q.stab)?` <span class="eff ${r.q.rel<0?'dn':'up'}">${G.effLabel(r.q)}</span>`:''}</span>${(()=>{const ns=r.notes.filter(n=>!/^(ばつぐん|いまひとつ|タイプ一致|效果|属性一致)/.test(n));return ns.length?'（'+ns.join('、')+(gd?'、'+GD+Math.min(gd,r.d):'')+'）':gd?'（'+GD+Math.min(gd,r.d)+'）':''})()}</span>`}
-    return`<button class="mv ${used?'used':ks?'ready':'cant'}" data-mi="${mi}">${mvHTML(m)}${est}</button>`}).join('')}</div>${swHTML()}`:''}`;
+  const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],human=i===0,me=B.S.sides[0],mf=me.team[me.idx],mv=B.view[0];
+  const dice=`<div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${human&&B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>`;
+  const moves=`<div class="bmoves">${mf.moves.map((m,mi)=>{const used=human&&me.used.has(mi),ks=!human||used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
+    return bmvHTML(m,mi,!human?'wait':used?'used':ks?'ready':'cant',human&&B.sel!=null&&ks&&ks.includes(B.sel)?estTxt(mi,ks):'')}).join('')}</div>`;
+  const html=`${moves}${human?ultHTML():''}<div class="bbar"><span class="blab">${human?(B.busy?'':L('サイコロを技へドラッグ','把骰子拖到技能上')):L('相手のターン','对方的回合')}</span>${dice}${TUT.on?(human&&!B.busy?`<button class="btn small" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO<br>${save.auto?'ON':'OFF'}</button>`}</div>`;
   autoEndCheck(human);
   if(html===B.ctlHTML&&!rolled)return;/* 中身が同じなら描き直さない（ちらつき防止） */
   B.ctlHTML=html;el.innerHTML=html;
-  /* 高さを最大に保って、ターンごとに画面がガタつかないようにする */
-  const h=el.offsetHeight;if(h>(B.ctlMax||0)){B.ctlMax=h;el.style.minHeight=h+'px'}
   const AU=$('#auto');if(AU)AU.onclick=()=>{sfx('tap');save.auto=!save.auto;persist();renderControl()};
+  /* 技の長押し：くわしい説明（自分のターンでなくても見られる） */
+  el.querySelectorAll('.bmv').forEach(b=>{let t=null;const mi=+b.dataset.mi;
+    b.addEventListener('pointerdown',()=>{clearTimeout(t);b._lp=false;t=setTimeout(()=>{b._lp=true;mvSheet(mi)},480)});
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>clearTimeout(t)));
+    b.addEventListener('contextmenu',e=>e.preventDefault())});
   hl();if(!human)return;
-  el.querySelectorAll('.die').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;if(B.busy||!sd.dice[k]||sd.dice[k].used)return;sfx('tap');B.sel=B.sel===k?null:k;renderControl()});
-  el.querySelectorAll('.mv').forEach(b=>b.onclick=async()=>{if(B.busy)return;if(tutBlock('move'))return;const mi=+b.dataset.mi,m=f.moves[mi];
-    if(sd.used.has(mi)){toast(L('この技はこのターンもう使いました','这个技能本回合已经用过了'));return}
-    const ks=G.diceFor(B.S,0,mi,B.sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
-    if(B.sel!=null&&!ks.includes(B.sel))toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`));
-    doMove(mi,ks)});
+  el.querySelectorAll('.die').forEach(b=>dieDrag(b,+b.dataset.k));
+  el.querySelectorAll('.bmv').forEach(b=>b.onclick=()=>{if(b._lp){b._lp=false;return}tryMove(+b.dataset.mi,B.sel)});
   el.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>doSwitch(+b.dataset.sw));
   const UB=$('#ult');if(UB)UB.onclick=()=>doUlt();
   const E=$('#end');if(E)E.onclick=()=>endMyTurn();}
+function tryMove(mi,sel,drag){if(!B||B.busy||B.S.turn!==0)return;if(tutBlock('move'))return;const sd=B.S.sides[0],f=sd.team[sd.idx],m=f.moves[mi];
+  if(sd.used.has(mi)){toast(L('この技はこのターンもう使いました','这个技能本回合已经用过了'));return}
+  const ks=G.diceFor(B.S,0,mi,sel);if(!ks){toast(L(`「${G.condLabel(m.c)}」の出目${m.c.t==='pair'?'（同じ目2個）':''}がありません`,`没有符合「${G.condLabel(m.c)}」的点数${m.c.t==='pair'?'（需2个相同点数）':''}`));return}
+  if(sel!=null&&!ks.includes(sel)){if(drag){toast(L(`出目${sd.dice[sel].v}ではこの技は使えません`,`点数${sd.dice[sel].v}无法使用这个技能`));return}toast(L(`選んだ出目は使えないので ${sd.dice[ks[0]].v} を使います`,`所选点数无法使用，改用 ${sd.dice[ks[0]].v}`))}
+  doMove(mi,ks)}
+function mvSheet(mi){if(!B)return;const sd=B.S.sides[0],f=sd.team[sd.idx],m=f.moves[mi];sfx('tap');
+  openSheet(`<div class="label">${f.ch.name}${L('の技','的技能')}</div><div class="moves"><div class="mv" style="cursor:default">${mvHTML(m)}</div></div>${B.S.turn===0&&B.sel!=null&&G.diceFor(B.S,0,mi,B.sel)?`<p class="hint">${estTxt(mi,G.diceFor(B.S,0,mi,B.sel))}</p>`:''}`)}
+/* サイコロのドラッグ：指を動かすと持ち上がり、出せる技が光る。技の上で離すと発動。動かさずに離すと「選ぶ」（タップと同じ） */
+function dieDrag(b,k){b.addEventListener('pointerdown',e=>{if(!B||B.busy||B.S.turn!==0)return;const sd=B.S.sides[0];if(!sd.dice[k]||sd.dice[k].used)return;
+  e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){}const x0=e.clientX,y0=e.clientY;let g=null,over=null;
+  const cards=[...document.querySelectorAll('#control .bmv')];
+  const start=()=>{g=b.cloneNode(true);g.className='die ghost';const r=b.getBoundingClientRect();g.style.width=r.width+'px';g.style.height=r.height+'px';document.body.append(g);b.classList.add('lift');
+    cards.forEach(c=>{const mi=+c.dataset.mi,ks=!sd.used.has(mi)&&G.diceFor(B.S,0,mi,k);const ok=!!(ks&&ks.includes(k));c.classList.toggle('ok',ok);c.classList.toggle('ng',!ok);
+      if(ok){const f=c.querySelector('.bf');c._bf=f.innerHTML;f.innerHTML=estTxt(mi,ks)||c._bf}});
+    $('#control').classList.add('dragging');sfx('tap')};
+  const move=ev=>{if(!g){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)<8)return;start()}
+    g.style.left=ev.clientX+'px';g.style.top=ev.clientY+'px';const t=document.elementFromPoint(ev.clientX,ev.clientY),c=t&&t.closest('#control .bmv');
+    if(c!==over){if(over)over.classList.remove('hover');over=c;if(c&&c.classList.contains('ok'))c.classList.add('hover')}};
+  const end=ev=>{b.removeEventListener('pointermove',move);b.removeEventListener('pointerup',end);b.removeEventListener('pointercancel',end);
+    if(!g){/* タップ：選ぶ／選ぶのをやめる */sfx('tap');B.sel=B.sel===k?null:k;renderControl();return}
+    g.remove();b.classList.remove('lift');$('#control').classList.remove('dragging');cards.forEach(c=>{c.classList.remove('ok','ng','hover');if(c._bf!=null){c.querySelector('.bf').innerHTML=c._bf;c._bf=null}});
+    if(ev.type==='pointerup'&&over){B.sel=null;tryMove(+over.dataset.mi,k,true);if(B&&!B.busy)renderControl()}};
+  b.addEventListener('pointermove',move);b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end)})}
 /* Ver 3.1 超必殺技：カットイン（約1.3秒・タップで飛ばせる） */
 function showUlt(e){return new Promise(res=>{const f=B.S.sides[e.side].team[B.view[e.side].idx],ch=f.ch,cs=(ch.types||[]).map(t=>G.TYPES[t].c);
   sfx('ult');const ov=document.createElement('div');ov.className='ultci'+(e.side===1?' r':'');ov.style.setProperty('--c1',cs[0]||ch.color);ov.style.setProperty('--c2',cs[1]||cs[0]||ch.color);
@@ -2346,9 +2392,9 @@ function tutFinish(){TUT.on=false;TUT.wait=null;TUT.target=null;save.tutDone=tru
 async function tutTurn(){
   if(!TUT.first){TUT.first=true;
     await coach(L('サイコロ','骰子'),L('あなたのターンになると、サイコロが自動で振られます。下に並んでいるのが今回の<em>出目</em>です（最初のターンだけ1個少なめ）。','轮到你时会自动掷骰子。下面排列的就是这次的<em>点数</em>（只有第一回合少1个）。'),'#control .tray');if(!TUT.on)return;
-    await coach(L('技の条件','技能条件'),L('技カードの左のラベルが<em>使える条件</em>です。「5以上」「偶数」「ゾロ目」など、条件に合う出目があると技が<em>光ります</em>。右の赤い数字がダメージ、下の行に今の出目で出る<em>予想ダメージ</em>が出ます。','技能卡左边的标签是<em>使用条件</em>。如「5以上」「偶数」「对子」，有符合条件的点数时技能会<em>发光</em>。右边的红色数字是伤害，下一行会显示当前点数的<em>预计伤害</em>。'),'#control .moves');if(!TUT.on)return;
+    await coach(L('技の条件','技能条件'),L('技カードの左上の青いラベルが<em>使える条件</em>です。「5以上」「偶数」「ゾロ目」など、条件に合う出目があると技が<em>光ります</em>。右上の赤い数字がダメージ。サイコロをつかむと、出せる技が光って<em>予想ダメージ</em>が出ます。技を長押しすると、くわしい説明が見られます。','技能卡左上的蓝色标签是<em>使用条件</em>。如「5以上」「偶数」「对子」，有符合条件的点数时技能会<em>发光</em>。右上的红色数字是伤害。按住骰子时，可用的技能会发光并显示<em>预计伤害</em>。长按技能可以查看详细说明。'),'#control .moves');if(!TUT.on)return;
     const ready=document.querySelector('#control .mv.ready');
-    if(ready){TUT.wait='move';await coach(L('技を使う','使用技能'),L('光っている技をタップしてみよう！ 合う出目が自動で使われます。（先にサイコロをタップすると、使う出目を選べます）','点击发光的技能试试吧！会自动使用符合条件的点数。（先点击骰子，可以选择要用的点数）'),'#control .mv.ready',null);TUT.wait=null;if(!TUT.on)return;
+    if(ready){TUT.wait='move';await coach(L('技を使う','使用技能'),L('下のサイコロを指でつかんで、光っている技まで運んで離してみよう！（技をタップしても、合う出目で自動で出せます）','用手指按住下面的骰子，拖到发光的技能上松开试试吧！（直接点击技能也会自动使用符合条件的点数）'),'#control .mv.ready',null);TUT.wait=null;if(!TUT.on)return;
       TUT.wait='end';await coach(L('ターン終了','结束回合'),L('使ったサイコロは薄くなります。技は<em>1ターンに1回ずつ</em>。まだ光っている技があれば使ってOK。もう使えなくなったら<em>ターン終了</em>を押そう。使わなかったサイコロは、<em>目の数がそのままガード</em>になるよ。','用过的骰子会变淡。技能<em>每回合各1次</em>。还有发光的技能就可以继续用。没有可用的了就点<em>结束回合</em>。未使用骰子的<em>点数会直接变成护盾</em>。'),'#end',null);TUT.wait=null}
     else{TUT.wait='end';await coach(L('ターン終了','结束回合'),L('今回は条件に合う出目がなく、使える技がありません。こんなときは<em>ターン終了</em>を押そう。','这次没有符合条件的点数，没有可用的技能。这种时候就点<em>结束回合</em>吧。'),'#end',null);TUT.wait=null}
     if(!TUT.on)return;$('#coach').hidden=true;TUT.target=null;hl();return}
