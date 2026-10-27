@@ -321,6 +321,7 @@ const PER = { exw: { col: 'exwb', key: 'exwk', last: 'exwl', fn: (t) => weekKey(
 const WREW = [50, 30, 20, 10, 10, 10, 10, 10, 10, 10];
 const REW = { infd: [10, 6, 3], infw: WREW, exw: WREW, raidw: WREW };
 const WEEKLY = ['infw', 'exw'];
+const EX_MAXF = 15; /* 探索のいちばん上の階（階がふえたらここも上げる） */
 export const dayKey = (now = Date.now()) => Math.floor((now + (9 - 15) * 3600e3) / 86400e3);
 export const weekKey = (now = Date.now()) => Math.floor((dayKey(now) + 3) / 7);
 const nextReset = (type, now = Date.now()) => { const d = dayKey(now) + 1; const day = type === 'infw' || type === 'exw' || type === 'raidw' ? (weekKey(now) + 1) * 7 - 3 : d; return day * 86400e3 - (9 - 15) * 3600e3; };
@@ -357,7 +358,7 @@ export class Rank {
     /* 無限の塔のデイリー・ウィークリー（期間の番号・その期間の最高階・その階に着いた時刻） */
     for (const c of ['dinf', 'dkey', 'dlast', 'winf', 'wkey', 'wlast']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 探索の最高到達階・踏破回数（Ver 2.16） */
-    for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl', 'exwb', 'exwk', 'exwl']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
+    for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl', 'exwb', 'exwk', 'exwl', 'infT']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
     this.ladInit();
@@ -445,16 +446,19 @@ export class Rank {
     if (now - r.last < 1500 && !run) return json({ ok: true, skip: true });
     /* ありえない数字は切り捨てる */
     const nowF = Math.max(r.now || 0, int(b.now, 0, 20));
-    const inf = Math.min(Math.max(r.inf || 0, int(b.inf, 0, 9999)), (r.inf || 0) + 60); /* 1回で伸ばせるのは60階まで */
+    /* Ver 2.19.1 ずる対策：無限の塔の記録は「前に伸びてからの時間」ぶんしか伸ばせない（1階20秒・1回60階まで） */
+    const infRoom = Math.min(60, 1 + Math.floor((now - (r.infT || 0)) / 20000));
+    const inf = Math.min(Math.max(r.inf || 0, int(b.inf, 0, 9999)), (r.inf || 0) + infRoom);
     const floor = b.floor == null ? r.floor : Math.min(int(b.floor, 0, 100000), r.floor + 25); /* 総踏破は最新の値（数え方の修正で下がることがある） */
     const dex = Math.min(Math.max(r.dex, int(b.dex, 0, 99)), r.dex + 5);
     const pvp = Math.min(Math.max(r.pvp, int(b.pvp, 0, 100000)), r.pvp + 50);
-    const exb = b.exb == null ? (r.exb || 0) : Math.min(Math.max(r.exb || 0, int(b.exb, 0, 9999)), (r.exb || 0) + 30); /* 探索：1回で伸ばせるのは30階まで */
+    const exb = b.exb == null ? (r.exb || 0) : Math.min(Math.max(r.exb || 0, int(b.exb, 0, EX_MAXF)), (r.exb || 0) + 30); /* 探索：今ある階より上はありえない */
     const exc = b.exc == null ? (r.exc || 0) : Math.min(Math.max(r.exc || 0, int(b.exc, 0, 100000)), (r.exc || 0) + 5);
     const wins = int(b.wins, 0, 1000000);
     const gain = r.last ? Math.min(Math.max(0, wins - r.wins), 300) : 0; /* 初回送信は今週分に数えない */
     const wk = weekNo(now), wkv = (r.wk === wk ? r.wkv : 0) + gain;
     this.sql.exec('UPDATE u SET inf=?, now=?, floor=?, dex=?, pvp=?, wins=?, wk=?, wkv=?, exb=?, exc=?, last=? WHERE id=?', inf, nowF, floor, dex, pvp, wins, wk, wkv, exb, exc, now, b.id);
+    if (inf > (r.inf || 0)) this.sql.exec('UPDATE u SET infT=? WHERE id=?', now, b.id);
     /* デイリー・ウィークリー：この期間にクリアした最高階（トータルの最高階より上にはならない） */
     if (run > 0) {
       const f = Math.min(run, inf);
@@ -464,13 +468,13 @@ export class Rank {
       }
     }
     /* 今日の探索（全員同じマップ）：今日の最高到達階 */
-    const exdk = int(b.exdk, 0, 1e6), exd = int(b.exd, 0, 999);
+    const exdk = int(b.exdk, 0, 1e6), exd = int(b.exd, 0, EX_MAXF);
     if (exdk && exdk === dayKey(now) && exd > 0) {
       const cur = r.exdk === exdk ? (r.exdb || 0) : 0;
       if (r.exdk !== exdk || exd > cur) this.sql.exec('UPDATE u SET exdb=?, exdk=?, exdl=? WHERE id=?', Math.max(cur, exd), exdk, exd > cur ? now : r.exdl, b.id);
     }
     /* 今週の探索の最高到達階 */
-    const exwk = int(b.exwk, 0, 1e6), exw = int(b.exw, 0, 9999);
+    const exwk = int(b.exwk, 0, 1e6), exw = int(b.exw, 0, EX_MAXF);
     if (exwk && exwk === weekKey(now) && exw > 0) {
       const cur = r.exwk === exwk ? (r.exwb || 0) : 0;
       if (r.exwk !== exwk || exw > cur) this.sql.exec('UPDATE u SET exwb=?, exwk=?, exwl=? WHERE id=?', Math.max(cur, exw), exwk, exw > cur ? now : r.exwl, b.id);
@@ -560,6 +564,12 @@ export class Rank {
     if (b.raid) return this.raidAdmin(b, json);
     if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });
     if (!ID_RE.test(b.id || '') && !/^[0-9a-f]{4}$/.test(b.id || '')) return json({ err: 'id' }, 400);
+    /* 記録を0にもどす（ずるをした人など）。b.reset: true */
+    if (b.reset) {
+      const cols = 'inf=0, winf=0, dinf=0, exb=0, exc=0, exdb=0, exwb=0, infT=0';
+      const n = b.id.length === 4 ? this.sql.exec(`UPDATE u SET ${cols} WHERE substr(id, -4) = ?`, b.id).rowsWritten : this.sql.exec(`UPDATE u SET ${cols} WHERE id=?`, b.id).rowsWritten;
+      return json({ ok: true, n });
+    }
     const hide = b.hide === false ? 0 : 1;
     const n = b.id.length === 4
       ? this.sql.exec('UPDATE u SET hidden=? WHERE substr(id, -4) = ?', hide, b.id).rowsWritten

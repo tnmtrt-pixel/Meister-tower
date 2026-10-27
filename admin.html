@@ -83,7 +83,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
   <div id="rk" class="card hide">
     <div class="big">ランキング管理</div>
     <p class="st">消したい人の「非表示」を押すと、すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。</p>
-    <p><select id="rk-type"><option value="lad">ランクバトル（今シーズン）</option><option value="inf">無限の塔 トータル（旧）</option><option value="infw">ウィークリー</option><option value="infd">デイリー</option></select>
+    <p><select id="rk-type"><option value="lad">ランクバトル（今シーズン）</option><option value="infw">無限の塔 ウィークリー</option><option value="raidw">レイド 今週の合計ダメージ</option><option value="exw">探索 ウィークリー</option><option value="inf">無限の塔 トータル（旧）</option><option value="ex">探索 通算（旧）</option></select>
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
@@ -174,7 +174,8 @@ async function rkAdmin(body){const r=await fetch(API+'/api/admin',{method:'POST'
 const rkName=w=>(w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('');
 async function rkLoad(){const el=$('#rk-list');el.textContent='読みこんでいます…';
   try{const t=$('#rk-type').value,j=await (await fetch(API+'/api/rank?type='+t)).json();
-    el.innerHTML='<table style="width:100%;border-collapse:collapse">'+(j.top||[]).map(x=>`<tr style="border-top:1px solid var(--line)"><td>${x.n}位</td><td>${img(x.icon)}</td><td><span class="tt">${esc(titleOf(x))}</span> <b>${esc(rkName(x.w))}</b><br><small>ID下4けた ${esc(x.id)}</small></td><td>${t==='lad'?(x.rank>=11?'マスター '+x.rate:'ランク'+x.rank+' ★'+x.stars):x.v+'F'}</td><td><button class="btn small danger" data-hide="${esc(x.id)}">非表示</button></td></tr>`).join('')+'</table>'||'だれもいません';
+    el.innerHTML='<table style="width:100%;border-collapse:collapse">'+(j.top||[]).map(x=>`<tr style="border-top:1px solid var(--line)"><td>${x.n}位</td><td>${img(x.icon)}</td><td><span class="tt">${esc(titleOf(x))}</span> <b>${esc(rkName(x.w))}</b><br><small>ID下4けた ${esc(x.id)}</small></td><td>${t==='lad'?(x.rank>=11?'マスター '+x.rate:'ランク'+x.rank+' ★'+x.stars):t==='raidw'?x.v+'ダメージ':x.v+'F'}</td><td><button class="btn small danger" data-hide="${esc(x.id)}">非表示</button> <button class="btn small danger" data-reset="${esc(x.id)}">記録を0に</button></td></tr>`).join('')+'</table>'||'だれもいません';
+    el.querySelectorAll('[data-reset]').forEach(b=>b.onclick=async()=>{if(!confirm('この人の無限の塔・探索の記録を0にもどしますか？（もとに戻せません）'))return;try{const r=await rkAdmin({id:b.dataset.reset,reset:true});toast(`${r.n}人の記録を0にしました`);rkLoad()}catch(e){toast(String(e.message||e))}});
     el.querySelectorAll('[data-hide]').forEach(b=>b.onclick=async()=>{if(!confirm('この人をランキングから非表示にしますか？'))return;try{const r=await rkAdmin({id:b.dataset.hide,hide:true});toast(`${r.n}人を非表示にしました`);rkLoad()}catch(e){toast(String(e.message||e))}});
     const h=await rkAdmin({list:true}).catch(()=>null),hid=h&&h.users?h.users.filter(u=>u.hidden):[];
     $('#rk-hid').innerHTML=hid.length?'<div class="big" style="margin-top:14px;font-size:16px">非表示にしている人</div>'+hid.map(u=>{let w=[];try{w=JSON.parse(u.w)}catch(e){}return`<p>${esc(rkName(w))}（${esc(u.id.slice(-4))}） <button class="btn small" data-show="${esc(u.id)}">戻す</button></p>`}).join(''):'';
