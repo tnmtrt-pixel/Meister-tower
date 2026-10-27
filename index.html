@@ -877,7 +877,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.18.0';
+const VERSION='2.18.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1110,7 +1110,10 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 /* ボスの階：倒すとそのボスが仲間に（★が上がる。★3のあとはかけら） */
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
-function renderTower(){fixParty();if(save.hw&&save.hw.run&&!hwOpen()){save.hw.run=null;persist()}rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';if(towerMode==='ex'&&!exOpen())towerMode='meister';renderTowers();renderMission();
+/* 前のバージョンでハロウィンの塔を制覇した人に、ハロウィン・ネロを渡す（制覇した回数ぶん★、★3まで） */
+function hwNeroFix(){const n=Math.min(3,(save.hw&&save.hw.clears)||0);if(!n||starOf('nerohw')>=n)return;const res=grant('nerohw',n);persist();
+  toast(res==='new'?L(`ハロウィンの塔の制覇ボーナス：ハロウィン・ネロ（★${n}）が仲間になった！`,`万圣节之塔制霸奖励：万圣节·妮罗（★${n}）成为了伙伴！`):L(`ハロウィンの塔の制覇ボーナス：ハロウィン・ネロが★${n}になった！`,`万圣节之塔制霸奖励：万圣节·妮罗升到了★${n}！`))}
+function renderTower(){fixParty();hwNeroFix();if(save.hw&&save.hw.run&&!hwOpen()){save.hw.run=null;persist()}rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';if(towerMode==='ex'&&!exOpen())towerMode='meister';renderTowers();renderMission();
   const ex=towerMode==='ex';$('#expanel').hidden=!ex;$('#exbar').hidden=!ex;if(ex){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;$('#infbar').hidden=true;$('#hwpanel').hidden=true;$('#hwbar').hidden=true;renderEx();return}
   const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;$('#infbar').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
@@ -2200,7 +2203,7 @@ async function finishHW(win,me,foe){const run=save.hw.run,f=B.floor;let coins=0,
     save.hw.best=Math.max(save.hw.best,f);
     if(B.rare){const r=B.rare,cur=starOf(r),res=grant(r,cur?Math.min(3,cur+1):1);
       msg=res==='new'?L(`「${byId(r).name}」が仲間になった！`,`「${byId(r).name}」成为了伙伴！`):res==='up'?L(`「${byId(r).name}」が★${starOf(r)}になった！`,`「${byId(r).name}」升到了★${starOf(r)}！`):L(`「${byId(r).name}」のかけら+2`,`「${byId(r).name}」的碎片+2`)}
-    if(f===10){save.hw.clears+=1;save.hw.run=null}else run.f=f+1}
+    if(f===10){save.hw.clears+=1;save.hw.run=null;const nm=bossReward('nerohw');msg=msg?msg+'<br>'+nm:nm}else run.f=f+1}/* Ver 2.18.1：10Fのボス（ハロウィン・ネロ）を仲間に。前は渡していなかった */
   else save.hw.run=null;
   persist();updCoins();
   if(ok){await say(`${me.ch.name}「${me.ch.lines[1]}」`,400);sfx('win');bubble(0,me.ch.lines[1])}
@@ -2211,7 +2214,7 @@ async function finishHW(win,me,foe){const run=save.hw.run,f=B.floor;let coins=0,
     :[['hw-again',L('1Fからもう一度','从1F再挑战'),()=>hwStart()],['tower',L('タワーへ','前往塔')],['party',L('編成へ','前往编队')]];
   const FL=G.towerOf('halloween').floors[f-1];
   showOverlay({word:cleared?'CLEAR!':ok?`${f}F CLEAR`:'GAME OVER',ch:ok?me.ch:foe.ch,win:ok,coins,go,
-    sub:cleared?L('ハロウィンの塔を制覇！ 10Fの主をたおした','制霸万圣节之塔！打倒了10层之主'):ok?L(`${f}F ${FL.n} クリア`,`${f}F ${FL.zn} 通关`)+(msg?'<br>'+msg:''):L(`${f}Fで力尽きた…`,`在 ${f}F 倒下了……`),
+    sub:cleared?L('ハロウィンの塔を制覇！ 10Fの主をたおした','制霸万圣节之塔！打倒了10层之主')+(msg?'<br>'+msg:''):ok?L(`${f}F ${FL.n} クリア`,`${f}F ${FL.zn} 通关`)+(msg?'<br>'+msg:''):L(`${f}Fで力尽きた…`,`在 ${f}F 倒下了……`),
     hint:ok?(first_hint(f)):L('1Fからやり直しです。レアキャラは次の挑戦でも出ます','从1F重新开始。稀有角色在下次挑战中也会出现')});
 }
 function first_hint(f){const d=save.hw.done.includes(f);return d?L('この階の初クリアは済み（コインは初回のみ）','本层首通已领取（金币只有首次）'):L('この階の初クリア報酬をもらいました','已获得本层首通奖励')}
