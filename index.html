@@ -825,7 +825,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.15.1';
+const VERSION='2.15.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -880,7 +880,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
       run:okRun?{fl:N(xr.fl,1,15),fm:{c:Object.fromEntries(Object.entries(fm.c).filter(([k,c])=>/^-?\d+:-?\d+$/.test(k)&&c&&KS.includes(c.k)).slice(0,300).map(([k,c])=>[k,{k:c.k,e:en(c.e)}])),boss:en(fm.boss),row:N(fm.row,-1,4),lane:N(fm.lane,-99,99)},
         gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,at:['rest','shop','train'].includes(xr.at)?xr.at:null,boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
-        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
+        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),rw:N((u||{}).rw,0,EX_RWHP),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
         hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go','win'].includes(xr.pend)?xr.pend:null,rw:Array.isArray(xr.rw)?xr.rw.filter(k=>k in EX_RW).slice(0,3):null,bossId:cid(xr.bossId)?xr.bossId:null}:null};
     if(s.ex.run&&(s.ex.run.party.some(id=>!(s.ex.run.mv[id]||[]).length)||([5,10,15].includes(s.ex.run.fl)&&!s.ex.run.fm.boss)))s.ex.run=null}
   s.dexReward2=!!v.dexReward2;
@@ -1839,16 +1839,17 @@ const EX_FROM=Date.parse('2099-01-01T00:00:00+09:00');/* 公開日（決まっ�
 function exOpen(){if(/[?&]extest=1\b/.test(location.search))return true;return Date.now()>=EX_FROM}
 const EX_F=15,EX_BOSS=[5,10,15],EX_R=5,EX_BOSS_FL=f=>[5,10,15].includes(f);/* 1フロア：カードが3枚ずつ5列。いちばん奥の列が階段（ボスの階はボス） */
 const EX_REW={floor:2,boss:10,clear:20,cap:80};/* コイン：着いた階×2、ボス1体+10、15階クリア+20（1日の上限80） */
-const EX_GEAR={battle:4,elite:9,boss:12};
+const EX_GEAR={battle:2,elite:5,boss:6};
 const EX_LEARN={1:0,2:6,3:12},EX_LEARN3_FL=6,EX_SHOP={full:10,rev:8,mv:12,hp:10},EX_SHOPV={mv:2,hp:10},EX_REROLL=3;
-const EX_RW={heal:[8,15],mv:[1,2],hp:[4,8],gear:[4,8]};/* 勝利報酬：[一般戦闘, 強敵] */
+const EX_RW={heal:[8,15],mv:[1,2],hp:[4,8],gear:[8,15]},EX_RWHP=20;/* 勝利報酬の体力アップは1人+20まで */
+const EX_BOSSM=[1.6,2.2,2.2];/* ボスの体力の倍率（5F・10F・15F）。中盤の戦闘はサクサク、ボスは壁 *//* 勝利報酬：[一般戦闘, 強敵] */
 const EXK={battle:{i:'⚔️',ja:'対戦',zh:'对战'},elite:{i:'💀',ja:'強敵',zh:'强敌'},boss:{i:'👑',ja:'ボス',zh:'头目'},stairs:{i:'🪜',ja:'階段',zh:'楼梯'},
   rest:{i:'🔥',ja:'休憩',zh:'休息'},shop:{i:'🔧',ja:'工房',zh:'工坊'},train:{i:'📖',ja:'訓練所',zh:'训练所'},treasure:{i:'🎁',ja:'宝箱',zh:'宝箱'},empty:{i:'',ja:'',zh:''},start:{i:'',ja:'',zh:''}};
 function exSub(){const r=save.ex.run;return r?L(`探索中 ${r.fl}F`,`探索中 ${r.fl}F`):save.ex.clears?L(`踏破 ${save.ex.clears}回・最高 ${save.ex.best}F`,`踏破 ${save.ex.clears}次·最高 ${save.ex.best}F`):save.ex.best?L(`最高 ${save.ex.best}F`,`最高 ${save.ex.best}F`):L('フロアを歩いて階段をさがす','在楼层中行走寻找楼梯')}
 /* フロアを作る：5×5。下のまん中から出発。階段は4〜6歩先（上の2列）。ボスの階は階段の前にボス */
 function exGenEnemies(fl,k){const party=save.ex.run?save.ex.run.party:[];
-  if(k==='boss'){const es=G.infEnemies(10*(EX_BOSS.indexOf(fl)+1),Math.random,party).sort((a,b)=>(b.boss?1:0)-(a.boss?1:0));es.forEach(e=>{e.hp=Math.round(e.hp*.85)});return es}
-  const F=Math.max(1,fl)+(k==='elite'?3:0),hm=(.55+.05*fl)*(k==='elite'?1.3:1);/* 敵の体力：1階は55%、1階ごとに+5% */
+  if(k==='boss'){const bi=EX_BOSS.indexOf(fl),es=G.infEnemies(10*(bi+1),Math.random,party).sort((a,b)=>(b.boss?1:0)-(a.boss?1:0));es.forEach(e=>{e.hp=Math.round(e.hp*EX_BOSSM[bi]);e.bonus=(e.bonus||0)+1});return es}
+  const F=Math.max(1,Math.round(fl*1.5))+(k==='elite'?3:0),hm=(fl===1?.3:.4+.08*fl)*(k==='elite'?1.3:1);/* 敵：強さは階×1.5。体力は1階30%、2階から40%+1階ごとに8%（サクサク進む） */
   const es=G.infEnemies(F%10===0?F+1:F,Math.random,party);es.forEach(e=>{e.hp=Math.max(6,Math.round(e.hp*hm));if(k==='elite')e.bonus=(e.bonus||0)+1});return es}
 function exGenFloor(fl){return{c:{},boss:EX_BOSS.includes(fl)?exGenEnemies(fl,'boss'):null,row:-1,lane:0}}
 /* カードは横にどこまでも続く。見えたときに作って覚えておく（いちばん奥の列はぜんぶ階段、ボスの階はぜんぶボス） */
@@ -1970,15 +1971,15 @@ function exNext(){const run=save.ex.run;if(!run)return;const p=run.pend;
   run.pend=null;persist();if(p==='boss')return exBossReward();exMap()}
 /* 勝利報酬：ギアは必ずもらえて、さらに3つから1つ選ぶ（強敵は効果が大きい） */
 function exWin(big){const run=save.ex.run,i=big?1:0;
-  if(!run.rw||!run.rw.length){let ks=Object.keys(EX_RW);if(!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)))ks=ks.filter(k=>k!=='mv');run.rw=ks.sort(()=>Math.random()-.5).slice(0,3);persist()}
+  if(!run.rw||!run.rw.length){let ks=Object.keys(EX_RW);if(!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)))ks=ks.filter(k=>k!=='mv');if(!run.party.some(id=>(exUp(run,id).rw||0)<EX_RWHP))ks=ks.filter(k=>k!=='hp');run.rw=ks.sort(()=>Math.random()-.5).slice(0,3);persist()}
   const v=k=>EX_RW[k][i],done=()=>{run.pend=null;run.rw=null;persist();exMap()};
-  const D={heal:['💚',L('回復','恢复'),L(`全員の体力+${v('heal')}`,`全员体力+${v('heal')}`)],mv:['🔨',L('技の強化','技能强化'),L(`技を1つ+${v('mv')}`,`1个技能+${v('mv')}`)],hp:['💪',L('体力アップ','体力提升'),L(`1人の最大体力+${v('hp')}`,`1人最大体力+${v('hp')}`)],gear:['⚙️',L('ギア','齿轮'),L(`さらにギア+${v('gear')}`,`再得齿轮+${v('gear')}`)]};
+  const D={heal:['💚',L('回復','恢复'),L(`全員の体力+${v('heal')}`,`全员体力+${v('heal')}`)],mv:['🔨',L('技の強化','技能强化'),L(`技を1つ+${v('mv')}`,`1个技能+${v('mv')}`)],hp:['💪',L('体力アップ','体力提升'),L(`1人の最大体力+${v('hp')}<br>（1人+${EX_RWHP}まで）`,`1人最大体力+${v('hp')}<br>（每人最多+${EX_RWHP}）`)],gear:['⚙️',L('ギア','齿轮'),L(`さらにギア+${v('gear')}`,`再得齿轮+${v('gear')}`)]};
   const ov=exSheet(big?L('強敵の報酬','强敌奖励'):L('勝利の報酬','胜利奖励'),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row">${run.rw.map(k=>`<button type="button" class="ex-node can" data-w="${k}"><span class="ex-i">${D[k][0]}</span><b>${D[k][1]}</b><small>${D[k][2]}</small></button>`).join('')}</div>`);
   ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.w,n=v(k);
     if(k==='heal'){run.party.forEach(id=>{if((run.hp[id]||0)>0)run.hp[id]=Math.min(exMax(run,id),run.hp[id]+n)});return done()}
     if(k==='gear'){run.gear+=n;return done()}
     if(k==='mv')return exPickMove(L(`強化する技を選ぶ（+${n}）`,`选择要强化的技能（+${n}）`),c=>c?exWin(big):done(),0,n,true);
-    exPickChar(L(`最大体力を上げる仲間を選ぶ（+${n}）`,`选择提升最大体力的伙伴（+${n}）`),id=>{exUp(run,id).hp+=n;if((run.hp[id]||0)>0)run.hp[id]+=n;done()},()=>true,()=>exWin(big))})}
+    exPickChar(L(`最大体力を上げる仲間を選ぶ（+${n}）`,`选择提升最大体力的伙伴（+${n}）`),id=>{const u=exUp(run,id),a=Math.min(n,EX_RWHP-(u.rw||0));u.rw=(u.rw||0)+a;u.hp+=a;if((run.hp[id]||0)>0)run.hp[id]+=a;done()},id=>(exUp(run,id).rw||0)<EX_RWHP,()=>exWin(big))})}
 function exView(){if(!$('#v-ex').hidden&&$('#arena').hidden)return;['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!=='ex');$('#arena').hidden=true;$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true}
 /* 探索画面の上の帯：もどる・階・ギア・仲間の体力（いつも表示） */
 function exHud(){const run=save.ex.run,el=$('#ex-hud');
