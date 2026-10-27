@@ -903,7 +903,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.22.1';
+const VERSION='2.22.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2105,7 +2105,9 @@ function exNextFloor(){const run=save.ex.run;if(run.fl>=EX_F)return exEnd(true);
 function exEnemies(k){const run=save.ex.run,fm=run.fm,n=Math.max(1,run.party.filter(id=>(run.hp[id]||0)>0).length);
   const src=k==='boss'?fm.boss:exCardAt(run,fm.row,fm.lane).e;
   const es=JSON.parse(JSON.stringify(src||exGenEnemies(run.fl,k)));
-  return es.slice(0,k==='boss'?Math.max(1,n):n)}
+  const out=es.slice(0,k==='boss'?Math.max(1,n):n);
+  if(k==='boss')out.sort((a,b)=>(a.boss?1:0)-(b.boss?1:0));/* Ver 2.22.2 ボスは最後に出てくる（手下が先） */
+  return out}
 function exParty(run){return run.party.map(id=>{const lv={},u=exUp(run,id);for(const j in u.mv)lv[j]=(lv[j]||0)+u.mv[j];return{id,star:exStar(run,id),mv:run.mv[id],lv,hp:exMax(run,id)}})}
 function exBattle(k){const run=save.ex.run;if(!run)return;document.querySelectorAll('.ex-o').forEach(e=>e.remove());
   const enemies=exEnemies(k),party=exParty(run);run.curK=k;run.bossId=k==='boss'?(enemies.find(e=>e.boss)||enemies[0]).id:null;persist();
@@ -2238,8 +2240,9 @@ function exBossReward(){const run=save.ex.run;
     exPickMove(L('強化する技を選ぶ（+2）','选择要强化的技能（+2）'),after,0,2)})}
 /* 仲間をふやす：倒したボスか、持っている仲間から。★1の技で加わる */
 function exRecruit(){const run=save.ex.run;
-  const own=G.CHARS.map(c=>c.id).filter(id=>owns(id)&&!run.party.includes(id)).sort(()=>Math.random()-.5);
-  const cand=[...(run.bossId&&byId(run.bossId)&&!run.party.includes(run.bossId)?[run.bossId]:[]),...own].slice(0,3);
+  /* Ver 2.22.2 候補は持っているキャラから3人（倒したボスは入れない） */
+  const own=G.CHARS.concat(G.HIDDEN?[G.HIDDEN]:[],G.HWC||[]).map(c=>c.id).filter(id=>owns(id)&&!run.party.includes(id)&&id!==run.bossId).sort(()=>Math.random()-.5);
+  const cand=own.slice(0,3);
   if(!cand.length)return exNextFloor();
   const ov=exSheet(L('仲間がふえる！','伙伴增加！'),`<p class="hint">${L('1人選んで仲間にできます（この探索の中だけ。★1の技から）','可以选择1人成为伙伴（仅限本次探索，从★1技能开始）')}</p>
     <div class="ex-chars">${cand.map(id=>`<button type="button" class="ex-ch" data-c="${id}"><img src="${byId(id).img}" alt=""><b>${byId(id).name}</b>${id===run.bossId?`<small>${L('倒したボス','打倒的头目')}</small>`:''}</button>`).join('')}</div>`);
