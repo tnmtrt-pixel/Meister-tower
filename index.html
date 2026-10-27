@@ -747,7 +747,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
   </header>
 
   <section class="view" id="v-tower">
-    <div id="raid-tw"></div>
+    <div id="raid-tw" hidden></div><!-- Ver 2.20.1 タワー・探索のレイドのバナーは出さない -->
     <div class="panel towers" id="towers"></div>
     <div class="panel" id="infpanel" hidden></div>
     <div class="row startbar" id="infbar" hidden><button class="btn primary" id="inf-bar-go"></button></div>
@@ -881,7 +881,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.20.0';
+const VERSION='2.20.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2430,7 +2430,7 @@ function renderControl(rolled){if(!B)return;const el=$('#control');
   const html=`${moves}${human?ultHTML():''}<div class="bbar"><span class="blab">${human?(B.busy?'':L('サイコロを技へドラッグ','把骰子拖到技能上')):L('相手のターン','对方的回合')}</span>${dice}${TUT.on?(human&&!B.busy?`<button class="btn small" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO<br>${save.auto?'ON':'OFF'}</button>`}</div>`;
   autoEndCheck(human);
   if(html===B.ctlHTML&&!rolled)return;/* 中身が同じなら描き直さない（ちらつき防止） */
-  B.ctlHTML=html;el.innerHTML=html;
+  B.ctlHTML=html;if(dragEnd&&(!human||B.busy))dragEnd(null);el.innerHTML=html;if(!dragEnd)dragCleanup();
   const AU=$('#auto');if(AU)AU.onclick=()=>{sfx('tap');save.auto=!save.auto;persist();renderControl()};
   /* 技の長押し：くわしい説明（自分のターンでなくても見られる） */
   el.querySelectorAll('.bmv').forEach(b=>{let t=null;const mi=+b.dataset.mi;
@@ -2451,21 +2451,26 @@ function tryMove(mi,sel,drag){if(!B||B.busy||B.S.turn!==0)return;if(tutBlock('mo
 function mvSheet(mi){if(!B)return;const sd=B.S.sides[0],f=sd.team[sd.idx],m=f.moves[mi];sfx('tap');
   openSheet(`<div class="label">${f.ch.name}${L('の技','的技能')}</div><div class="moves"><div class="mv" style="cursor:default">${mvHTML(m)}</div></div>${B.S.turn===0&&B.sel!=null&&G.diceFor(B.S,0,mi,B.sel)?`<p class="hint">${estTxt(mi,G.diceFor(B.S,0,mi,B.sel))}</p>`:''}`)}
 /* サイコロのドラッグ：指を動かすと持ち上がり、出せる技が光る。技の上で離すと発動。動かさずに離すと「選ぶ」（タップと同じ） */
+/* Ver 2.20.1 ドラッグの後始末を確実に：指の動きはページ全体で受け、途中で画面が描き直されても、指を離せば必ずサイコロの影を消す */
+let dragEnd=null;
+function dragCleanup(){document.querySelectorAll('.die.ghost').forEach(g=>g.remove());const c=$('#control');if(c){c.classList.remove('dragging');c.querySelectorAll('.die.lift').forEach(d=>d.classList.remove('lift'));c.querySelectorAll('.bmv').forEach(x=>{x.classList.remove('ok','ng','hover');if(x._bf!=null){x.querySelector('.bf').innerHTML=x._bf;x._bf=null}})}}
 function dieDrag(b,k){b.addEventListener('pointerdown',e=>{if(!B||B.busy||B.S.turn!==0)return;const sd=B.S.sides[0];if(!sd.dice[k]||sd.dice[k].used)return;
-  e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){}const x0=e.clientX,y0=e.clientY;let g=null,over=null;
+  e.preventDefault();if(dragEnd)dragEnd(null);const pid=e.pointerId,x0=e.clientX,y0=e.clientY;let g=null,over=null,done=false;
   const cards=[...document.querySelectorAll('#control .bmv')];
   const start=()=>{g=b.cloneNode(true);g.className='die ghost';const r=b.getBoundingClientRect();g.style.width=r.width+'px';g.style.height=r.height+'px';document.body.append(g);b.classList.add('lift');
     cards.forEach(c=>{const mi=+c.dataset.mi,ks=!sd.used.has(mi)&&G.diceFor(B.S,0,mi,k);const ok=!!(ks&&ks.includes(k));c.classList.toggle('ok',ok);c.classList.toggle('ng',!ok);
       if(ok){const f=c.querySelector('.bf');c._bf=f.innerHTML;f.innerHTML=estTxt(mi,ks)||c._bf}});
     $('#control').classList.add('dragging');sfx('tap')};
-  const move=ev=>{if(!g){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)<8)return;start()}
-    g.style.left=ev.clientX+'px';g.style.top=ev.clientY+'px';const t=document.elementFromPoint(ev.clientX,ev.clientY),c=t&&t.closest('#control .bmv');
+  const move=ev=>{if(ev.pointerId!==pid)return;if(!g){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)<8)return;start()}
+    ev.preventDefault();g.style.left=ev.clientX+'px';g.style.top=ev.clientY+'px';const t=document.elementFromPoint(ev.clientX,ev.clientY),c=t&&t.closest('#control .bmv');
     if(c!==over){if(over)over.classList.remove('hover');over=c;if(c&&c.classList.contains('ok'))c.classList.add('hover')}};
-  const end=ev=>{b.removeEventListener('pointermove',move);b.removeEventListener('pointerup',end);b.removeEventListener('pointercancel',end);
-    if(!g){/* タップ：選ぶ／選ぶのをやめる */sfx('tap');B.sel=B.sel===k?null:k;renderControl();return}
-    g.remove();b.classList.remove('lift');$('#control').classList.remove('dragging');cards.forEach(c=>{c.classList.remove('ok','ng','hover');if(c._bf!=null){c.querySelector('.bf').innerHTML=c._bf;c._bf=null}});
-    if(ev.type==='pointerup'&&over){B.sel=null;tryMove(+over.dataset.mi,k,true);if(B&&!B.busy)renderControl()}};
-  b.addEventListener('pointermove',move);b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end)})}
+  const end=ev=>{if(done)return;if(ev&&ev.pointerId!==undefined&&ev.pointerId!==pid)return;done=true;dragEnd=null;
+    window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end);window.removeEventListener('blur',end);document.removeEventListener('visibilitychange',end);
+    const dragged=!!g;dragCleanup();if(!ev||!B)return;
+    if(!dragged){if(ev.type==='pointerup'){sfx('tap');B.sel=B.sel===k?null:k;renderControl()}return}
+    if(ev.type==='pointerup'&&over&&over.isConnected&&!B.busy&&B.S.turn===0){B.sel=null;tryMove(+over.dataset.mi,k,true);if(B&&!B.busy)renderControl()}};
+  dragEnd=end;
+  window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);window.addEventListener('blur',end);document.addEventListener('visibilitychange',end)})}
 /* Ver 3.1 超必殺技：カットイン（約1.3秒・タップで飛ばせる） */
 function showUlt(e){return new Promise(res=>{const f=B.S.sides[e.side].team[B.view[e.side].idx],ch=f.ch,cs=(ch.types||[]).map(t=>G.TYPES[t].c);
   sfx('ult');const ov=document.createElement('div');ov.className='ultci'+(e.side===1?' r':'');ov.style.setProperty('--c1',cs[0]||ch.color);ov.style.setProperty('--c2',cs[1]||cs[0]||ch.color);
