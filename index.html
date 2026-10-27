@@ -846,7 +846,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.17.2';
+const VERSION='2.17.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1996,7 +1996,7 @@ function exNext(){const run=save.ex.run;if(!run)return;const p=run.pend;
   run.pend=null;persist();if(p==='boss')return exBossReward();exMap()}
 /* 勝利報酬：ギアは必ずもらえて、さらに3つから1つ選ぶ（強敵は効果が大きい） */
 /* 報酬のアイコン：絵文字に合う絵（img/rw-*.webp）があれば絵を出す */
-const EX_ICO={'💚':'heal','🔨':'mv','💪':'hp','⚙️':'gear'};
+const EX_ICO={'💚':'heal','🔨':'mv','💪':'hp','⚙️':'gear','✨':'rev','🎲':'dice'};
 const exIco=e=>EX_ICO[e]?`<img src="img/rw-${EX_ICO[e]}.webp" alt="" width="48" height="48">`:e;
 function exWin(big){const run=save.ex.run,i=big?1:0;
   if(!run.rw||!run.rw.length){let ks=Object.keys(EX_RW);if(!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)))ks=ks.filter(k=>k!=='mv');if(!run.party.some(id=>(exUp(run,id).rw||0)<EX_RWHP))ks=ks.filter(k=>k!=='hp');run.rw=ks.sort(()=>Math.random()-.5).slice(0,3);persist()}
