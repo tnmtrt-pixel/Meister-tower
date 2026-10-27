@@ -307,14 +307,15 @@ export class Room {
  *  GET  /api/rank?type=inf|infw|infd&id=   inf=無限の塔トータル infw=ウィークリー infd=デイリー
  *  POST /api/score   {…, run}   run=無限の塔でクリアした階（デイリー・ウィークリー用）
  *  POST /api/score   {…, exb, exc}   exb=探索の最高到達階 exc=探索の踏破回数（GET /api/rank?type=ex）
+ *  POST /api/score   {…, exd, exdk}   今日の探索の到達階（exdk=日の番号。GET /api/rank?type=exd）
  *  POST /api/rank/claim {id, sec}  デイリー・ウィークリー上位の報酬コインを受け取る
  *  POST /api/admin   {key, id, hide}   ※ Cloudflareの環境変数 ADMIN_KEY を設定したときだけ使える
  */
 const ID_RE = /^[0-9a-f]{16,32}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
-const TYPES = { ex: 'exb', inf: 'inf', infw: 'winf', infd: 'dinf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const TYPES = { ex: 'exb', exd: 'exdb', inf: 'inf', infw: 'winf', infd: 'dinf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
 /* 期間ランキング（無限の塔）：デイリーは毎日15:00、ウィークリーは毎週月曜15:00に切り替え（日本時間） */
-const PER = { infd: { col: 'dinf', key: 'dkey', last: 'dlast', fn: (t) => dayKey(t) }, infw: { col: 'winf', key: 'wkey', last: 'wlast', fn: (t) => weekKey(t) } };
+const PER = { exd: { col: 'exdb', key: 'exdk', last: 'exdl', fn: (t) => dayKey(t) }, infd: { col: 'dinf', key: 'dkey', last: 'dlast', fn: (t) => dayKey(t) }, infw: { col: 'winf', key: 'wkey', last: 'wlast', fn: (t) => weekKey(t) } };
 const REW = { infd: [10, 6, 3], infw: [50, 30, 15] };
 export const dayKey = (now = Date.now()) => Math.floor((now + (9 - 15) * 3600e3) / 86400e3);
 export const weekKey = (now = Date.now()) => Math.floor((dayKey(now) + 3) / 7);
@@ -352,7 +353,7 @@ export class Rank {
     /* 無限の塔のデイリー・ウィークリー（期間の番号・その期間の最高階・その階に着いた時刻） */
     for (const c of ['dinf', 'dkey', 'dlast', 'winf', 'wkey', 'wlast']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 探索の最高到達階・踏破回数（Ver 2.16） */
-    for (const c of ['exb', 'exc']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
+    for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
     this.ladInit();
@@ -453,10 +454,16 @@ export class Rank {
     /* デイリー・ウィークリー：この期間にクリアした最高階（トータルの最高階より上にはならない） */
     if (run > 0) {
       const f = Math.min(run, inf);
-      for (const p of Object.values(PER)) {
+      for (const p of [PER.infd, PER.infw]) {
         const k = p.fn(now), cur = r[p.key] === k ? r[p.col] : 0;
         if (r[p.key] !== k || f > cur) this.sql.exec(`UPDATE u SET ${p.col}=?, ${p.key}=?, ${p.last}=? WHERE id=?`, Math.max(cur, f), k, f > cur ? now : r[p.last], b.id);
       }
+    }
+    /* 今日の探索（全員同じマップ）：今日の最高到達階 */
+    const exdk = int(b.exdk, 0, 1e6), exd = int(b.exd, 0, 999);
+    if (exdk && exdk === dayKey(now) && exd > 0) {
+      const cur = r.exdk === exdk ? (r.exdb || 0) : 0;
+      if (r.exdk !== exdk || exd > cur) this.sql.exec('UPDATE u SET exdb=?, exdk=?, exdl=? WHERE id=?', Math.max(cur, exd), exdk, exd > cur ? now : r.exdl, b.id);
     }
     return json({ ok: true });
   }
