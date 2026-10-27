@@ -819,7 +819,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.14.0';
+const VERSION='2.14.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -842,7 +842,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" 
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -1016,7 +1016,7 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
-const TOWERS=[{id:'ex',icon:'🧭',ja:'探索',zh:'探索',ex:true},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
+const TOWERS=[{id:'ex',icon:'🧭',ja:'探索',zh:'探索',ex:true,img:'img/tower-ex.webp'},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
   {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
 /* 塔ごとの進み具合（マイスターの塔は今までどおり save の直下、ほかの塔は save.tw） */
 const TPof=id=>id==='meister'?save:save.tw[id];
