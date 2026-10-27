@@ -2,7 +2,7 @@ import './engine.js';
 import { CupMixin } from './cup.js';
 import { LadderMixin, ENGINE_V, cleanParty } from './ladder.js';
 import { RallyMixin } from './rally.js';
-import { RaidMixin } from './raid.js';
+import { RaidMixin, raidDayNo } from './raid.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -308,18 +308,22 @@ export class Room {
  *  POST /api/score   {…, run}   run=無限の塔でクリアした階（デイリー・ウィークリー用）
  *  POST /api/score   {…, exb, exc}   exb=探索の最高到達階 exc=探索の踏破回数（GET /api/rank?type=ex）
  *  POST /api/score   {…, exd, exdk}   今日の探索の到達階（exdk=日の番号。GET /api/rank?type=exd）
+ *  GET  /api/rank?type=infw|exw|raidw|lad   Ver 2.19 からランキングはウィークリー（月曜15:00切りかえ）。上位10人に報酬
  *  POST /api/rank/claim {id, sec}  デイリー・ウィークリー上位の報酬コインを受け取る
  *  POST /api/admin   {key, id, hide}   ※ Cloudflareの環境変数 ADMIN_KEY を設定したときだけ使える
  */
 const ID_RE = /^[0-9a-f]{16,32}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
-const TYPES = { ex: 'exb', exd: 'exdb', inf: 'inf', infw: 'winf', infd: 'dinf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
+const TYPES = { exw: 'exwb', ex: 'exb', exd: 'exdb', inf: 'inf', infw: 'winf', infd: 'dinf', now: 'now', floor: 'floor', cup: 'cupv', week: 'wkv', pvp: 'pvp', dex: 'dex' };
 /* 期間ランキング（無限の塔）：デイリーは毎日15:00、ウィークリーは毎週月曜15:00に切り替え（日本時間） */
-const PER = { exd: { col: 'exdb', key: 'exdk', last: 'exdl', fn: (t) => dayKey(t) }, infd: { col: 'dinf', key: 'dkey', last: 'dlast', fn: (t) => dayKey(t) }, infw: { col: 'winf', key: 'wkey', last: 'wlast', fn: (t) => weekKey(t) } };
-const REW = { infd: [10, 6, 3], infw: [50, 30, 15] };
+const PER = { exw: { col: 'exwb', key: 'exwk', last: 'exwl', fn: (t) => weekKey(t) }, exd: { col: 'exdb', key: 'exdk', last: 'exdl', fn: (t) => dayKey(t) }, infd: { col: 'dinf', key: 'dkey', last: 'dlast', fn: (t) => dayKey(t) }, infw: { col: 'winf', key: 'wkey', last: 'wlast', fn: (t) => weekKey(t) } };
+/* Ver 2.19 ウィークリー報酬：1位50・2位30・3位20・4〜10位10コイン（無限の塔・探索・レイド合計ダメージ） */
+const WREW = [50, 30, 20, 10, 10, 10, 10, 10, 10, 10];
+const REW = { infd: [10, 6, 3], infw: WREW, exw: WREW, raidw: WREW };
+const WEEKLY = ['infw', 'exw'];
 export const dayKey = (now = Date.now()) => Math.floor((now + (9 - 15) * 3600e3) / 86400e3);
 export const weekKey = (now = Date.now()) => Math.floor((dayKey(now) + 3) / 7);
-const nextReset = (type, now = Date.now()) => { const d = dayKey(now) + 1; const day = type === 'infw' ? (weekKey(now) + 1) * 7 - 3 : d; return day * 86400e3 - (9 - 15) * 3600e3; };
+const nextReset = (type, now = Date.now()) => { const d = dayKey(now) + 1; const day = type === 'infw' || type === 'exw' || type === 'raidw' ? (weekKey(now) + 1) * 7 - 3 : d; return day * 86400e3 - (9 - 15) * 3600e3; };
 /* 同点のときの並び（到達階が同じなら総踏破が多い人が上） */
 const SUB = { now: 'floor', ex: 'exc' };
 const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...CORS, 'content-type': 'application/json; charset=utf-8' } });
@@ -353,7 +357,7 @@ export class Rank {
     /* 無限の塔のデイリー・ウィークリー（期間の番号・その期間の最高階・その階に着いた時刻） */
     for (const c of ['dinf', 'dkey', 'dlast', 'winf', 'wkey', 'wlast']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 探索の最高到達階・踏破回数（Ver 2.16） */
-    for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
+    for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl', 'exwb', 'exwk', 'exwl']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
     this.ladInit();
@@ -400,7 +404,7 @@ export class Rank {
       if (url.pathname === '/mm') return this.mmAccept();
       if (url.pathname === '/int' && request.method === 'POST') return this.internal(await request.json());
       this.ensureAlarm().catch(() => {});
-      if (request.method === 'GET' && url.pathname === '/api/rank') { if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); await this.settle(); return this.rank(url); }
+      if (request.method === 'GET' && url.pathname === '/api/rank') { await this.settle(); if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); if (url.searchParams.get('type') === 'raidw') return this.raidWeekRank(url); return this.rank(url); }
       if (request.method === 'GET' && url.pathname === '/api/rally') return this.rallyGet(json, url);
       if (request.method === 'GET' && url.pathname === '/api/raid') return this.raidGet(url, json);
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
@@ -465,7 +469,28 @@ export class Rank {
       const cur = r.exdk === exdk ? (r.exdb || 0) : 0;
       if (r.exdk !== exdk || exd > cur) this.sql.exec('UPDATE u SET exdb=?, exdk=?, exdl=? WHERE id=?', Math.max(cur, exd), exdk, exd > cur ? now : r.exdl, b.id);
     }
+    /* 今週の探索の最高到達階 */
+    const exwk = int(b.exwk, 0, 1e6), exw = int(b.exw, 0, 9999);
+    if (exwk && exwk === weekKey(now) && exw > 0) {
+      const cur = r.exwk === exwk ? (r.exwb || 0) : 0;
+      if (r.exwk !== exwk || exw > cur) this.sql.exec('UPDATE u SET exwb=?, exwk=?, exwl=? WHERE id=?', Math.max(cur, exw), exwk, exw > cur ? now : r.exwl, b.id);
+    }
     return json({ ok: true });
+  }
+
+  /* レイドの「週」：その日の朝5時から10時間後（15時）の週。月曜のレイドから新しい週 */
+  raidWeek(day) { return weekKey(day * DAY - (9 - 5) * 3600e3 + 10 * 3600e3); }
+  raidWeekDays(K) { const d0 = raidDayNo(); const out = []; for (let d = d0 - 21; d <= d0 + 1; d++) if (this.raidWeek(d) === K) out.push(d); return out; }
+  /* レイドの今週の合計ダメージ */
+  raidWeekRank(url) {
+    const K = weekKey(), days = this.raidWeekDays(K), lo = days[0] ?? 0, hi = days[days.length - 1] ?? -1;
+    const q = `SELECT r.id, SUM(r.dmg) AS v, MAX(r.last) AS l FROM raid_u r JOIN u ON u.id = r.id WHERE r.day BETWEEN ? AND ? AND r.tries > 0 AND u.hidden = 0 AND u.ison = 1 GROUP BY r.id HAVING v > 0`;
+    const all = this.sql.exec(q + ' ORDER BY v DESC, l ASC', lo, hi).toArray();
+    const info = (id) => this.sql.exec('SELECT w, icon, title FROM u WHERE id=?', id).toArray()[0] || { w: '[]' };
+    const top = all.slice(0, 50).map((x, i) => { const u = info(x.id); return { n: i + 1, id: x.id.slice(-4), w: JSON.parse(u.w || '[]'), icon: u.icon, title: u.title, v: x.v }; });
+    const id = url.searchParams.get('id') || '';
+    const k = ID_RE.test(id) ? all.findIndex((x) => x.id === id) : -1;
+    return json({ type: 'raidw', top, me: k >= 0 ? { n: k + 1, v: all[k].v } : null, total: all.length, wk: K, reset: nextReset('raidw'), rew: WREW });
   }
 
   rank(url) {
@@ -488,23 +513,29 @@ export class Rank {
       }
     }
     const total = this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where}`).toArray()[0].c;
-    return json({ type, top, me, total, wk, reset: P ? nextReset(type) : 0, rew: REW[type] || null });
+    return json({ type, top, me, total, wk, reset: P ? nextReset(type) : 0, rew: WEEKLY.includes(type) ? WREW : null });
   }
 
   /* 期間が切り替わったら、前の期間の1〜3位に報酬を記録する（だれかがアクセスしたときに行う） */
+  /* Ver 2.19 ウィークリー：週が切りかわったら、前の週の上位10人に報酬を記録する（だれかがアクセスしたときに行う） */
   async settle(now = Date.now()) {
-    return; /* Ver 2.3：無限の塔のランキング報酬はおわり（ランクバトルのシーズン報酬に変更） */
-    // eslint-disable-next-line no-unreachable
-    for (const [type, p] of Object.entries(PER)) {
-      const K = p.fn(now), sk = 'set_' + type, done = await this.store.get(sk);
-      if (done === undefined) { await this.store.put(sk, K); continue; }
+    const K = weekKey(now);
+    for (const type of [...WEEKLY, 'raidw']) {
+      const sk = 'setw_' + type, done = await this.store.get(sk);
+      if (done === undefined) { await this.store.put(sk, K); continue; } /* はじめて動いた週は記録だけ（さかのぼらない） */
       if (done >= K) continue;
-      const prev = this.sql.exec(`SELECT MAX(${p.key}) AS k FROM u WHERE ${p.key} < ? AND ${p.col} > 0`, K).toArray()[0].k;
-      if (prev != null && prev >= done) {
-        const top = this.sql.exec(`SELECT id FROM u WHERE ison=1 AND hidden=0 AND ${p.key}=? AND ${p.col} > 0 ORDER BY ${p.col} DESC, ${p.last} ASC LIMIT 3`, prev).toArray();
-        top.forEach((x, i) => this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', x.id, type, prev, i + 1, REW[type][i]));
-      }
       await this.store.put(sk, K);
+      const prev = K - 1;
+      let top;
+      if (type === 'raidw') {
+        const days = this.raidWeekDays(prev);
+        if (!days.length) continue;
+        top = this.sql.exec('SELECT r.id FROM raid_u r JOIN u ON u.id = r.id WHERE r.day BETWEEN ? AND ? AND r.tries > 0 AND u.hidden = 0 AND u.ison = 1 GROUP BY r.id HAVING SUM(r.dmg) > 0 ORDER BY SUM(r.dmg) DESC, MAX(r.last) ASC LIMIT 10', days[0], days[days.length - 1]).toArray();
+      } else {
+        const p = PER[type];
+        top = this.sql.exec(`SELECT id FROM u WHERE ison=1 AND hidden=0 AND ${p.key}=? AND ${p.col} > 0 ORDER BY ${p.col} DESC, ${p.last} ASC LIMIT 10`, prev).toArray();
+      }
+      top.forEach((x, i) => this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', x.id, type, prev, i + 1, WREW[i]));
     }
   }
 
@@ -512,6 +543,7 @@ export class Rank {
     const a = await this.auth(b);
     if (a.err) return json({ err: a.err }, 403);
     if (!a.r) return json({ coins: 0, items: [] });
+    await this.settle(); /* 週が変わっていれば、ここで上位の報酬が記録される */
     this.ladRow(b.id); /* シーズンが変わっていれば、ここで報酬が記録される */
     await this.rallyLoad(); /* 終わった集合タイムの上位ボーナスもここで記録 */
     /* 紫の羽（Ver 2.6.1〜）は、受け取れるゲーム（feather:1 を送ってくる）にだけ渡す */

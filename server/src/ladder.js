@@ -18,8 +18,10 @@ export const MASTER = 11;
 export const SEASON_MS = 14 * 86400e3;
 /* シーズン1の始まり：2026-10-19（月）15:00 日本時間 */
 export const SEASON0 = Date.UTC(2026, 9, 19, 6, 0, 0);
-export const seasonNo = (now = Date.now()) => Math.max(1, Math.floor((now - SEASON0) / SEASON_MS) + 1);
-export const seasonEnd = (s) => SEASON0 + s * SEASON_MS;
+/* Ver 2.19：シーズン1（10/19〜11/2）は2週間のまま。シーズン2からは毎週（月曜15:00に切りかえ） */
+export const SEASON_SW = SEASON0 + SEASON_MS, WEEK_MS = 7 * 86400e3;
+export const seasonNo = (now = Date.now()) => (now < SEASON_SW ? 1 : 2 + Math.floor((now - SEASON_SW) / WEEK_MS));
+export const seasonEnd = (s) => (s <= 1 ? SEASON_SW : SEASON_SW + (s - 1) * WEEK_MS);
 export const need = (rank) => (rank <= 3 ? 3 : rank <= 6 ? 4 : 5);
 const floorOf = (rank) => (rank >= 8 ? 8 : rank >= 5 ? 5 : 1);
 export const seasonCoins = (best) => (best >= MASTER ? 80 : best * 5);

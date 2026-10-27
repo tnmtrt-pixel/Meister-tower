@@ -736,7 +736,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
         <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="set-btn" data-zh="设置">設定</button><button class="snd" id="dex-btn" data-zh="图鉴">図鑑</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排行">ランキング</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button></nav>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排名">順位</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button></nav>
     <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div></div>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
       <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="ex" aria-pressed="false" data-zh="探索" id="sub-ex" hidden>探索</button></nav>
@@ -877,7 +877,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.18.3';
+const VERSION='2.19.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -900,7 +900,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" 
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{wk:{k:0,f:0},hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -928,7 +928,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     const fm=xr&&xr.fm,okRun=xr&&Array.isArray(xr.party)&&xr.party.length&&fm&&fm.c&&typeof fm.c==='object';
     const cid=id=>typeof id==='string'&&!!byId(id),N=(x,a,b)=>Math.min(b,Math.max(a,Math.floor(+x||0)));
     const en=a=>Array.isArray(a)?a.filter(e=>e&&cid(e.id)).slice(0,4).map(e=>({id:e.id,star:N(e.star,1,3),hp:N(e.hp,1,999),lv:N(e.lv,0,30),bonus:N(e.bonus,0,30),boss:!!e.boss})):null;
-    s.ex={hint:N(X.hint,0,99),dd:{k:N((X.dd||{}).k,0,1e6),f:N((X.dd||{}).f,0,999)},best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
+    s.ex={wk:{k:N((X.wk||{}).k,0,1e6),f:N((X.wk||{}).f,0,9999)},hint:N(X.hint,0,99),dd:{k:N((X.dd||{}).k,0,1e6),f:N((X.dd||{}).f,0,999)},best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
       run:okRun?{fl:N(xr.fl,1,15),fm:{c:Object.fromEntries(Object.entries(fm.c).filter(([k,c])=>/^-?\d+:-?\d+$/.test(k)&&c&&KS.includes(c.k)).slice(0,300).map(([k,c])=>[k,{k:c.k,e:en(c.e)}])),boss:en(fm.boss),row:N(fm.row,-1,4),lane:N(fm.lane,-99,99),rs:N(fm.rs,0,9999)},seed:N(xr.seed,0,4294967295),dk:N(xr.dk,0,1e6),
         gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,at:['rest','shop','train'].includes(xr.at)?xr.at:null,sb:(Array.isArray(xr.sb)?xr.sb:[]).filter(k=>['full','rev','mv','hp'].includes(k)),boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
@@ -1062,12 +1062,12 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(v==='party'&&typeof detOpen!=='undefined')detOpen=false;
   if(v==='cup')v='lad';/* 大会はなくなった（探索に置きかえ） */if(v==='ex'&&!exOpen())v='tower';
   if(v==='online')v=['raid','lad'].includes(NAV.sub)?NAV.sub:'lad';if(v==='battle')v=NAV.sub;if(v==='ex'&&!exOpen())v='tower';
-  {const se=$('#sub-ex');if(se)se.hidden=!exOpen();const re=$('#rsub-ex');if(re)re.hidden=!exOpen();if(rtype==='cup'||((rtype==='ex'||rtype==='exd')&&!exOpen()))rtype='lad'}
+  {const se=$('#sub-ex');if(se)se.hidden=!exOpen();const re=$('#rsub-ex');if(re)re.hidden=!exOpen();if(rtype==='cup'||rtype==='exd'||(rtype==='ex'&&!exOpen()))rtype='lad'}
   if(v==='ex')towerMode='ex';else if(v==='tower'&&towerMode==='ex')towerMode=lastTower;
   if(!hasAny()&&v!=='gacha'&&v!=='dex'&&v!=='reward'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'||sub==='ex'?'tower':'online'):v;
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
-  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle'||sub==='ex';if(main==='battle'&&sub!=='ex')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===(rtype==='exd'?'ex':rtype)));
+  document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle'||sub==='ex';if(main==='battle'&&sub!=='ex')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
   ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
@@ -1420,7 +1420,7 @@ const clearedFloors=()=>save.floor>TOP?(save.lap-1)*TOP+save.floor-1:Math.max(sa
 const dexCount=()=>ALL.filter(c=>owns(c.id)).length;
 let scoreT=null;
 function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);
-  scoreT=setTimeout(()=>{const run=save.inf.pend||0;api('/api/score',{id:p.id,sec:p.sec,inf:save.inf.best||0,exb:save.ex.best||0,exc:save.ex.clears||0,exd:(save.ex.dd||{}).f||0,exdk:(save.ex.dd||{}).k||0,run,wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).then(j=>{if(run&&!j.skip&&save.inf.pend===run){save.inf.pend=0;persist()}}).catch(()=>{})},now?0:1800)}
+  scoreT=setTimeout(()=>{const run=save.inf.pend||0;api('/api/score',{id:p.id,sec:p.sec,inf:save.inf.best||0,exb:save.ex.best||0,exc:save.ex.clears||0,exd:(save.ex.dd||{}).f||0,exdk:(save.ex.dd||{}).k||0,exw:(save.ex.wk||{}).f||0,exwk:(save.ex.wk||{}).k||0,run,wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).then(j=>{if(run&&!j.skip&&save.inf.pend===run){save.inf.pend=0;persist()}}).catch(()=>{})},now?0:1800)}
 async function pushProfile(){const p=ensureProf();
   await api('/api/profile',{id:p.id,sec:p.sec,w:p.w,icon:p.icon||save.party[0]||'',title:p.title||0,on:p.on!==false});
   p.reg=true;persist();await new Promise(r=>setTimeout(r,1600));pushScore(true)}
@@ -1469,13 +1469,17 @@ const starsHTML=(n,need)=>`<span class="lad-stars">${'★'.repeat(Math.max(0,n))
 const ladTxt=x=>x.rank>=MASTER?`${rankName(x.rank)} <small>${x.rate}</small>`:`${rankName(x.rank)} <small>${'★'.repeat(x.stars)}</small>`;
 const leftTxt=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),h=Math.floor(m/60);return h>=24?L(`${Math.floor(h/24)}日${h%24}時間`,`${Math.floor(h/24)}天${h%24}小时`):h?L(`${h}時間${m%60}分`,`${h}小时${m%60}分`):L(`${m}分`,`${m}分钟`)};
 let rtype='lad',rdata={};
+/* Ver 2.19 ランキングはぜんぶウィークリー（月曜15時に切りかえ）。上位10人に報酬 */
+const RKT={inf:'infw',raid:'raidw',ex:'exw',lad:'lad'};
+const wkLeft=d=>d&&d.reset?leftTxt(d.reset-Date.now()):'';
+const WREW_TXT=()=>L('上位10人に報酬：1位50・2位30・3位20・4〜10位10コイン（翌週に「報酬」で受け取り）','前10名有奖励：第1名50·第2名30·第3名20·第4〜10名10金币（下周在「奖励」领取）');
 const exRk=r=>`${r.v}F`+(r.s?L(`・踏破${r.s}回`,`·踏破${r.s}次`):'');
 /* 成績タブ：2段目のタブ（タワー・レイド・ランク・大会）ごとのランキング */
 function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   if(cr&&rtype!=='cup')cr.hidden=true;
   const d=rdata[rtype],p=save.prof,myTag=p.id?p.id.slice(-4):'';
-  const TT={ex:L('探索ランキング','探索排行'),exd:L('今日の探索','今日探索'),inf:L('ランキング','排行'),raid:L('今日のランキング','今日排行'),lad:L('ランキング','排行'),cup:L('大会の記録','大赛记录')};
-  const head=(rtype==='ex'||rtype==='exd'?`<div class="seg ex-rt"><button type="button" data-ert="ex" aria-pressed="${rtype==='ex'}">${L('通算','累计')}</button><button type="button" data-ert="exd" aria-pressed="${rtype==='exd'}">${L('今日の探索','今日探索')}</button></div>`:'')+`<div class="row between"><h2>${TT[rtype]}</h2>${rtype==='cup'?'':`<button class="btn small" id="r-re">${L('更新','刷新')}</button>`}</div>`;
+  const TT={ex:L('探索：今週の最高到達階','探索：本周最高到达层'),inf:L('無限の塔：今週の最高到達F','无限之塔：本周最高到达F'),raid:L('レイド：今週の合計ダメージ','团队战：本周累计伤害'),lad:L('ランクバトル：今週のシーズン','排位赛：本周赛季'),cup:L('大会の記録','大赛记录')};
+  const head=`<div class="row between"><h2>${TT[rtype]}</h2>${rtype==='cup'?'':`<button class="btn small" id="r-re">${L('更新','刷新')}</button>`}</div>`;
   const row=(n,icon,title,w,id,v,me)=>`<div class="rk${me?' me':''}"><span class="n">${n}</span><span>${byId(icon)?crest(byId(icon)):''}</span><span class="nm">${title?`<span class="ptitle">${titleTxt(title)}</span><br>`:''}${nameOf(w,id)}</span><span class="v">${v}</span></div>`;
   let hint='',body;
   if(rtype==='cup'){const has=CUP.data&&(((CUP.data.hall)||[]).length||((CUP.data.hist)||[]).length);
@@ -1484,15 +1488,13 @@ function renderRank(){const el=$('#rank'),cr=$('#cuprec');
     if(cr){renderCupRec()}}
   else if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
-  else if(rtype==='raid'){hint=L(`始原の紫翼皇に、今日みんなが与えたダメージの順位です（毎朝5時にリセット）。残りHP ${Math.ceil(d.hp/d.max*100)}%・今日の挑戦 ${d.tries}回。`,`今天大家对始原紫翼皇造成的伤害排名（每天早上5点重置）。剩余HP ${Math.ceil(d.hp/d.max*100)}%·今天挑战 ${d.tries}次。`);
-    body=`<div class="rlist">${(d.top||[]).map(r=>row(r.n,r.icon,r.title,r.w,'',`${r.dmg}`,r.me)).join('')||`<p class="hint">${L('まだだれも挑戦していません','还没有人挑战')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.myRank?`${d.myRank}${L('位','名')} / ${d.people}${L('人','人')}（${d.me.dmg}${L('ダメージ','伤害')}）`:L('今日はまだ挑戦していません','今天还没有挑战')}</b></div>`}
-  else{hint=rtype==='exd'?L('今日の探索（全員同じマップ）の到達階です。毎日15時に新しいマップになります。','今日探索（所有人同一张地图）的到达层。每天15点更换新地图。'):rtype==='ex'?L('探索の最高到達階（これまでの記録）です。同じ階なら踏破回数が多い人が上です。','探索的最高到达层（历来记录）。同层时踏破次数多者在前。'):rtype==='inf'?L('無限の塔の最高到達F（これまでの記録）です。','无限之塔的最高到达F（历来记录）。'):L('今シーズンのランクバトルの順位です。','本赛季排位赛的名次。')+(d.end?L(`シーズン${d.season}は あと${leftTxt(d.end-Date.now())}で終わります。`,`第${d.season}赛季还有${leftTxt(d.end-Date.now())}结束。`):'');
-    body=`<div class="rlist">${d.top.map(r=>row(r.n,r.icon,r.title,r.w,r.id,rtype==='ex'||rtype==='exd'?exRk(r):rtype==='inf'?`${r.v}F`:ladTxt(r),p.reg&&r.id===myTag)).join('')||`<p class="hint">${rtype==='inf'||rtype==='ex'||rtype==='exd'?L('まだ誰もいません。','还没有人上榜。'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rtype==='ex'||rtype==='exd'?exRk(d.me):rtype==='inf'?`${d.me.v}F`:ladTxt(d.me)}）`:(rtype==='inf'||rtype==='ex'||rtype==='exd'?L('圏外','未上榜'):L('まだ対戦していません','还没有对战'))}</b></div>`}
+  else{const wk=rtype!=='lad'&&d.reset?L(`今週の記録です（あと${wkLeft(d)}で切りかえ）。`,`本周记录（${wkLeft(d)}后切换）。`)+WREW_TXT():'';
+    hint=rtype==='lad'?L('今シーズンのランクバトルの順位です。シーズンは毎週月曜15時に切りかわり、最高ランクに応じて報酬がもらえます。','本赛季排位赛的名次。赛季每周一15点切换，根据最高段位获得奖励。')+(d.end?L(`（あと${leftTxt(d.end-Date.now())}）`,`（还有${leftTxt(d.end-Date.now())}）`):''):(rtype==='ex'?L('探索で今週いちばん上まで行った階です。','本周在探索中到达的最高层。'):rtype==='raid'?L('始原の紫翼皇に今週与えたダメージの合計です。','本周对始原紫翼皇造成的伤害总和。'):L('無限の塔で今週いちばん上まで行った階です。','本周在无限之塔到达的最高层。'))+wk;
+    body=`<div class="rlist">${d.top.map(r=>row(r.n,r.icon,r.title,r.w,r.id,rtype==='ex'||rtype==='inf'?`${r.v}F`:rtype==='raid'?`${r.v}`:ladTxt(r),p.reg&&r.id===myTag)).join('')||`<p class="hint">${rtype!=='lad'?L('今週はまだ誰もいません。','本周还没有人上榜。'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
+    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rtype==='ex'||rtype==='inf'?`${d.me.v}F`:rtype==='raid'?`${d.me.v}${L('ダメージ','伤害')}`:ladTxt(d.me)}）`:(rtype!=='lad'?L('今週はまだ記録なし','本周还没有记录'):L('まだ対戦していません','还没有对战'))}</b></div>`}
   el.innerHTML=head+(hint?`<p class="hint">${hint}</p>`:'')+body;
   const re=$('#r-re');if(re)re.onclick=()=>{sfx('tap');loadRank()};
-  document.querySelectorAll('[data-ert]').forEach(b=>b.onclick=()=>{sfx('tap');rtype=b.dataset.ert;renderRank();if(!rdata[rtype])loadRank()})}
+}
 /* デイリー・ウィークリー上位の報酬を受け取る */
 let claimBusy=false;
 /* 受け取った報酬の履歴（報酬タブに表示。直近30回） */
@@ -1505,7 +1507,7 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
     if(rc>0||sh>0){save.coins+=rc;save.rshard=(save.rshard||0)+sh;persist();updCoins();rallyPaint();addRhist([L(`集合タイム・レイド：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`集合时间·团队战：+${rc}金币${sh?`·自选碎片+${sh}`:''}`)],rc);
       if(!quiet&&!items.length)toast(L(`ごほうび：+${rc}コイン${sh?`・選べるかけら+${sh}`:''}`,`奖励：+${rc}金币${sh?`·自选碎片+${sh}`:''}`))}
     if(oc>0||items.some(x=>x.kind==='raidday')){if(oc>0){save.coins+=oc;persist();updCoins()}sfx('reveal',3);
-    const nm={infd:L('デイリー','日榜'),infw:L('ウィークリー','周榜')};
+    const nm={infd:L('デイリー','日榜'),infw:L('無限の塔ウィークリー','无限之塔周榜'),exw:L('探索ウィークリー','探索周榜'),raidw:L('レイド週間ダメージ','团队战周伤害')};
     const shOf=k=>(tsh.find(y=>y.pkey===k)||{}).coins||0;
     const line=x=>{if(x.kind==='rtop')return L(`📣 集合タイム ${x.rank}位：+${x.coins}コイン・選べるかけら+${shOf(-x.pkey)}`,`📣 集合时间 第${x.rank}名：+${x.coins}金币·自选碎片+${shOf(-x.pkey)}`);
       if(x.kind==='raidday'){const st=x.rank>>4,tp=x.rank&15,ks=shOf(-(x.pkey*10+1));return L(`レイド（${st>=4?'撃破！':`HP${[100,75,50,25][st]||100}%まで`}${tp?`・ダメージ${tp}位`:''}）：${x.coins?`+${x.coins}コイン`:''}${ks?`・選べるかけら+${ks}`:''}`,`团队战（${st>=4?'击破！':`削到HP${[100,75,50,25][st]||100}%`}${tp?`·伤害第${tp}名`:''}）：${x.coins?`+${x.coins}金币`:''}${ks?`·自选碎片+${ks}`:''}`)}
@@ -1516,7 +1518,7 @@ async function claimRank(quiet){const p=save.prof;if(!p.reg||claimBusy)return;cl
       sub:L('報酬が届きました！','奖励到了！')+'<br>'+items.map(line).join('<br>'),
       go:[...(tsh.length&&save.rshard>0?[['rshard',L('🧩 かけらを選ぶ','🧩 选择碎片'),()=>{nav('lad');setTimeout(shardPick,400)}]]:[]),['rank',L('成績へ','前往成绩')],['tower',L('タワーへ','前往塔')]]})}}
   catch(e){}finally{claimBusy=false}}
-async function loadRank(){const t=rtype;if(t==='cup'){renderRank();return}try{const id=save.prof.reg?save.prof.id:'';rdata[t]=t==='raid'?(await api(`/api/raid?n=30&id=${id}`)).raid:await api(`/api/rank?type=${t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-rank').hidden&&rtype===t)renderRank()}
+async function loadRank(){const t=rtype;if(t==='cup'){renderRank();return}try{const id=save.prof.reg?save.prof.id:'';rdata[t]=await api(`/api/rank?type=${RKT[t]||t}&id=${id}`)}catch(e){rdata[t]={err:1}}if(!$('#v-rank').hidden&&rtype===t)renderRank()}
 
 /* ================= ログインボーナス・デイリーミッション ================= */
 /* 日付は日本時間の朝5時で切り替え */
@@ -2145,6 +2147,7 @@ function exEnd(clear){const run=save.ex.run;if(!run)return;const f=clear?EX_F:Ma
   const D=save.ex.day.d===today()?save.ex.day:(save.ex.day={d:today(),c:0});
   let coins=f*EX_REW.floor+run.boss*EX_REW.boss+(clear?EX_REW.clear:0);coins=Math.max(0,Math.min(coins,EX_REW.cap-D.c));D.c+=coins;save.coins+=coins;
   if(run.dk&&save.ex.dd&&save.ex.dd.k===run.dk)save.ex.dd.f=Math.max(save.ex.dd.f||0,f);
+  {const wk=Math.floor((exDayKey()+3)/7);if(!save.ex.wk||save.ex.wk.k!==wk)save.ex.wk={k:wk,f:0};save.ex.wk.f=Math.max(save.ex.wk.f,f)}/* 今週の最高到達階（ランキング用） */
   const nb=f>save.ex.best;if(nb)save.ex.best=f;if(clear)save.ex.clears+=1;save.ex.run=null;persist();updCoins();checkTitles();pushScore(true);
   showOverlay({word:clear?'CLEAR!':'GAME OVER',ch:byId(run.party[0]),win:clear,coins,
     sub:clear?L(`探索 ${EX_F}F 踏破！`,`踏破探索 ${EX_F}F！`):L(`探索 ${f}F まで突破`,`探索突破到 ${f}F`)+(nb?'<br>'+L('最高記録！','最高纪录！'):''),
