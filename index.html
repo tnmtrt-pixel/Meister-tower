@@ -644,7 +644,10 @@ hr{border-color:var(--line)!important}
 .ex-ch img{width:58px;height:62px;object-fit:contain}.ex-ch b{font-size:12px}.ex-ch small{font-size:10px;color:#B0304A}
 .ex-pm b small{margin-left:4px;font-weight:400;opacity:.8}
 .ex-tr{margin:8px 0 12px}.ex-tr .label{margin:0 0 6px}.ex-tr .mv:disabled{opacity:.5}.ex-cost{grid-column:1/-1;font-size:11px;font-weight:700;color:#7FE0A0}.ex-cost.no{color:#FF9A8A}.ex-tr .mv:disabled .ex-cost{opacity:1}.ex-max{grid-column:1/-1;color:#FFC24A;font-size:11px}
-#ex-stage{margin:0 0 12px}.ex-in{gap:10px}
+.ex-in{gap:10px}#v-ex{display:flex;flex-direction:column;gap:10px}#v-ex[hidden]{display:none}
+.ex-hud{position:sticky;top:0;z-index:20;display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:rgba(10,18,44,.94);border:1px solid rgba(217,174,69,.55);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.ex-hud-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.ex-hud-top>b{font-size:16px;display:flex;gap:6px;align-items:baseline}.ex-hud-top>b small{font-size:11px;color:#FF9A8A}
+
 .ex-ov{background:var(--panel);color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:14px;width:min(560px,100%);display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow:auto}
 .ex-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px}
 .ex-party{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -695,7 +698,6 @@ hr{border-color:var(--line)!important}
     <div class="row startbar" id="infbar" hidden><button class="btn primary" id="inf-bar-go"></button></div>
     <div class="panel" id="hwpanel" hidden></div>
     <div class="row startbar" id="hwbar" hidden><button class="btn primary" id="hw-bar-go"></button></div>
-    <div id="ex-stage" hidden></div>
     <div class="panel" id="expanel" hidden></div>
     <div class="row startbar" id="exbar" hidden><button class="btn primary" id="ex-bar-go"></button></div>
     <div class="panel tower-panel">
@@ -790,6 +792,7 @@ hr{border-color:var(--line)!important}
     <div class="panel" id="rank"></div>
     <div class="panel" id="cuprec" hidden></div>
   </section>
+  <section class="view" id="v-ex" hidden><div class="ex-hud" id="ex-hud"></div><div id="ex-stage"></div></section>
   <section class="view" id="arena" hidden>
     <div class="floor-tag" id="floor-tag"></div>
     <div class="fighter foe" id="f1"></div>
@@ -822,7 +825,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.14.5';
+const VERSION='2.15.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -875,7 +878,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     const en=a=>Array.isArray(a)?a.filter(e=>e&&cid(e.id)).slice(0,4).map(e=>({id:e.id,star:N(e.star,1,3),hp:N(e.hp,1,999),lv:N(e.lv,0,30),bonus:N(e.bonus,0,30),boss:!!e.boss})):null;
     s.ex={best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
       run:okRun?{fl:N(xr.fl,1,15),fm:{c:Object.fromEntries(Object.entries(fm.c).filter(([k,c])=>/^-?\d+:-?\d+$/.test(k)&&c&&KS.includes(c.k)).slice(0,300).map(([k,c])=>[k,{k:c.k,e:en(c.e)}])),boss:en(fm.boss),row:N(fm.row,-1,4),lane:N(fm.lane,-99,99)},
-        gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
+        gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,at:['rest','shop','train'].includes(xr.at)?xr.at:null,boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
         up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
         hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go'].includes(xr.pend)?xr.pend:null,bossId:cid(xr.bossId)?xr.bossId:null}:null};
@@ -1008,7 +1011,7 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
   document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle';if(main==='battle')renderPartyBar();$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
   dailyCheck();
   refundNotice();
@@ -1044,7 +1047,7 @@ const replayCoins=f=>Math.max(1,Math.round(G.floorCoins(f)*.4));
 function bossTxt(f){if(f!==TOP&&f!==TOP2)return'';const id=G.towerOf(curTower())[f===TOP?'b10':'b20'],c=byId(id),st=starOf(id);
   return`<br><span style="font-size:12px">🎁 ${st>=3?L(`勝つと${pct(id)}の確率で「${c.name}」のかけら+${BOSS_SHARD}`,`获胜后有${pct(id)}的概率获得「${c.name}」的碎片+${BOSS_SHARD}`):L(`勝つと「${c.name}」が${st?`★${st+1}に`:'仲間に'}（再挑戦でもOK）`,`获胜后「${c.name}」${st?`升到★${st+1}`:'成为伙伴'}（再挑战也可以）`)}</span>`}
 function renderTower(){fixParty();if(save.hw&&save.hw.run&&!hwOpen()){save.hw.run=null;persist()}rallyPaint();if(Date.now()-RAL.at>60000)rallyLoad();renderRaid();if(Date.now()-RD.at>60000)raidLoad();if(towerMode==='inf'&&!infOpen())towerMode='meister';if(towerMode==='hw'&&!hwOpen())towerMode='meister';if(towerMode==='ex'&&!exOpen())towerMode='meister';renderTowers();renderMission();
-  const ex=towerMode==='ex';$('#expanel').hidden=!ex;$('#ex-stage').hidden=!ex;$('#exbar').hidden=!ex;if(ex){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;$('#infbar').hidden=true;$('#hwpanel').hidden=true;$('#hwbar').hidden=true;renderEx();return}
+  const ex=towerMode==='ex';$('#expanel').hidden=!ex;$('#exbar').hidden=!ex;if(ex){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;$('#infbar').hidden=true;$('#hwpanel').hidden=true;$('#hwbar').hidden=true;renderEx();return}
   const hw=towerMode==='hw';$('#hwpanel').hidden=!hw;$('#hwbar').hidden=!hw;if(hw){document.querySelector('#v-tower .tower-panel').hidden=true;$('#mainbar').hidden=true;document.querySelector('#v-tower details').hidden=true;$('#infpanel').hidden=true;renderHW();return}
   const inf=towerMode==='inf';$('#infpanel').hidden=!inf;$('#infbar').hidden=!inf;document.querySelector('#v-tower .tower-panel').hidden=inf;$('#mainbar').hidden=inf;document.querySelector('#v-tower details').hidden=inf;if(inf){renderInf();return}const T=TP(),FLS=TFL(),TW=G.towerOf(curTower());if(tsel==null||!canPlay(tsel))tsel=T.floor;const f=tsel,fl=FLS[f-1],rp=isReplay(f);
   if(tview==null||(tview==='hi'&&!upperOpen()))tview=f>TOP?'hi':'lo';const lo=tview==='lo',base=lo?0:TOP;
@@ -1795,7 +1798,7 @@ function beginInf(){const run=save.inf.run;if(!run)return;
   TUT.on=false;B={inf:true,pidx:run.pidx,floor:run.f,replay:false,S:G.newBattle({floor:0,lap:1,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){save.inf.run=null;persist();renderTower();return}
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const boss=run.f%10===0;$('#floor-tag').textContent=L(`無限の塔 ${run.f}F${boss?'｜ボス戦':''}`,`无限之塔 ${run.f}F${boss?'｜头目战':''}`);
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`無限の塔 ${run.f}F。相手は${B.S.sides[1].team.length}人！`,`无限之塔 ${run.f}F。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
@@ -1864,7 +1867,7 @@ function exStart(){if(save.ex.run){toast(L('探索はすでに挑戦中です（
   const ov=exSheet(L('探索に出発するキャラを1人選ぶ','选择1名出发探索的角色'),`<p class="hint">${L('最初は1人。5階・10階のボスを倒すと仲間がふえます。技は★1の技から始まり、訓練所で覚えていきます。','开始只有1人。打倒5层·10层的头目后伙伴会增加。技能从★1技能开始，在训练所学习。')}</p>
     <div class="ex-chars">${ids.map(id=>`<button type="button" class="ex-ch" data-c="${id}"><img src="${byId(id).img}" alt=""><b>${byId(id).name}</b></button>`).join('')}</div>
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-cancel">${L('やめる','取消')}</button></div>`,true);
-  ov.querySelector('#ex-cancel').onclick=()=>ov.remove();
+  ov.querySelector('#ex-cancel').onclick=()=>{ov.remove();towerMode='ex';nav('tower')};
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();const id=b.dataset.c;
     const run={fl:1,fm:exGenFloor(1),gear:0,dice:0,boss:0,party:[id],mv:{[id]:exStartMoves(id)},up:{},hp:{}};run.hp[id]=exMax(run,id);
     save.ex.run=run;persist();exMap()})}
@@ -1910,23 +1913,22 @@ function exCard(k,es,face,small){const K=EXK[k];if(!face)return`<span class="exc
   return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:EX_ART[k]?`<span class="exc-svg">${exArt(k)}<img class="exc-pic" src="img/ex-${k}.webp" alt="" onerror="this.remove()"></span>`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
 function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll('.ex-o').forEach(e=>e.remove());
   const fm=run.fm,boss=EX_BOSS.includes(run.fl),n=fm.row+1;
-  const party=run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('');
   const rows=[];for(let d=3;d>=1;d--){const r=fm.row+d;if(r>=EX_R)continue;
     rows.push(`<div class="exb-row d${d}">${(d===1?[-1,0,1]:[-2,-1,0,1,2]).map(o=>{const l=fm.lane+o,c=exCardAt(run,r,l),can=d===1&&Math.abs(o)<=1;
       return`<button type="button" class="exc${can?' can':''}${Math.abs(o)===2?' side':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(c.k,c.k==='boss'?fm.boss:c.e,true,d>1)}</button>`}).join('')}</div>`)}
   persist();
-  const ov=exSheet(L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)+(boss?L('｜ボスの階','｜头目层'):''),`<div class="ex-party">${party}</div>
-    <div class="exb">${rows.join('')}</div>
-    <p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>
-    <div class="row" style="justify-content:center"><button class="btn small" id="ex-pause">${L('中断する（あとで続きから）','中断（之后继续）')}</button></div>`);
-  const pz=ov.querySelector('#ex-pause');if(ov.classList.contains('ex-inline'))pz.parentNode.remove();else pz.onclick=()=>{sfx('tap');ov.remove();nav('tower')};
+  const ov=exSheet(L(`${run.fl}F　あと${EX_R-n}歩`,`${run.fl}F　还有${EX_R-n}步`),`<div class="exb">${rows.join('')}</div>
+    <p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>`);
+  
   ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx('tap');exMove(+b.dataset.l)})}
 function exMove(l){const run=save.ex.run,fm=run.fm;fm.row+=1;fm.lane=l;const k=exCardAt(run,fm.row,l).k;persist();
   if(k==='stairs')return exNextFloor();
   if(k==='battle'||k==='elite'||k==='boss')return exBattle(k);
   document.querySelectorAll('.ex-o').forEach(e=>e.remove());
+  if(k==='rest'||k==='shop'||k==='train'){run.at=k;persist()}
   if(k==='rest')return exRest();if(k==='shop')return exShop();if(k==='train')return exTrain();if(k==='treasure')return exTreasure();exMap()}
-function exCellDone(){exMap()}
+function exCellDone(){const run=save.ex.run;if(run&&run.at){run.at=null;persist()}exMap()}
+function exResume(){const r=save.ex.run;if(!r)return exStart();if(r.pend)return exNext();if(r.curK)return exBattle(r.curK);if(r.at==='rest')return exRest();if(r.at==='shop')return exShop();if(r.at==='train')return exTrain();exMap()}
 function exStairs(){const run=save.ex.run;
   const ov=exSheet(L(`${run.fl}F 階段`,`${run.fl}F 楼梯`),`<p class="hint">${L(`${run.fl+1}階へ上がりますか？ この階にはもどれません。`,`要前往${run.fl+1}层吗？无法返回本层。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn primary" id="ex-up">${L('上がる','上楼')}</button><button class="btn" id="ex-stay">${L('もう少し歩く','再走走看')}</button></div>`);
@@ -1946,7 +1948,7 @@ function exBattle(k){const run=save.ex.run;if(!run)return;document.querySelector
   B.S.rule=null;if(run.dice)B.S.tot={pair:0,dice:run.dice,name:L('ギア','齿轮')};
   B.S.sides[0].team.forEach(x=>{x.hp=Math.max(0,Math.min(x.max,run.hp[x.ch.id]??x.max))});
   const sd=B.S.sides[0];sd.idx=sd.team.findIndex(x=>x.hp>0);if(sd.idx<0){exEnd(false);return}
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=L(`探索 ${run.fl}F｜${EXK[k].ja}`,`探索 ${run.fl}F｜${EXK[k].zh}`);
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`探索 ${run.fl}F：${EXK[k].ja}。相手は${B.S.sides[1].team.length}人！`,`探索 ${run.fl}F：${EXK[k].zh}。对手共${B.S.sides[1].team.length}人！`));bubble(1,G.act(B.S,1).ch.lines[0]);runTurn(0)})()}
@@ -1960,11 +1962,16 @@ async function finishEx(win,me,foe){const run=save.ex.run,k=B.exk;if(!run)return
   showOverlay({word:k==='boss'?'BOSS CLEAR!':'WIN!',ch:me.ch,win:true,coins:0,noCoin:true,
     sub:L(`探索 ${run.fl}F　⚙️ ギア+${g}`,`探索 ${run.fl}F　⚙️ 齿轮+${g}`),hint:L('体力はこのまま持ちこします','体力将保留'),
     go:[['ex-next',k==='boss'?L('報酬を選ぶ','选择奖励'):k==='elite'?L('技を1つ強化する','强化1个技能'):L('探索を続ける','继续探索')],['tower',L('中断する','中断')]]})}
-function exNext(){const run=save.ex.run;if(!run)return;if(!$('#arena').hidden)nav('tower');const p=run.pend;run.pend=null;persist();
+function exNext(){const run=save.ex.run;if(!run)return;const p=run.pend;run.pend=null;persist();
   if(p==='boss')return exBossReward();if(p==='elite')return exPickMove(L('強敵の報酬：強化する技を選ぶ','强敌奖励：选择要强化的技能'),()=>exMap());exMap()}
-function exInline(){const st=$('#ex-stage'),v=$('#v-tower');return st&&!st.hidden&&v&&!v.hidden&&towerMode==='ex'&&$('#arena').hidden?st:null}
-function exSheet(title,html,noGear){document.querySelectorAll('.ex-o').forEach(e=>e.remove());const st=exInline(),ov=document.createElement('div');if(st)ov.className='ex-o ex-inline';else{ov.className='overlay ex-o';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true')}
-  ov.innerHTML=`<div class="${st?'panel ex-in':'ex-ov'}"><div class="ex-top"><b>${title}</b>${noGear||!save.ex.run?'':`<span>⚙️ ${L('ギア','齿轮')} <b>${save.ex.run.gear}</b>${save.ex.run.dice?'　🎲+1':''}</span>`}</div>${html}</div>`;if(st){st.append(ov);$('#exbar').hidden=true;const r=st.getBoundingClientRect();if(r.top<0||r.top>innerHeight*.5)st.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}else document.body.append(ov);return ov}
+function exView(){if(!$('#v-ex').hidden&&$('#arena').hidden)return;['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!=='ex');$('#arena').hidden=true;$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true}
+/* 探索画面の上の帯：もどる・階・ギア・仲間の体力（いつも表示） */
+function exHud(){const run=save.ex.run,el=$('#ex-hud');
+  el.innerHTML=`<div class="ex-hud-top"><button type="button" class="btn small" id="ex-back-tower">◀ ${L('塔にもどる','返回塔')}</button><b>🧭 ${run?L(`探索 ${run.fl}F`,`探索 ${run.fl}F`):L('探索','探索')}${run&&EX_BOSS.includes(run.fl)?`<small>${L('ボスの階','头目层')}</small>`:''}</b>${run?`<span>⚙️ <b>${run.gear}</b>${run.dice?'　🎲+1':''}</span>`:'<span></span>'}</div>
+    ${run?`<div class="ex-party">${run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('')}</div>`:''}`;
+  el.querySelector('#ex-back-tower').onclick=()=>{sfx('tap');document.querySelectorAll('.ex-o').forEach(e=>e.remove());towerMode='ex';nav('tower')}}
+function exSheet(title,html){document.querySelectorAll('.ex-o').forEach(e=>e.remove());exView();exHud();const st=$('#ex-stage'),ov=document.createElement('div');ov.className='ex-o';
+  ov.innerHTML=`<div class="panel ex-in"><div class="ex-top"><b>${title}</b></div>${html}</div>`;st.append(ov);window.scrollTo(0,0);return ov}
 /* 技を1つ選んで強化（探索の中だけ。1つの技は+3まで） */
 function exPickMove(title,done,cost,amt){amt=amt||1;const run=save.ex.run;
   const rows=run.party.map(id=>{const c=byId(id),u=exUp(run,id);return`<div class="ex-tr"><div class="label">${c.name}</div><div class="moves">${run.mv[id].map(j=>exMvBtn(run,id,j,`data-id="${id}" data-j="${j}" ${(u.mv[j]||0)>=3?'disabled':''}`,(u.mv[j]||0)>=3?`<small class="ex-max">${L('この探索では最大','本次探索已达上限')}</small>`:'')).join('')}</div></div>`}).join('');
@@ -2042,8 +2049,7 @@ function renderEx(){const el=$('#expanel'),run=save.ex.run,D=save.ex.day.d===tod
     <p class="hint">${['battle','elite','treasure','shop','rest','train','stairs','boss'].map(k=>`${EXK[k].i}${L(EXK[k].ja,EXK[k].zh)}`).join('　')}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.fl}F（${run.party.map(id=>byId(id).name).join('・')}・ギア${run.gear}）`,`挑战中：${run.fl}F（${run.party.map(id=>byId(id).name).join('·')}·齿轮${run.gear}）`)}</div><div class="row"><button class="btn small" id="ex-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const b=$('#ex-bar-go');b.textContent=run?L(`続きから（${run.fl}F）`,`继续（${run.fl}F）`):L('キャラを選んで出発','选择角色出发');
-  const st=$('#ex-stage'),idle=run&&!run.pend&&!run.curK;if(!run)st.innerHTML='';else if(idle&&!st.querySelector('.ex-o'))exMap();$('#exbar').hidden=!!(idle&&st.querySelector('.ex-o'));
-  b.onclick=()=>{ac();sfx('tap');const r=save.ex.run;if(!r)return exStart();if(r.pend)return exNext();if(r.curK)return exBattle(r.curK);exMap()};
+    b.onclick=()=>{ac();sfx('tap');exResume()};
   const q=$('#ex-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ ここまでのコインを受け取って終わります','要放弃吗？将领取到目前为止的金币并结束')))return;exEnd(false)}}
 
 /* ================= ハロウィンの塔（期間限定・10階・全階でカードを1枚選ぶ） ================= */
@@ -2078,7 +2084,7 @@ function hwBattle(card){const run=save.hw.run;if(!run)return;
   TUT.on=false;
   B={hw:true,pidx:run.pidx,card,rare,floor:f,replay:false,tower:'halloween',S:G.newBattle({floor:f,lap:1,tower:'halloween',party,enemies,card}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   B.S.rule=null;B.S.sides[0].idx=B.S.sides[0].team.findIndex(x=>x.hp>0);
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=`${f}F ${L(FL.n,FL.zn)}${f===10?L(`｜ネロ Lv${run.nlv}`,`｜尼禄 Lv${run.nlv}`):''}｜${L(card.ja,card.zh)}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{await say(L(`ハロウィンの塔 ${f}F。相手は${B.S.sides[1].team.length}人！`,`万圣节之塔 ${f}F。对手共${B.S.sides[1].team.length}人！`));
@@ -2135,7 +2141,7 @@ function beginBattle(raid=false){fixParty();if(!save.party.length)return;if(part
   B={raid,pidx:save.pidx,tower:TW,floor:BF,replay:RP,S:G.newBattle({floor:BF,lap:T.lap,tower:TW,party,enemies}),sel:null,busy:true,done:false,view:null,hist:[],round:0};
   if(raid)B.S.rule=null;
   const fl=raid?{n:L('乱入バトル','乱入对战'),rule:null}:B.S.fl;
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   $('#floor-tag').textContent=raid?L('乱入バトル！ 匠空','乱入对战！ 匠空'):`${BF}F ${fl.n}${RP?L('（再挑戦）','（再挑战）'):''}${fl.rule?'｜'+fl.rule.d:''}`;
   B.view=snapNow();drawF(0);drawF(1);renderControl();window.scrollTo(0,0);BGM.start();retireBtn(true);
   (async()=>{const e=G.act(B.S,1);
@@ -2443,7 +2449,7 @@ function turnTimer(){clearInterval(tTick);const el=$('#ttimer');
 function beginOnline(m){
   TUT.on=false;
   B={online:true,pidx:save.pidx,floor:0,replay:false,S:G.newPvP({me:m.me,opp:m.opp,seed:m.seed,firstSide:m.youFirst?0:1,maxRound:m.maxRound||12}),sel:null,busy:true,done:false,view:null,hist:[],round:0,oppName:m.oppName,chain:Promise.resolve()};
-  ['tower','party','gacha','dex','online','rank','reward'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
+  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=true);$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true;$('#arena').hidden=false;$('#log').innerHTML='';
   const on=byId(m.oppName);B.ghost=!!m.ghost;B.oppWho=m.oppWho||null;
   B.oraid=m.kind==='raid';B.mul=m.mul||1;const kind=m.kind==='raid'?L('レイドバトル','团队战'):m.kind==='rank'?(m.ghost?L('ランクバトル（ゴースト）','排位赛（幽灵）'):L('ランクバトル','排位赛')):m.kind==='cup'?L('マイスター杯','大师杯'):L('通信対戦','联机对战');
   $('#floor-tag').innerHTML=kind+(m.oppWho&&m.oppWho.w&&m.oppWho.w.length?' vs '+nameOf(m.oppWho.w):on?' vs '+on.name:'');
