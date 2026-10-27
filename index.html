@@ -903,7 +903,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.22.2';
+const VERSION='2.22.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2260,10 +2260,9 @@ function exEnd(clear){const run=save.ex.run;if(!run)return;const f=clear?EX_F:Ma
     hint:L(`突破した階×${EX_REW.floor}・ボス1体${EX_REW.boss}${clear?`・踏破${EX_REW.clear}`:''}コイン（1日${EX_REW.cap}コインまで。今日 ${D.c}/${EX_REW.cap}）`,`突破层数×${EX_REW.floor}·每个头目${EX_REW.boss}${clear?`·踏破${EX_REW.clear}`:''}金币（每天最多${EX_REW.cap}。今日 ${D.c}/${EX_REW.cap}）`),
     go:[['ex-again',L('もう一度探索する','再次探索'),()=>{nav('ex');exStart()}],['ex',L('探索の画面へ','前往探索画面')]]})}
 function renderEx(){const el=$('#expanel'),run=save.ex.run,D=save.ex.day.d===today()?save.ex.day.c:0;
-  el.innerHTML=`<div class="row between"><h2>🧭 ${L('探索','探索')}<small class="ex-new">NEW</small></h2><button type="button" class="btn small" id="ex-howto">${L('あそびかた','玩法')}</button></div>
+  el.innerHTML=`<div class="tw has-img" style="cursor:default"><span class="tw-img"><img src="img/ex-banner.webp" alt=""></span></div><div class="row between"><h2>🧭 ${L('探索','探索')}<small class="ex-new">NEW</small></h2><button type="button" class="btn small" id="ex-howto">${L('あそびかた','玩法')}</button></div>
     <p class="hint">${L(`全${EX_F}階。1人で出発して、フロアを歩いて階段をさがします。5階・10階のボスを倒すと仲間がふえます。技は★1から始まり、訓練所で覚えます。体力は持ちこし。「ギア」を集めて工房で強化しながら、${EX_F}階のボスを目指します（強化はこの探索の中だけ）。`,`共${EX_F}层。1人出发，在楼层中行走寻找楼梯。打倒5层·10层的头目后伙伴会增加。技能从★1开始，在训练所学习。体力保留。收集「齿轮」在工坊强化，目标是${EX_F}层的头目（强化仅限本次探索）。`)}</p>
     <div class="t-rec"><span>${L('最高','最高')}</span><b>${save.ex.best}F</b><span>${L('踏破','踏破')}</span><b>${save.ex.clears}${L('回','次')}</b><span>${L('今日もらったコイン','今日获得金币')}</span><b>${D}/${EX_REW.cap}</b></div>
-    ${(()=>{const dk=exDayKey(),dd=save.ex.dd||{},done=dd.k===dk;return`<div class="ex-daily"><div><b>📅 ${L('今日の探索','今日探索')}</b><small>${L('全員が同じマップに挑戦（1日1回・毎日15時に新しいマップ）','所有人挑战同一张地图（每天1次·每天15点更新）')}</small>${done?`<small class="ex-dd-done">${L(`今日の記録：${dd.f}F`,`今日记录：${dd.f}F`)}${run&&run.dk===dk?L('（挑戦中）','（挑战中）'):''}</small>`:''}</div><button type="button" class="btn small${done?'':' primary'}" id="ex-daily" ${done||run?'disabled':''}>${done?L('挑戦済み','已挑战'):L('挑戦する','挑战')}</button></div>`})()}
     <p class="hint">${['battle','elite','treasure','shop','rest','train','stairs','boss'].map(k=>`${EXK[k].i}${L(EXK[k].ja,EXK[k].zh)}`).join('　')}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.fl}F（${run.party.map(id=>byId(id).name).join('・')}・ギア${run.gear}）`,`挑战中：${run.fl}F（${run.party.map(id=>byId(id).name).join('·')}·齿轮${run.gear}）`)}</div><div class="row"><button class="btn small" id="ex-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const b=$('#ex-bar-go');b.textContent=run?L(`続きから（${run.fl}F）`,`继续（${run.fl}F）`):L('キャラを選んで出発','选择角色出发');
