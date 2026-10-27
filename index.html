@@ -643,6 +643,7 @@ hr{border-color:var(--line)!important}
 .ex-ch{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);color:var(--ink);padding:6px 4px;font:inherit;cursor:pointer;min-width:0}
 .ex-ch img{width:58px;height:62px;object-fit:contain}.ex-ch b{font-size:12px}.ex-ch small{font-size:10px;color:#B0304A}
 .ex-pm b small{margin-left:4px;font-weight:400;opacity:.8}
+.ex-tr{margin:8px 0 12px}.ex-tr .label{margin:0 0 6px}.ex-tr .mv:disabled{opacity:.5}.ex-max{grid-column:1/-1;color:#FFC24A;font-size:11px}
 .ex-ov{background:var(--panel);color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:14px;width:min(560px,100%);display:flex;flex-direction:column;gap:10px;max-height:92vh;overflow:auto}
 .ex-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px}
 .ex-party{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -819,7 +820,7 @@ hr{border-color:var(--line)!important}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.14.2';
+const VERSION='2.14.3';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1963,7 +1964,7 @@ function exSheet(title,html,noGear){document.querySelectorAll('.overlay.ex-o').f
   ov.innerHTML=`<div class="ex-ov"><div class="ex-top"><b>${title}</b>${noGear||!save.ex.run?'':`<span>⚙️ ${L('ギア','齿轮')} <b>${save.ex.run.gear}</b>${save.ex.run.dice?'　🎲+1':''}</span>`}</div>${html}</div>`;document.body.append(ov);return ov}
 /* 技を1つ選んで強化（探索の中だけ。1つの技は+3まで） */
 function exPickMove(title,done,cost,amt){amt=amt||1;const run=save.ex.run;
-  const rows=run.party.map(id=>{const c=byId(id),u=exUp(run,id);return`<div class="ex-pm wide"><b>${c.name}</b><div class="ex-mvs">${run.mv[id].map(j=>{const m=c.moves[j],n=u.mv[j]||0;return`<button type="button" class="btn small" data-id="${id}" data-j="${j}" ${n>=3?'disabled':''}>${m.n}${n?` +${n}`:''}</button>`}).join('')}</div></div>`}).join('');
+  const rows=run.party.map(id=>{const c=byId(id),u=exUp(run,id);return`<div class="ex-tr"><div class="label">${c.name}</div><div class="moves">${run.mv[id].map(j=>exMvBtn(run,id,j,`data-id="${id}" data-j="${j}" ${(u.mv[j]||0)>=3?'disabled':''}`,(u.mv[j]||0)>=3?`<small class="ex-max">${L('この探索では最大','本次探索已达上限')}</small>`:'')).join('')}</div></div>`}).join('');
   const ov=exSheet(title,`<p class="hint">${L('選んだ技が強くなります（この探索の中だけ）','所选技能变强（仅限本次探索）')}</p>${rows}${cost?`<div class="row" style="justify-content:center"><button class="btn small" id="ex-cancel">${L('やめる','取消')}</button></div>`:''}`);
   ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{sfx('tap');const u=exUp(run,b.dataset.id),j=+b.dataset.j;u.mv[j]=Math.min(3,(u.mv[j]||0)+amt);if(cost)run.gear-=cost;persist();ov.remove();done()});
   const cc=ov.querySelector('#ex-cancel');if(cc)cc.onclick=()=>{ov.remove();done(true)}}
@@ -1987,15 +1988,19 @@ function exShop(){const run=save.ex.run,items=[['mv','🔨',L('技の強化','�
     if(k==='heal'){run.gear-=c;run.party.forEach(id=>{if((run.hp[id]||0)>0)run.hp[id]=Math.min(exMax(run,id),run.hp[id]+10)});persist();return exShop()}
     if(k==='rev')return exPickChar(L('工房：復活させる仲間を選ぶ','工坊：选择复活的伙伴'),id=>{run.gear-=c;run.hp[id]=Math.round(exMax(run,id)*.5);persist();exShop()},id=>(run.hp[id]||0)<=0,exShop)})}
 /* 訓練所：まだ持っていない技を1つ覚える（★2の固有技・★3の必殺も）。4つより多くは持てないので入れかえる */
+function exMvOf(run,id,j){const u=exUp(run,id);return G.applyLv(byId(id).moves[j],((save.lv[id]||{})[j]||0)+(u.mv[j]||0))}
+function exMvBtn(run,id,j,attr,extra){const m0=byId(id).moves[j];return`<button type="button" class="mv" ${attr}>${mvHTML(exMvOf(run,id,j),(m0.t||1)>1?`<span class="tier">${'★'.repeat(m0.t)}</span>`:'')}${extra||''}</button>`}
 function exTrain(){const run=save.ex.run;
-  const rows=run.party.map(id=>{const c=byId(id),eq=run.mv[id];return`<div class="ex-pm wide"><b>${c.name}<small>★${exStar(run,id)}</small></b><div class="ex-mvs">${c.moves.map((m,j)=>eq.includes(j)?'':`<button type="button" class="btn small" data-id="${id}" data-j="${j}">${'★'.repeat(m.t||1)} ${m.n}</button>`).join('')}</div></div>`}).join('');
-  const ov=exSheet(L(`${run.fl}F 訓練所`,`${run.fl}F 训练所`),`<p class="hint">${L('新しい技を1つ覚えられます（★2・★3の技も）。今の技と入れかえます。','可以学会1个新技能（含★2·★3技能），与现有技能交换。')}</p>${rows}
+  const rows=run.party.map(id=>{const c=byId(id),eq=run.mv[id],nw=c.moves.map((m,j)=>j).filter(j=>!eq.includes(j));
+    return`<div class="ex-tr"><div class="label">${c.name}${L(' が覚えられる技',' 可学技能')}</div><div class="moves">${nw.length?nw.map(j=>exMvBtn(run,id,j,`data-id="${id}" data-j="${j}"`)).join(''):`<p class="hint">${L('もう全部の技を覚えています','已学会全部技能')}</p>`}</div></div>`}).join('');
+  const ov=exSheet(L(`${run.fl}F 訓練所`,`${run.fl}F 训练所`),`<p class="hint">${L('新しい技を1つ覚えられます（★2・★3の技も）。覚えたい技をタップすると、入れかえる技を選べます。','可以学会1个新技能（含★2·★3技能）。点击想学的技能后，选择要交换的技能。')}</p>${rows}
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-leave">${L('覚えずに出る','不学习离开')}</button></div>`);
   ov.querySelector('#ex-leave').onclick=()=>{sfx('tap');exCellDone()};
   ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{sfx('tap');const id=b.dataset.id,nj=+b.dataset.j,c=byId(id),nm=c.moves[nj];
-    const ov2=exSheet(L(`「${nm.n}」と入れかえる技`,`与「${nm.n}」交换的技能`),`<p class="hint">${L('忘れる技を選んでください','请选择要忘记的技能')}</p><div class="ex-mvs">${run.mv[id].map(j=>`<button type="button" class="btn small" data-o="${j}">${'★'.repeat(c.moves[j].t||1)} ${c.moves[j].n}</button>`).join('')}</div>
+    const ov2=exSheet(L(`「${nm.n}」を覚える`,`学习「${nm.n}」`),`<div class="label">${L('覚える技','要学的技能')}</div><div class="moves">${exMvBtn(run,id,nj,'disabled style="cursor:default;opacity:1"')}</div>
+      <div class="label">${L('忘れる技を選んでください','请选择要忘记的技能')}</div><div class="moves">${run.mv[id].map(j=>exMvBtn(run,id,j,`data-o="${j}"`)).join('')}</div>
       <div class="row" style="justify-content:center"><button class="btn small" id="ex-back">${L('もどる','返回')}</button></div>`);
-    ov2.querySelector('#ex-back').onclick=()=>exTrain();
+    ov2.querySelector('#ex-back').onclick=()=>{ov2.remove();exTrain()};
     ov2.querySelectorAll('[data-o]').forEach(x=>x.onclick=()=>{sfx('tap');const o=+x.dataset.o;run.mv[id]=run.mv[id].map(j=>j===o?nj:j);persist();toast(L(`${c.name}は「${nm.n}」を覚えた！`,`${c.name}学会了「${nm.n}」！`));exCellDone()})})}
 function exTreasure(){const run=save.ex.run;
   if(Math.random()<.7){const g=6+Math.floor(Math.random()*3);run.gear+=g;persist();const ov=exSheet(L('宝箱','宝箱'),`<p class="hint" style="font-size:16px">⚙️ ${L(`ギア ${g} を手に入れた！`,`获得齿轮 ${g}！`)}</p><div class="row" style="justify-content:center"><button class="btn primary" id="ex-ok">OK</button></div>`);ov.querySelector('#ex-ok').onclick=()=>exCellDone();return}
