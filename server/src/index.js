@@ -557,9 +557,28 @@ export class Rank {
     return json({ coins: items.reduce((t, x) => t + (x.kind === 'rshard' || x.kind === 'rfeather' ? 0 : x.coins), 0), shards: items.reduce((t, x) => t + (x.kind === 'rshard' ? x.coins : 0), 0), feathers: items.reduce((t, x) => t + (x.kind === 'rfeather' ? x.coins : 0), 0), items });
   }
 
+  /* 管理用の合言葉のチェック（Ver 2.19.2）
+   *  ・文字列は1文字ずつ全部くらべる（くらべる時間から合言葉を推測されないように）
+   *  ・まちがいが10分間に10回つづくと、10分間だれも入れなくする（総当たりで当てられないように） */
+  async adminGate(b) {
+    const key = (this.env && this.env.ADMIN_KEY) || '';
+    const now = Date.now();
+    const lock = (await this.store.get('admLock')) || { n: 0, t: 0, until: 0 };
+    if (lock.until > now) return { status: 429, body: { err: 'locked', until: lock.until } };
+    const given = String(b.key || '');
+    let diff = key.length === given.length ? 0 : 1;
+    for (let i = 0; i < Math.max(key.length, given.length); i++) diff |= (key.charCodeAt(i) || 0) ^ (given.charCodeAt(i) || 0);
+    if (!key || diff) {
+      const n = now - lock.t > 600e3 ? 1 : lock.n + 1;
+      await this.store.put('admLock', { n, t: now, until: n >= 10 ? now + 600e3 : 0 });
+      return { status: 403, body: { err: 'auth' } };
+    }
+    if (lock.n) await this.store.put('admLock', { n: 0, t: 0, until: 0 });
+    return null;
+  }
+
   async admin(b) {
-    const key = this.env && this.env.ADMIN_KEY;
-    if (!key || b.key !== key) return json({ err: 'auth' }, 403);
+    const ng = await this.adminGate(b); if (ng) return json(ng.body, ng.status);
     if (b.rally) return this.rallyAdmin(b, json);
     if (b.raid) return this.raidAdmin(b, json);
     if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });

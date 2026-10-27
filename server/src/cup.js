@@ -383,8 +383,7 @@ export const CupMixin = {
   },
 
   async cupAdmin(b, json) {
-    const key = this.env && this.env.ADMIN_KEY;
-    if (!key || b.key !== key) return json({ err: 'auth' }, 403);
+    const ng = await this.adminGate(b); if (ng) return json(ng.body, ng.status);
     const op = b.op;
     if (op === 'list') {
       const ids = await this.cupList();

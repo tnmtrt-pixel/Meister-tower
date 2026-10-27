@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
-<title>マイスター杯 運営画面</title>
+<title>マイスターの塔 管理画面</title>
 <style>
 :root{--navy:#0B1730;--panel:#13244A;--line:#2C4682;--ink:#EAF1FF;--muted:#9FB3DA;--gold:#D9AE45;--gold-hi:#FFE08A;--good:#3DDC97;--low:#FF6B6B;--blue:#5B8CFF}
 *{box-sizing:border-box}
@@ -60,14 +60,18 @@ td.n{font-weight:900;color:var(--gold-hi);width:2em}
 form.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
 .hide{display:none!important}
+/* ランキング管理（スマホでも見やすく） */
+#rk-list td{font-size:13px;vertical-align:middle;padding:6px 3px}#rk-list img{width:34px;height:34px;border-radius:6px;border:1px solid var(--gold);object-fit:cover;background:#fff;display:block}
+#rk-list td:nth-child(3){word-break:break-all}#rk-list td:last-child{white-space:nowrap;text-align:right}#rk-list td:last-child .btn{display:block;margin:2px 0 2px auto}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>🏆 マイスター杯 運営画面</h1>
-    <select id="sel"></select>
-    <button class="btn small" id="new">＋ 新しい大会</button>
+    <h1>🛠 マイスターの塔 管理画面</h1>
+    <button class="btn small" id="cup-old">大会（旧）</button>
+    <select id="sel" class="hide"></select>
+    <button class="btn small hide" id="new">＋ 新しい大会</button>
     <button class="btn small" id="rk-open">ランキング管理</button>
     <button class="btn small" id="ra-open">📣 集合タイム</button>
     <button class="btn small" id="rd-open">レイドの体力</button>
@@ -82,8 +86,8 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
   </div>
   <div id="rk" class="card hide">
     <div class="big">ランキング管理</div>
-    <p class="st">消したい人の「非表示」を押すと、すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。</p>
-    <p><select id="rk-type"><option value="lad">ランクバトル（今シーズン）</option><option value="infw">無限の塔 ウィークリー</option><option value="raidw">レイド 今週の合計ダメージ</option><option value="exw">探索 ウィークリー</option><option value="inf">無限の塔 トータル（旧）</option><option value="ex">探索 通算（旧）</option></select>
+    <p class="st">「非表示」：すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。「記録を0に」：無限の塔・探索の記録を0にします（元に戻せません）。</p>
+    <p><select id="rk-type"><option value="infw">無限の塔 ウィークリー</option><option value="lad">ランクバトル（今シーズン）</option><option value="raidw">レイド 今週の合計ダメージ</option><option value="exw">探索 ウィークリー</option><option value="inf">無限の塔 トータル（旧）</option><option value="ex">探索 通算（旧）</option></select>
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
@@ -150,7 +154,7 @@ let TID='',S=null,poll=null;
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('hide'),3000)};
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function adm(op,extra={}){const r=await fetch(API+'/api/cup/admin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({key:KEY,op,tid:TID,...extra})});
-  const j=await r.json().catch(()=>({}));if(r.status===403){showLogin();throw new Error('auth')}if(r.status===404&&!j.err)throw new Error('old');if(j.cup)S=j.cup;if(!r.ok)throw new Error(j.err||r.status);return j}
+  const j=await r.json().catch(()=>({}));if(r.status===429){showLogin();throw new Error('locked')}if(r.status===403){showLogin();throw new Error('auth')}if(r.status===404&&!j.err)throw new Error('old');if(j.cup)S=j.cup;if(!r.ok)throw new Error(j.err||r.status);return j}
 const nameOf=p=>p?(p.w||[]).slice(0,3).map((n,k)=>G.wordText(k,n)).join('')+'#'+p.tag:'';
 const titleOf=p=>p&&p.title?(G.TITLE_NAMES[p.title]||[''])[0]:'';
 const img=id=>{const c=G.byId(id);return c?`<img src="${c.img}" alt="">`:'<img alt="">'};
@@ -161,6 +165,7 @@ const errMsg=e=>{const m=String(e.message||e);if(m.startsWith('undecided:'))retu
 function showLogin(){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#create').classList.add('hide');clearInterval(poll)}
 $('#go').onclick=async()=>{KEY=$('#key').value.trim();$('#lerr').textContent='確認しています…';try{sessionStorage.setItem('mt-admin',KEY)}catch(e){}await boot()};
 async function why(r){/* ログインできない理由を表示する */
+  if(r==='locked'){$('#lerr').textContent='パスワードのまちがいが続いたので、10分間ロックしています。しばらく待ってから入ってください。';return}
   if(r==='auth'){$('#lerr').textContent='パスワードがちがいます。または、Cloudflare に ADMIN_KEY がまだ登録されていません（登録後に Deploy が必要です）。';return}
   try{const t=await fetch(API+'/api/cup/pub');$('#lerr').textContent=t.status===404?'サーバーがまだ古い版です。Cloudflare の更新が終わるまで数分待ってください。':'サーバーにつながりません：'+r}catch(e){$('#lerr').textContent='サーバーにつながりません。通信環境を確認してください。'}}
 $('#logout').onclick=()=>{KEY='';try{sessionStorage.removeItem('mt-admin')}catch(e){}showLogin()};
@@ -207,8 +212,10 @@ $('#ra-add').onclick=async()=>{const f=$('#raf'),t=new Date(f.start.value).getTi
 async function boot(){try{const j=await adm('list');$('#login').classList.add('hide');
     const list=j.list||[];if(!TID&&list.length)TID=(list.filter(x=>x.status!=='done').pop()||list[list.length-1]).id;
     $('#sel').innerHTML=list.map(x=>`<option value="${x.id}" ${x.id===TID?'selected':''}>${esc(x.name.ja)}／${esc(x.sub.ja)}（${({open:'エントリー受付中',checkin:'当日受付中',play:'進行中',done:'終了'})[x.status]}）</option>`).join('')||'<option>大会がありません</option>';
-    if(!list.length){$('#create').classList.remove('hide');$('#app').classList.add('hide');return}
-    $('#app').classList.remove('hide');$('#lerr').textContent='';await refresh();clearInterval(poll);poll=setInterval(refresh,2000)}catch(e){showLogin();why(String(e.message||e))}}
+    $('#lerr').textContent='';$('#app').classList.add('hide');$('#create').classList.add('hide');
+    /* Ver 2.19.2 大会はなくなったので、入ったらランキング管理を開く。大会の画面は「大会（旧）」から */
+    $('#rk').classList.remove('hide');rkLoad();
+    $('#cup-old').onclick=async()=>{const on=$('#sel').classList.toggle('hide');$('#new').classList.toggle('hide',on);if(on){$('#app').classList.add('hide');clearInterval(poll);return}if(!list.length){$('#create').classList.remove('hide');return}$('#app').classList.remove('hide');await refresh();clearInterval(poll);poll=setInterval(refresh,2000)}}catch(e){showLogin();why(String(e.message||e))}}
 async function refresh(){if(!TID)return;try{await adm("state")}catch(e){return}render()}
 const act=(op,extra,confirmMsg)=>async()=>{if(confirmMsg&&!confirm(confirmMsg))return;try{await adm(op,extra);render();if(op==='delete'){TID='';boot()}}catch(e){toast(errMsg(e))}};
 
