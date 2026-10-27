@@ -621,7 +621,7 @@ hr{border-color:var(--line)!important}
 .bd-use{display:flex;flex-direction:column;gap:4px}.bd-u{display:flex;align-items:center;gap:8px}.bd-u span{flex:1}.bd-u small{width:70px;text-align:right}
 .exb{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 4px;border-radius:12px;background:radial-gradient(ellipse at 50% 100%,#3B3550 0%,#1C1B2B 70%);perspective:600px}
 .exb-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;transform-origin:50% 100%}
-.exb-row.d3{width:64%;gap:3px}.exb-row.d2{width:82%;gap:4px}.exb-row.d1{width:100%}
+.exb-row.d3{width:64%;gap:3px}.exb-row.d2{width:82%;gap:4px}.exb-row.d1{width:92%;grid-template-columns:repeat(3,1fr);gap:10px}
 .exc.side{filter:brightness(.6)}.exb-row .exc-name{font-size:10px}.exb-row.d2 .exc-name{font-size:9px;letter-spacing:-.04em}.exb-row.d3 .exc-name{font-size:8px;letter-spacing:-.04em}
 .exc{position:relative;aspect-ratio:3/4;border-radius:8px;padding:4px;border:0;background:linear-gradient(160deg,#D9C27A,#7C5FA8 45%,#3D2F63);box-shadow:0 3px 8px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:3px;min-width:0;font:inherit;color:#fff;cursor:default}
 .exb-row.d3 .exc{filter:brightness(.6)}.exb-row.d2 .exc{filter:brightness(.82)}
@@ -1865,20 +1865,20 @@ function exStart(){if(save.ex.run){toast(L('探索はすでに挑戦中です（
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();const id=b.dataset.c;
     const run={fl:1,fm:exGenFloor(1),gear:0,dice:0,boss:0,party:[id],mv:{[id]:exStartMoves(id)},up:{},hp:{}};run.hp[id]=exMax(run,id);
     save.ex.run=run;persist();exMap()})}
-function exCard(k,es,face){const K=EXK[k];if(!face)return`<span class="exc-back">？</span>`;
+function exCard(k,es,face,small){const K=EXK[k];if(!face)return`<span class="exc-back">？</span>`;
   const lead=es&&es[0]&&byId(es[0].id);
-  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?L('一般戦闘','一般战斗'):L(K.ja,K.zh)}</span>`}
+  return`<span class="exc-art k-${k}">${lead?`<img src="${lead.img}" alt="">`:`<i>${K.i}</i>`}${es&&es.length>1?`<em>×${es.length}</em>`:''}</span><span class="exc-name">${k==='battle'?(small?L('戦闘','战斗'):L('一般戦闘','一般战斗')):L(K.ja,K.zh)}</span>`}
 function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll('.overlay.ex-o').forEach(e=>e.remove());
   const fm=run.fm,boss=EX_BOSS.includes(run.fl),n=fm.row+1;
   const party=run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('');
   const rows=[];for(let d=3;d>=1;d--){const r=fm.row+d;if(r>=EX_R)continue;
-    rows.push(`<div class="exb-row d${d}">${[-2,-1,0,1,2].map(o=>{const l=fm.lane+o,c=exCardAt(run,r,l),can=d===1&&Math.abs(o)<=1;
-      return`<button type="button" class="exc${can?' can':''}${Math.abs(o)===2?' side':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(c.k,c.k==='boss'?fm.boss:c.e,d<=2||c.k==='stairs'||c.k==='boss')}</button>`}).join('')}</div>`)}
+    rows.push(`<div class="exb-row d${d}">${(d===1?[-1,0,1]:[-2,-1,0,1,2]).map(o=>{const l=fm.lane+o,c=exCardAt(run,r,l),can=d===1&&Math.abs(o)<=1;
+      return`<button type="button" class="exc${can?' can':''}${Math.abs(o)===2?' side':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(c.k,c.k==='boss'?fm.boss:c.e,true,d>1)}</button>`}).join('')}</div>`)}
   persist();
   const me=`<div class="exb-me"><img src="${byId(run.party[0]).img}" alt=""></div>`;
   const ov=exSheet(L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)+(boss?L('｜ボスの階','｜头目层'):''),`<div class="ex-party">${party}</div>
     <div class="exb">${rows.join('')}${me}</div>
-    <p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。奥のカードは近づくと見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。远处的卡牌靠近后才能看到。`)}</p>
+    <p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-pause">${L('中断する（あとで続きから）','中断（之后继续）')}</button></div>`);
   ov.querySelector('#ex-pause').onclick=()=>{sfx('tap');ov.remove();nav('tower')};
   ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{sfx('tap');exMove(+b.dataset.l)})}
