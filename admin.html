@@ -165,7 +165,7 @@ const errMsg=e=>{const m=String(e.message||e);if(m.startsWith('undecided:'))retu
 function showLogin(){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#create').classList.add('hide');clearInterval(poll)}
 $('#go').onclick=async()=>{KEY=$('#key').value.trim();$('#lerr').textContent='確認しています…';try{sessionStorage.setItem('mt-admin',KEY)}catch(e){}await boot()};
 async function why(r){/* ログインできない理由を表示する */
-  if(r==='locked'){$('#lerr').textContent='パスワードのまちがいが続いたので、10分間ロックしています。しばらく待ってから入ってください。';return}
+  if(r==='locked'){$('#lerr').textContent='パスワードを3回まちがえたので、24時間ロックしています。すぐに入りたいときは、Cloudflare の ADMIN_KEY を新しい合言葉に変えてデプロイしてください（ロックが解けます）。';return}
   if(r==='auth'){$('#lerr').textContent='パスワードがちがいます。または、Cloudflare に ADMIN_KEY がまだ登録されていません（登録後に Deploy が必要です）。';return}
   try{const t=await fetch(API+'/api/cup/pub');$('#lerr').textContent=t.status===404?'サーバーがまだ古い版です。Cloudflare の更新が終わるまで数分待ってください。':'サーバーにつながりません：'+r}catch(e){$('#lerr').textContent='サーバーにつながりません。通信環境を確認してください。'}}
 $('#logout').onclick=()=>{KEY='';try{sessionStorage.removeItem('mt-admin')}catch(e){}showLogin()};

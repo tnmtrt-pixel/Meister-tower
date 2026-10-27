@@ -559,21 +559,24 @@ export class Rank {
 
   /* 管理用の合言葉のチェック（Ver 2.19.2）
    *  ・文字列は1文字ずつ全部くらべる（くらべる時間から合言葉を推測されないように）
-   *  ・まちがいが10分間に3回つづくと、10分間だれも入れなくする（総当たりで当てられないように） */
+   *  ・24時間のうちに3回まちがえると、24時間だれも入れなくする（総当たりで当てられないように）
+   *  ・Cloudflare の ADMIN_KEY を変えると、ロックは解ける（自分が閉め出されたときの出口） */
   async adminGate(b) {
     const key = (this.env && this.env.ADMIN_KEY) || '';
     const now = Date.now();
-    const lock = (await this.store.get('admLock')) || { n: 0, t: 0, until: 0 };
+    const kh = (await sha('adm|' + key)).slice(0, 16);
+    let lock = (await this.store.get('admLock')) || { n: 0, t: 0, until: 0, kh };
+    if (lock.kh !== kh) lock = { n: 0, t: 0, until: 0, kh };
     if (lock.until > now) return { status: 429, body: { err: 'locked', until: lock.until } };
     const given = String(b.key || '');
     let diff = key.length === given.length ? 0 : 1;
     for (let i = 0; i < Math.max(key.length, given.length); i++) diff |= (key.charCodeAt(i) || 0) ^ (given.charCodeAt(i) || 0);
     if (!key || diff) {
-      const n = now - lock.t > 600e3 ? 1 : lock.n + 1;
-      await this.store.put('admLock', { n, t: now, until: n >= 3 ? now + 600e3 : 0 });
+      const n = now - lock.t > 86400e3 ? 1 : lock.n + 1;
+      await this.store.put('admLock', { n, t: now, until: n >= 3 ? now + 86400e3 : 0, kh });
       return { status: 403, body: { err: 'auth' } };
     }
-    if (lock.n) await this.store.put('admLock', { n: 0, t: 0, until: 0 });
+    if (lock.n) await this.store.put('admLock', { n: 0, t: 0, until: 0, kh });
     return null;
   }
 
