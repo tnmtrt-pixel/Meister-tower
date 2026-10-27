@@ -677,7 +677,7 @@ hr{border-color:var(--line)!important}
 .partybar{padding:8px 12px}.partybar .psets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.partybar .pset:disabled{opacity:.55}.pb-busy{display:block;font-size:11px;color:#B0304A}
 
 /* Ver 2.17 戦闘画面をコンパクトに（スマホ1画面に収める） */
-body:has(#arena:not([hidden])) header .hrow{display:none}
+body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header .hrow{display:none}
 #arena{gap:6px}
 #arena .fighter{padding:6px 10px;gap:10px}#arena .crest.big{width:64px}#arena .fname{font-size:16px}#arena .finfo{gap:2px}#arena .chips{min-height:0}
 #arena .log{height:3.2em;font-size:13px;padding:5px 10px;line-height:1.55}
@@ -903,7 +903,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.22.3';
+const VERSION='2.22.4';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -2079,9 +2079,9 @@ function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll(
       return`<button type="button" class="exc${can?' can':''}${Math.abs(o)===2?' side':''}" ${can?`data-l="${l}"`:'disabled'}>${exCard(c.k,c.k==='boss'?fm.boss:c.e,true,d>1)}</button>`}).join('')}</div>`)}
   persist();
   const showHint=(save.ex.hint||0)<5;if(showHint&&fm.row===-1&&!fm.hn){fm.hn=1;save.ex.hint=(save.ex.hint||0)+1}/* 説明は最初の5フロアだけ */
-  const hintHTML=showHint?`<p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>`:'';
+  const hintHTML=showHint?`<p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}です。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}。可以看到3排以内。`)}</p>`:'';
   const rr=fm.row+1<EX_R-1&&!(fm.row+1===0&&run.fl===1);
-  exTipK='map';const ov=exSheet(L(`${run.fl}F　あと${EX_R-n}歩`,`${run.fl}F　还有${EX_R-n}步`),`<div class="exb">${rows.join('')}</div>
+  exTipK='map';const ov=exSheet(L(`階段まであと${EX_R-n}歩`,`距楼梯还有${EX_R-n}步`),`<div class="exb">${rows.join('')}</div>
     ${hintHTML}${rr?`<div class="row" style="justify-content:center"><button class="btn small" id="ex-reroll" ${run.gear<EX_REROLL?'disabled':''}>🔄 ${L(`道を変える（手前の3枚を引き直す）⚙️${EX_REROLL}`,`改变道路（重抽前方3张）⚙️${EX_REROLL}`)}</button></div>`:''}`);
   const rb=ov.querySelector('#ex-reroll');if(rb)rb.onclick=()=>{if(run.gear<EX_REROLL)return;sfx('tap');run.gear-=EX_REROLL;fm.rs=(fm.rs||0)+1;const r=fm.row+1;for(let o=-1;o<=1;o++)delete fm.c[r+':'+(fm.lane+o)];persist();exMap()};
   
@@ -2095,7 +2095,7 @@ function exMove(l){const run=save.ex.run,fm=run.fm;fm.row+=1;fm.lane=l;const k=e
 function exCellDone(){const run=save.ex.run;if(run&&run.at){run.at=null;persist()}exMap()}
 function exResume(){const r=save.ex.run;if(!r)return exStart();if(r.pend)return exNext();if(r.curK)return exBattle(r.curK);if(r.at==='rest')return exRest();if(r.at==='shop')return exShop();if(r.at==='train')return exTrain();exMap()}
 function exStairs(){const run=save.ex.run;
-  const ov=exSheet(L(`${run.fl}F 階段`,`${run.fl}F 楼梯`),`<p class="hint">${L(`${run.fl+1}階へ上がりますか？ この階にはもどれません。`,`要前往${run.fl+1}层吗？无法返回本层。`)}</p>
+  const ov=exSheet(L('階段','楼梯'),`<p class="hint">${L(`${run.fl+1}階へ上がりますか？ この階にはもどれません。`,`要前往${run.fl+1}层吗？无法返回本层。`)}</p>
     <div class="row" style="justify-content:center"><button class="btn primary" id="ex-up">${L('上がる','上楼')}</button><button class="btn" id="ex-stay">${L('もう少し歩く','再走走看')}</button></div>`);
   ov.querySelector('#ex-up').onclick=()=>{sfx('tap');ov.remove();exNextFloor()};
   ov.querySelector('#ex-stay').onclick=()=>{ov.remove();exMap()}}
@@ -2166,7 +2166,7 @@ function exPop(icon,txt){const d=document.createElement('div');d.className='ex-p
 function exView(){if(!$('#v-ex').hidden&&$('#arena').hidden)return;['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!=='ex');$('#arena').hidden=true;$('#nav').hidden=true;$('#subnav').hidden=true;$('#partybar').hidden=true;$('#rsubnav').hidden=true}
 /* 探索画面の上の帯：もどる・階・ギア・仲間の体力（いつも表示） */
 function exHud(){const run=save.ex.run,el=$('#ex-hud');if(run)run.party.forEach(id=>{if((run.hp[id]||0)>exMax(run,id))run.hp[id]=exMax(run,id)});/* 前の版で始めた探索は体力を上限にそろえる */
-  el.innerHTML=`<div class="ex-hud-top"><button type="button" class="btn small" id="ex-back-tower">◀ ${L('もどる','返回')}</button><b>🧭 ${run?(run.dk?L(`今日の探索 ${run.fl}F`,`今日探索 ${run.fl}F`):L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)):L('探索','探索')}${run&&EX_BOSS.includes(run.fl)?`<small>${L('ボスの階','头目层')}</small>`:''}</b>${run?`<span>⚙️ <b id="ex-gear">${run.gear}</b>${run.dice?'　🎲+1':''}</span>`:'<span></span>'}</div>
+  el.innerHTML=`<div class="ex-hud-top"><button type="button" class="btn small" id="ex-back-tower">◀ ${L('もどる','返回')}</button><b>${run?(run.dk?L(`今日の探索 ${run.fl}F`,`今日探索 ${run.fl}F`):L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)):L('探索','探索')}${run&&EX_BOSS.includes(run.fl)?`<small>${L('ボスの階','头目层')}</small>`:''}</b>${run?`<span>⚙️ <b id="ex-gear">${run.gear}</b>${run.dice?'　🎲+1':''}</span>`:'<span></span>'}</div>
     ${run?`<div class="ex-party">${run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('')}</div>`:''}`;
   el.querySelector('#ex-back-tower').onclick=()=>{sfx('tap');document.querySelectorAll('.ex-o').forEach(e=>e.remove());nav('ex')}}
 /* Ver 2.20 探索のチュートリアル：はじめてその画面を開いたときだけ、上に短い説明を出す（「あそびかた」でもう一度見られる） */
@@ -2195,14 +2195,14 @@ function exPickChar(title,pick,ok,back){const run=save.ex.run;
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();pick(b.dataset.c)});
   ov.querySelector('#ex-cancel').onclick=()=>{ov.remove();back()}}
 function exRest(){const run=save.ex.run;
-  exTipK='rest';const ov=exSheet(L(`${run.fl}F 休憩`,`${run.fl}F 休息`),`<p class="hint">${L('どちらか1つ選べます','可以选择其中一项')}</p><div class="ex-row two">
+  exTipK='rest';const ov=exSheet(L('休憩','休息'),`<p class="hint">${L('どちらか1つ選べます','可以选择其中一项')}</p><div class="ex-row two">
     <button type="button" class="ex-node can" data-r="heal"><span class="ex-i">${exIco('💚')}</span><b>${L('回復','恢复')}</b><small>${L('全員の体力を最大の40%回復<br>たおれた仲間も30%で復活','全员恢复最大体力的40%<br>倒下的伙伴以30%复活')}</small></button>
     <button type="button" class="ex-node can" data-r="up"><span class="ex-i">${exIco('🔨')}</span><b>${L('きたえる','锻炼')}</b><small>${L('技を1つ強化','强化1个技能')}</small></button></div>`);
   ov.querySelector('[data-r="heal"]').onclick=()=>{sfx('tap');run.party.forEach(id=>{const mx=exMax(run,id),h=run.hp[id]||0;run.hp[id]=h<=0?Math.round(mx*.3):Math.min(mx,h+Math.round(mx*.4))});exCellDone()};
   ov.querySelector('[data-r="up"]').onclick=()=>{sfx('tap');exPickMove(L('きたえる：強化する技を選ぶ','锻炼：选择要强化的技能'),()=>exCellDone())}}
 function exShop(){const run=save.ex.run,items=[['full','💚',L('全回復','完全恢复'),L('全員の体力を最大まで','全员体力回满')],['rev','✨',L('復活','复活'),L('たおれた仲間1人を50%で','1名倒下的伙伴以50%')],['mv','🔨',L('技の大強化','技能大强化'),L(`技を1つ+${EX_SHOPV.mv}`,`1个技能+${EX_SHOPV.mv}`)],['hp','💪',L('体力の大強化','体力大强化'),L(`1人の最大体力+${EX_SHOPV.hp}`,`1人最大体力+${EX_SHOPV.hp}`)]];
   run.sb=run.sb||[];const alive=run.party.filter(id=>(run.hp[id]||0)>0),dis=k=>run.sb.includes(k)||run.gear<EX_SHOP[k]||(k==='hp'&&!run.party.some(id=>exHpRoom(run,id)>0))||(k==='rev'&&alive.length===run.party.length)||(k==='full'&&alive.every(id=>run.hp[id]>=exMax(run,id)))||(k==='mv'&&!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)));
-  exTipK='shop';const ov=exSheet(L(`${run.fl}F 工房`,`${run.fl}F 工坊`),`<p class="hint">${L(`ギアを使って、ここでしかできない大きな強化ができます。品物は1回の来店で1つずつ。最大体力の強化は報酬などと合わせて1人+${EX_HPCAP}まで`,`可以使用齿轮进行只有这里才有的大强化。每次来店每种商品限购1次。最大体力强化与奖励等合计每人最多+${EX_HPCAP}`)}</p><div class="ex-row two">${items.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-s="${k}" ${dis(k)?'disabled':''}><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}<br>${run.sb.includes(k)?L('購入済み','已购买'):'⚙️'+EX_SHOP[k]}</small></button>`).join('')}</div>
+  exTipK='shop';const ov=exSheet(L('工房','工坊'),`<p class="hint">${L(`ギアを使って、ここでしかできない大きな強化ができます。品物は1回の来店で1つずつ。最大体力の強化は報酬などと合わせて1人+${EX_HPCAP}まで`,`可以使用齿轮进行只有这里才有的大强化。每次来店每种商品限购1次。最大体力强化与奖励等合计每人最多+${EX_HPCAP}`)}</p><div class="ex-row two">${items.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-s="${k}" ${dis(k)?'disabled':''}><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}<br>${run.sb.includes(k)?L('購入済み','已购买'):'⚙️'+EX_SHOP[k]}</small></button>`).join('')}</div>
     <div class="row" style="justify-content:center"><button class="btn primary" id="ex-leave">${L('工房を出る','离开工坊')}</button></div>`);
   ov.querySelector('#ex-leave').onclick=()=>{sfx('tap');exCellDone()};
   ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.s,c=EX_SHOP[k];if(dis(k))return;
@@ -2216,7 +2216,7 @@ function exMvBtn(run,id,j,attr,extra){const m0=byId(id).moves[j];return`<button 
 function exTrain(){const run=save.ex.run;
   const rows=run.party.map(id=>{const c=byId(id),eq=run.mv[id],nw=c.moves.map((m,j)=>j).filter(j=>!eq.includes(j));
     return`<div class="ex-tr"><div class="label">${c.name}${L(' が覚えられる技',' 可学技能')}</div><div class="moves">${nw.length?nw.map(j=>{const st=c.moves[j].t||1,cost=EX_LEARN[st]||0,lock=st>=3&&run.fl<EX_LEARN3_FL,poor=run.gear<cost;return exMvBtn(run,id,j,`data-id="${id}" data-j="${j}" ${lock||poor?'disabled':''}`,`<small class="ex-cost${lock||poor?' no':''}">${lock?L(`🔒 ${EX_LEARN3_FL}Fから覚えられる`,`🔒 ${EX_LEARN3_FL}F起可学`):cost?`⚙️ ${L('ギア','齿轮')} ${cost}${poor?L('（たりない）','（不足）'):''}`:L('無料','免费')}</small>`)}).join(''):`<p class="hint">${L('もう全部の技を覚えています','已学会全部技能')}</p>`}</div></div>`}).join('');
-  exTipK='train';const ov=exSheet(L(`${run.fl}F 訓練所`,`${run.fl}F 训练所`),`<p class="hint">${L(`新しい技を1つ覚えられます。★1は無料、★2はギア${EX_LEARN[2]}、★3はギア${EX_LEARN[3]}（${EX_LEARN3_FL}Fから）。覚えたい技をタップすると、入れかえる技を選べます。`,`可以学会1个新技能。★1免费，★2需齿轮${EX_LEARN[2]}，★3需齿轮${EX_LEARN[3]}（${EX_LEARN3_FL}F起）。点击想学的技能后，选择要交换的技能。`)}</p>${rows}
+  exTipK='train';const ov=exSheet(L('訓練所','训练所'),`<p class="hint">${L(`新しい技を1つ覚えられます。★1は無料、★2はギア${EX_LEARN[2]}、★3はギア${EX_LEARN[3]}（${EX_LEARN3_FL}Fから）。覚えたい技をタップすると、入れかえる技を選べます。`,`可以学会1个新技能。★1免费，★2需齿轮${EX_LEARN[2]}，★3需齿轮${EX_LEARN[3]}（${EX_LEARN3_FL}F起）。点击想学的技能后，选择要交换的技能。`)}</p>${rows}
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-leave">${L('覚えずに出る','不学习离开')}</button></div>`);
   ov.querySelector('#ex-leave').onclick=()=>{sfx('tap');exCellDone()};
   ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{sfx('tap');const id=b.dataset.id,nj=+b.dataset.j,c=byId(id),nm=c.moves[nj];
@@ -2233,7 +2233,7 @@ function exBossReward(){const run=save.ex.run;
   const ops=[['mv2','🔨',L('技を大きく強化','大幅强化技能'),L('技を1つ+2','1个技能+2')],['hpall','💪',L('全員の体力アップ','全员体力提升'),L('全員の最大体力+6、体力も+6','全员最大体力+6，体力也+6')]];
   if(!run.dice)ops.push(['dice','🎲',L('サイコロ+1','骰子+1'),L('この探索の間ずっと、サイコロが1個ふえる（1回だけ）','本次探索期间骰子+1（仅1次）')]);
   const after=()=>{persist();if(run.party.length<3&&run.fl<EX_F)return exRecruit();exNextFloor()};
-  exTipK='boss';const ov=exSheet(L(`${run.fl}F ボスの報酬`,`${run.fl}F 头目奖励`),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row two">${ops.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-b="${k}"><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}</small></button>`).join('')}</div>`);
+  exTipK='boss';const ov=exSheet(L('ボスの報酬','头目奖励'),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row two">${ops.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-b="${k}"><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}</small></button>`).join('')}</div>`);
   ov.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.b;
     if(k==='dice'){run.dice=1;exPop('🎲',L('サイコロ+1！','骰子+1！'));return after()}
     if(k==='hpall'){run.party.forEach(id=>exAddHp(run,id,6));exPop('💪',L('全員の最大体力+6','全员最大体力+6'));return after()}
@@ -2260,10 +2260,9 @@ function exEnd(clear){const run=save.ex.run;if(!run)return;const f=clear?EX_F:Ma
     hint:L(`突破した階×${EX_REW.floor}・ボス1体${EX_REW.boss}${clear?`・踏破${EX_REW.clear}`:''}コイン（1日${EX_REW.cap}コインまで。今日 ${D.c}/${EX_REW.cap}）`,`突破层数×${EX_REW.floor}·每个头目${EX_REW.boss}${clear?`·踏破${EX_REW.clear}`:''}金币（每天最多${EX_REW.cap}。今日 ${D.c}/${EX_REW.cap}）`),
     go:[['ex-again',L('もう一度探索する','再次探索'),()=>{nav('ex');exStart()}],['ex',L('探索の画面へ','前往探索画面')]]})}
 function renderEx(){const el=$('#expanel'),run=save.ex.run,D=save.ex.day.d===today()?save.ex.day.c:0;
-  el.innerHTML=`<div class="tw has-img" style="cursor:default"><span class="tw-img"><img src="img/ex-banner.webp" alt=""></span></div><div class="row between"><h2>🧭 ${L('探索','探索')}<small class="ex-new">NEW</small></h2><button type="button" class="btn small" id="ex-howto">${L('あそびかた','玩法')}</button></div>
-    <p class="hint">${L(`全${EX_F}階。1人で出発して、フロアを歩いて階段をさがします。5階・10階のボスを倒すと仲間がふえます。技は★1から始まり、訓練所で覚えます。体力は持ちこし。「ギア」を集めて工房で強化しながら、${EX_F}階のボスを目指します（強化はこの探索の中だけ）。`,`共${EX_F}层。1人出发，在楼层中行走寻找楼梯。打倒5层·10层的头目后伙伴会增加。技能从★1开始，在训练所学习。体力保留。收集「齿轮」在工坊强化，目标是${EX_F}层的头目（强化仅限本次探索）。`)}</p>
+  el.innerHTML=`<div class="tw has-img" style="cursor:default"><span class="tw-img"><img src="img/ex-banner.webp" alt=""></span></div><div class="row between"><h2>${L('探索','探索')}</h2><button type="button" class="btn small" id="ex-howto">${L('あそびかた','玩法')}</button></div>
+    <p class="hint">${L(`1人で出発して${EX_F}階のボスをめざす。カードを選んで進み、勝つたびに強くなろう（強化はこの探索の中だけ）。`,`1人出发，目标是第${EX_F}层的头目。选择卡牌前进，每次胜利都会变强（强化仅限本次探索）。`)}</p>
     <div class="t-rec"><span>${L('最高','最高')}</span><b>${save.ex.best}F</b><span>${L('踏破','踏破')}</span><b>${save.ex.clears}${L('回','次')}</b><span>${L('今日もらったコイン','今日获得金币')}</span><b>${D}/${EX_REW.cap}</b></div>
-    <p class="hint">${['battle','elite','treasure','shop','rest','train','stairs','boss'].map(k=>`${EXK[k].i}${L(EXK[k].ja,EXK[k].zh)}`).join('　')}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.fl}F（${run.party.map(id=>byId(id).name).join('・')}・ギア${run.gear}）`,`挑战中：${run.fl}F（${run.party.map(id=>byId(id).name).join('·')}·齿轮${run.gear}）`)}</div><div class="row"><button class="btn small" id="ex-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const b=$('#ex-bar-go');b.textContent=run?L(`続きから（${run.fl}F）`,`继续（${run.fl}F）`):L('キャラを選んで出発','选择角色出发');
     b.onclick=()=>{ac();sfx('tap');exResume()};
