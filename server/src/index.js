@@ -361,6 +361,9 @@ export class Rank {
     for (const c of ['exb', 'exc', 'exdb', 'exdk', 'exdl', 'exwb', 'exwk', 'exwl', 'infT']) { try { this.sql.exec(`ALTER TABLE u ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`); } catch (e) { /* 追加済み */ } }
     /* 上位の報酬（受け取るまで残る） */
     this.sql.exec(`CREATE TABLE IF NOT EXISTS rw (id TEXT NOT NULL, kind TEXT NOT NULL, pkey INTEGER NOT NULL, rank INTEGER NOT NULL, coins INTEGER NOT NULL, got INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, kind, pkey))`);
+    /* セーブの預かり（Ver 2.20）：1人1つ。復元コードはハッシュで持つ */
+    this.sql.exec('CREATE TABLE IF NOT EXISTS bk (id TEXT PRIMARY KEY, rc TEXT NOT NULL, data TEXT NOT NULL, t INTEGER NOT NULL DEFAULT 0)');
+    try { this.sql.exec('CREATE INDEX IF NOT EXISTS bk_rc ON bk (rc)'); } catch (e) { /* ある */ }
     this.ladInit();
     this.raidInit();
   }
@@ -392,6 +395,30 @@ export class Rank {
     return r[0] || null;
   }
 
+  /* セーブを預かる（プロフィール登録者だけ・1時間に1回まで・200KBまで）。無料枠：1人1日1回なら書きこみは人数ぶんだけ */
+  async backupPut(b) {
+    const a = await this.auth(b);
+    if (a.err) return json({ err: a.err }, 403);
+    if (!a.r) return json({ err: 'profile' }, 404);
+    const data = String(b.data || ''), rc = String(b.rc || '').toUpperCase();
+    if (!data.startsWith('OKS2.') || data.length > 200000) return json({ err: 'data' }, 400);
+    if (!/^[A-Z2-9]{12}$/.test(rc)) return json({ err: 'rc' }, 400);
+    const now = Date.now(), old = this.sql.exec('SELECT t FROM bk WHERE id=?', b.id).toArray()[0];
+    if (old && now - old.t < 3600e3) return json({ ok: true, skip: true, t: old.t });
+    const h = await sha('rc:' + rc);
+    this.sql.exec('INSERT INTO bk (id, rc, data, t) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET rc=excluded.rc, data=excluded.data, t=excluded.t', b.id, h, data, now);
+    return json({ ok: true, t: now });
+  }
+
+  /* 復元コードで預けたセーブを取り出す */
+  async backupGet(b) {
+    const rc = String(b.rc || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!/^[A-Z2-9]{12}$/.test(rc)) return json({ err: 'rc' }, 400);
+    const r = this.sql.exec('SELECT data, t FROM bk WHERE rc=?', await sha('rc:' + rc)).toArray()[0];
+    if (!r) return json({ err: 'none' }, 404);
+    return json({ ok: true, data: r.data, t: r.t });
+  }
+
   async auth(b) {
     if (!ID_RE.test(b.id || '') || !SEC_RE.test(b.sec || '')) return { err: 'bad id' };
     const h = await sha('mt:' + b.sec), r = this.row(b.id);
@@ -413,6 +440,8 @@ export class Rank {
       const b = await request.json().catch(() => ({}));
       if (url.pathname === '/api/profile') return this.profile(b);
       if (url.pathname === '/api/score') return this.score(b);
+      if (url.pathname === '/api/backup') return this.backupPut(b);
+      if (url.pathname === '/api/backup/get') return this.backupGet(b);
       if (url.pathname === '/api/rank/claim') return this.claim(b);
       if (url.pathname === '/api/lad/me') return this.ladMe(b, json);
       if (url.pathname === '/api/raid/start') return this.raidStart(b, json);

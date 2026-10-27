@@ -727,6 +727,8 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 .ov-go{gap:6px}.ov-go .btn.primary{flex:1 1 100%;max-width:320px;font-size:17px;padding:12px 16px}.ov-go .btn:not(.primary){flex:1 1 0;min-width:0;font-size:11px;padding:6px 3px;white-space:nowrap;letter-spacing:-.03em}
 
 .partybar{min-height:55px}.partybar .pb-ex{display:none}.partybar.ex .psets,.partybar.ex #pb-edit{display:none!important}.partybar.ex .pb-ex{display:flex;flex:1;align-items:center;justify-content:center;min-height:36px;font-size:13px;font-weight:700;color:var(--muted)}
+.float.lbl{top:5%;font-size:20px;text-shadow:0 2px 0 #000,0 0 10px rgba(255,180,40,.8);white-space:nowrap}
+.ex-tip{border:2px solid #FFE08A;border-radius:10px;background:rgba(255,224,138,.1);padding:8px 10px;display:flex;flex-direction:column;gap:4px}.ex-tip b{color:#FFE08A;font-size:14px}.ex-tip p{margin:0;font-size:13px;line-height:1.55}.ex-tip em{font-style:normal;color:#FFE08A;font-weight:800}.ex-tip .btn{align-self:flex-end}
 </style>
 </head>
 <body>
@@ -760,7 +762,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
         <h2 id="floor-title">1F 見習いの間</h2>
         <div><span class="rule" id="floor-rule">特別ルールなし</span></div>
         <p class="hint" id="floor-info"></p>
-        <button class="btn small" id="go-party" style="align-self:flex-start" data-zh="更改编队">編成を変える</button>
+        <button class="btn small" id="go-party" style="align-self:flex-start" data-zh="更改编队" hidden>編成を変える</button>
       </div>
     </div>
     <details class="panel"><summary class="label" data-zh="故事与玩法">ストーリーとあそびかた</summary>
@@ -879,7 +881,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.19.2';
+const VERSION='2.20.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -902,7 +904,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" 
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{wk:{k:0,f:0},hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{tips:[],wk:{k:0,f:0},hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -914,6 +916,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   {const t=v.st||{};s.st={wins:Math.max(0,+t.wins|0),pvp:Math.max(0,+t.pvp|0),days:Math.max(0,+t.days|0),ms:Math.max(0,+t.ms|0),pulls:Math.max(0,+t.pulls|0)}}
   if(v.login&&typeof v.login.d==='string')s.login={d:v.login.d.slice(0,10),n:Math.min(7,Math.max(0,+v.login.n|0))};
   if(v.daily&&typeof v.daily.d==='string'&&Array.isArray(v.daily.ids))s.daily={d:v.daily.d.slice(0,10),ids:v.daily.ids.filter(x=>/^[a-z0-9]{2,12}$/.test(x)).slice(0,3),p:Object.fromEntries(Object.entries(v.daily.p||{}).map(([k,n])=>[k,Math.max(0,+n|0)])),c:(Array.isArray(v.daily.c)?v.daily.c:[]).filter(x=>typeof x==='string'),all:!!v.daily.all};
+  {const K=v.bk||{};s.bk={f:Math.max(0,+K.f||0),s:Math.max(0,+K.s||0),n:Math.max(0,+K.n||0),rc:/^[A-Z2-9]{12}$/.test(K.rc||'')?K.rc:''}}
   s.newsRead=(Array.isArray(v.newsRead)?v.newsRead:[]).filter(x=>typeof x==='string').slice(-100);
   {const c=v.cup||{};s.cup={entered:!!c.entered,win1:!!c.win1,final:!!c.final,champ:!!c.champ,meister:!!c.meister}}
   s.use={};for(const k in (v.use||{}))if(byId(k))s.use[k]=Math.max(0,Math.floor(+v.use[k]||0));
@@ -930,7 +933,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
     const fm=xr&&xr.fm,okRun=xr&&Array.isArray(xr.party)&&xr.party.length&&fm&&fm.c&&typeof fm.c==='object';
     const cid=id=>typeof id==='string'&&!!byId(id),N=(x,a,b)=>Math.min(b,Math.max(a,Math.floor(+x||0)));
     const en=a=>Array.isArray(a)?a.filter(e=>e&&cid(e.id)).slice(0,4).map(e=>({id:e.id,star:N(e.star,1,3),hp:N(e.hp,1,999),lv:N(e.lv,0,30),bonus:N(e.bonus,0,30),boss:!!e.boss})):null;
-    s.ex={wk:{k:N((X.wk||{}).k,0,1e6),f:N((X.wk||{}).f,0,9999)},hint:N(X.hint,0,99),dd:{k:N((X.dd||{}).k,0,1e6),f:N((X.dd||{}).f,0,999)},best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
+    s.ex={tips:(Array.isArray(X.tips)?X.tips:[]).filter(k=>typeof k==='string').slice(0,20),wk:{k:N((X.wk||{}).k,0,1e6),f:N((X.wk||{}).f,0,9999)},hint:N(X.hint,0,99),dd:{k:N((X.dd||{}).k,0,1e6),f:N((X.dd||{}).f,0,999)},best:N(X.best,0,15),clears:N(X.clears,0,1e6),day:{d:String((X.day||{}).d||'').slice(0,10),c:N((X.day||{}).c,0,1e6)},
       run:okRun?{fl:N(xr.fl,1,15),fm:{c:Object.fromEntries(Object.entries(fm.c).filter(([k,c])=>/^-?\d+:-?\d+$/.test(k)&&c&&KS.includes(c.k)).slice(0,300).map(([k,c])=>[k,{k:c.k,e:en(c.e)}])),boss:en(fm.boss),row:N(fm.row,-1,4),lane:N(fm.lane,-99,99),rs:N(fm.rs,0,9999)},seed:N(xr.seed,0,4294967295),dk:N(xr.dk,0,1e6),
         gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,at:['rest','shop','train'].includes(xr.at)?xr.at:null,sb:(Array.isArray(xr.sb)?xr.sb:[]).filter(k=>['full','rev','mv','hp'].includes(k)),boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
@@ -1246,7 +1249,7 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
   sfx('reveal',st);ov.querySelector('.gx-skip').remove();
   const tagOf=r=>r.res==='new'?['new','NEW']:r.res==='up'?['up',L('★UP','★UP')]:['dup',L(`かけら+${r.st===3?2:1}`,`碎片+${r.st===3?2:1}`)];
   const box=document.createElement('div');box.className='gx-res';
-  const again=`<div class="row" style="justify-content:center;margin-top:8px">${n===GN?`<button class="btn primary" data-gx="again10" ${save.coins>=G10?'':'disabled'}>${L(`もう11連（${G10}コイン）`,`再来11连（${G10}金币）`)}</button>`:`<button class="btn primary" data-gx="again" ${save.coins>=G1?'':'disabled'}>${L(`もう1回（${G1}コイン）`,`再来一次（${G1}金币）`)}</button>`}<button class="btn" data-gx="close">${L('閉じる','关闭')}</button></div>`;
+  const again=first?`<div class="row" style="justify-content:center;margin-top:8px"><button class="btn primary" data-gx="tower">${L('さっそく塔へ！','马上去塔！')}</button></div><p class="hint" style="color:#c9d2e6;margin:6px 0 0">${L('塔で勝つとコインがもらえて、またガチャが引けます','在塔中获胜可以获得金币，再来抽扭蛋')}</p>`:`<div class="row" style="justify-content:center;margin-top:8px">${n===GN?`<button class="btn primary" data-gx="again10" ${save.coins>=G10?'':'disabled'}>${L(`もう11連（${G10}コイン）`,`再来11连（${G10}金币）`)}</button>`:`<button class="btn primary" data-gx="again" ${save.coins>=G1?'':'disabled'}>${L(`もう1回（${G1}コイン）`,`再来一次（${G1}金币）`)}</button>`}<button class="btn" data-gx="close">${L('閉じる','关闭')}</button></div>`;
   if(n===1){const {st:s1,c,before,res}=rs[0];
     const m=res==='new'?L('NEW！ 仲間になった','NEW！ 成为伙伴'):res==='up'?L(`★アップ！ ★${before} → ★${s1}`,`★提升！ ★${before} → ★${s1}`):L(`もう★${before}で持っています。かけら+${s1===3?2:1}`,`已拥有★${before}。碎片+${s1===3?2:1}`);
     box.innerHTML=`${s1>=2?'<div class="rays"></div>':''}${crest(c)}<span class="rar">${stars(s1)}</span><b>${c.name}</b><span class="label" style="color:#fff">${m}</span>
@@ -1259,10 +1262,11 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
     $('#gacha-msg').textContent=L(`11連：★3 ×${n3}、新しい仲間 ×${nNew}`,`11连：★3 ×${n3}，新伙伴 ×${nNew}`)}
   ov.append(box);msg.textContent='';
   pulling=false;renderGacha();
-  box.querySelector('[data-gx="close"]').onclick=()=>{sfx('tap');ov.remove();renderGacha();checkDexReward();checkDexReward2()};
+  const gc=box.querySelector('[data-gx="close"]');if(gc)gc.onclick=()=>{sfx('tap');ov.remove();renderGacha();checkDexReward();checkDexReward2()};
+  const gt=box.querySelector('[data-gx="tower"]');if(gt)gt.onclick=()=>{sfx('tap');ov.remove();nav('tower')};
   const a1=box.querySelector('[data-gx="again"]');if(a1)a1.onclick=()=>{if(save.coins<G1)return;ac();ov.remove();gachaShow(1,vol)};
   const a10=box.querySelector('[data-gx="again10"]');if(a10)a10.onclick=()=>{if(save.coins<G10)return;ac();ov.remove();gachaShow(GN,vol)};
-  box.querySelector('[data-gx="close"]').focus({preventScroll:true})}
+  (gc||gt).focus({preventScroll:true})}
 
 /* ================= 図鑑 ================= */
 const DEXG=()=>[[L('キャラクター vol.1','角色 vol.1'),c=>c.vol===1&&!c.reward],[L('キャラクター vol.2','角色 vol.2'),c=>c.vol===2&&!c.reward],[L('ハロウィンの仲間（期間限定の塔）','万圣节伙伴（限时之塔）'),c=>c.vol==='hw'],[L('ボス（塔で倒す・レイドで羽を集めると仲間に）','头目（在塔中打倒·在团队战中收集羽毛即可成为伙伴）'),c=>!!c.reward]];
@@ -1288,10 +1292,42 @@ function checkDexReward(){if(save.dexReward||!CHARS.filter(c=>c.vol===1).every(c
   const res=grant('takumi',owns('takumi')?Math.min(3,starOf('takumi')+1):1);persist();updCoins();
   showOverlay({word:'COMPLETE!',ch:HIDDEN,sub:L(`図鑑 vol.1 コンプリート！<br>隠しキャラ「匠」が${res==='new'?'仲間になった':res==='up'?'★アップした':'かけらをくれた'}`,`图鉴全收集！<br>隐藏角色「匠」${res==='new'?'成为了伙伴':res==='up'?'★提升了':'给了你碎片'}`),coins:10,hint:L('編成画面でパーティに入れられます','可以在编队画面加入队伍'),win:true})}
 
-function xferBind(){$('#exp').onclick=()=>{const b=new TextEncoder().encode(JSON.stringify(save));let s='';b.forEach(x=>s+=String.fromCharCode(x));$('#code').value='OKS2.'+btoa(s);$('#copy').hidden=false};
+/* ================= セーブの守り（Ver 2.20） =================
+ * ・スマホに保存：「ファイルに保存」で引っ越しコードの .txt をダウンロード（ファイルアプリ／ダウンロードに残る）
+ * ・端末の中の控え：1日1回、前の日のセーブを3世代まで別の場所に残す
+ * ・サーバーに預ける：プロフィール登録者は、1日1回自動で預ける。12文字の復元コードで取り出せる */
+const saveCode=(o=save)=>{const b=new TextEncoder().encode(JSON.stringify(o));let s='';b.forEach(x=>s+=String.fromCharCode(x));return'OKS2.'+btoa(s)};
+function loadCode(c){c=String(c||'').replace(/\s+/g,'');const i=c.indexOf('OKS2.');if(i<0)throw new Error('code');const s=atob(c.slice(i+5));return sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))))}
+function applyLoaded(v,msg){save=v;persist();updCoins();setSnd();toast(msg||L('セーブデータを読み込みました','已读取存档'));document.querySelector('.sheet-bg')?.remove();nav(hasAny()?'tower':'gacha')}
+const bk=()=>save.bk||(save.bk={f:0,s:0,rc:''});
+const ymd=t=>new Date(t+9*3600e3).toISOString().slice(0,10);
+function saveFile(){const d=ymd(Date.now()),txt=`マイスターの塔 セーブデータ（${d}）\n設定 →「ファイルから読み込む」で元にもどせます。\n\n${saveCode()}\n`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=`meister-tower-save-${d}.txt`;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+  bk().f=Date.now();persist();toast(L('セーブをファイルに保存しました（ダウンロード／ファイルアプリ）','已将存档保存为文件（下载／文件App）'))}
+function loadFile(){const inp=document.createElement('input');inp.type='file';inp.accept='.txt,text/plain';inp.onchange=async()=>{const f=inp.files[0];if(!f)return;
+  try{const v=loadCode(await f.text());if(!confirm(L('このファイルのセーブで、今のデータを上書きしますか？','要用这个文件的存档覆盖当前数据吗？')))return;applyLoaded(v)}catch(e){toast(L('セーブのファイルではないようです','这似乎不是存档文件'))}};inp.click()}
+/* 端末の中の控え（1日1回・3世代） */
+function localGen(){try{const d=ymd(Date.now()),k='okc-gen';const g=JSON.parse(localStorage.getItem(k)||'[]');if(g[0]&&g[0].d===d)return;if(!hasAny())return;
+  g.unshift({d,c:localStorage.getItem(SKEY)});localStorage.setItem(k,JSON.stringify(g.slice(0,3)))}catch(e){}}
+/* サーバーに預ける（20時間に1回） */
+function rcNew(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=new Uint32Array(12);crypto.getRandomValues(r);return Array.from(r,x=>a[x%a.length]).join('')}
+async function bkAuto(force){const p=save.prof;if(!p.reg||!hasAny()||loadErr)return;const B=bk();if(!force&&Date.now()-B.s<20*3600e3)return;if(!B.rc){B.rc=rcNew();persist()}
+  try{const j=await api('/api/backup',{id:p.id,sec:p.sec,rc:B.rc,data:saveCode()});if(j&&j.t){B.s=j.t;persist()}if(force)toast(L('サーバーに預けました','已寄存到服务器'))}catch(e){if(force)toast(L('サーバーに預けられませんでした','无法寄存到服务器'))}}
+async function bkGet(rc){try{const j=await api('/api/backup/get',{rc});const v=loadCode(j.data);if(!confirm(L(`${ymd(j.t)} に預けたセーブで、今のデータを上書きしますか？`,`要用 ${ymd(j.t)} 寄存的存档覆盖当前数据吗？`)))return;applyLoaded(v,L('預けていたセーブを取り出しました','已取出寄存的存档'))}
+  catch(e){toast(L('復元コードがちがうか、預けたセーブがありません','恢复码错误，或没有寄存的存档'))}}
+/* こまめに保存の案内（7日ファイル保存していなければ、3日に1回） */
+function bkNag(){if(!hasAny()||loadErr)return;const B=bk(),now=Date.now();if(now-(B.f||0)<7*86400e3||now-(B.n||0)<3*86400e3)return;
+  if(document.querySelector('.overlay,.sheet-bg,.gx')||!$('#arena').hidden||!$('#v-ex').hidden){setTimeout(bkNag,8000);return}/* 戦闘中・探索中は出さない */
+  B.n=now;persist();
+  openSheet(`<h2>💾 ${L('セーブをこまめに残そう','记得常备份存档')}</h2><p class="hint">${L('セーブはこのスマホのブラウザの中にあります。ブラウザのデータを消したり、しばらく開かなかったりすると、消えてしまうことがあります。ときどき<b>ファイルに保存</b>しておけば、いつでも元にもどせます。','存档保存在这台手机的浏览器中。清除浏览器数据或长时间未打开时可能会丢失。时常<b>保存为文件</b>，随时都能恢复。')}</p>
+    <div class="row" style="justify-content:center"><button class="btn primary" id="nag-save">${L('ファイルに保存','保存为文件')}</button></div>`,L('あとで','稍后'));
+  $('#nag-save').onclick=()=>{saveFile();document.querySelector('.sheet-bg')?.remove()}}
+function xferBind(){$('#exp').onclick=()=>{$('#code').value=saveCode();$('#copy').hidden=false};
+const sf=$('#bk-file');if(sf)sf.onclick=saveFile;const lf=$('#bk-load');if(lf)lf.onclick=loadFile;
+const sv=$('#bk-srv');if(sv)sv.onclick=()=>bkAuto(true);const gt=$('#bk-get');if(gt)gt.onclick=()=>{const v=$('#bk-rc').value.trim();if(v)bkGet(v)};
 $('#copy').onclick=async()=>{const t=$('#code');try{await navigator.clipboard.writeText(t.value);toast(L('コピーしました','已复制'))}catch(e){t.select();toast(L('選択しました。長押しでコピーしてください','已选中，请长按复制'))}};
 $('#imp').onclick=()=>{const c=$('#code').value.replace(/\s+/g,'');if(!c.startsWith('OKS2.')){toast(L('「OKS2.」で始まるコードを貼り付けてください','请粘贴以「OKS2.」开头的代码'));return}
-  try{const s=atob(c.slice(5));save=sanitize(JSON.parse(new TextDecoder().decode(Uint8Array.from(s,x=>x.charCodeAt(0)))));persist();updCoins();setSnd();toast(L('セーブデータを読み込みました','已读取存档'));nav(hasAny()?'tower':'gacha')}
+  try{applyLoaded(loadCode(c))}
   catch(e){toast(L('コードが途中で切れているようです。全部コピーできているか確認してください','代码似乎不完整，请确认是否已全部复制'))}};
 }
 function openSettings(){const zh=G.getLang()==='zh';
@@ -1299,6 +1335,14 @@ function openSettings(){const zh=G.getLang()==='zh';
     <div class="row between"><span>${L('言語','语言')} / Language</span><div class="seg" style="flex:none"><button type="button" data-lang="ja" aria-pressed="${!zh}">日本語</button><button type="button" data-lang="zh" aria-pressed="${zh}">简体中文</button></div></div>
     <div class="row between"><span>${L('効果音・タイトルコール','音效·标题语音')}</span><button class="snd" id="set-se" aria-pressed="${save.se}">${save.se?'ON':'OFF'}</button></div>
     <div class="row between"><span>BGM</span><button class="snd" id="set-bgm" aria-pressed="${save.bgm}">${save.bgm?'ON':'OFF'}</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);width:100%">
+    <div class="label">💾 ${L('セーブの守り','存档保护')}</div>
+    <p class="hint">${L('セーブはこのブラウザの中にあります。ときどき<b>ファイルに保存</b>しておくと安心です（iPhoneは「ファイル」アプリの「ダウンロード」に入ります）。<br>iPhoneのSafariは、7日ほど開かないとデータを消すことがあります。<b>「ホーム画面に追加」</b>して遊ぶと消えにくくなります。','存档在这个浏览器里。时常<b>保存为文件</b>更安心（iPhone会存到「文件」App的「下载」）。<br>iPhone的Safari约7天未打开可能会删除数据。<b>「添加到主屏幕」</b>后游玩更不容易丢失。')}${bk().f?L(`<br>最後にファイルに保存：${ymd(bk().f)}`,`<br>上次保存为文件：${ymd(bk().f)}`):''}</p>
+    <div class="row"><button class="btn small primary" id="bk-file">${L('ファイルに保存','保存为文件')}</button><button class="btn small" id="bk-load">${L('ファイルから読み込む','从文件读取')}</button></div>
+    ${save.prof.reg?`<p class="hint">${L('プロフィールを登録しているので、1日1回サーバーにも自動で預けています。データが消えたら、下の<b>復元コード</b>で取り出せます。<b>スクショかメモで残してください。</b>','已登记个人资料，每天自动寄存到服务器1次。数据丢失时可以用下面的<b>恢复码</b>取出。<b>请截图或记下来。</b>')}${bk().s?L(`（最後に預けた日：${ymd(bk().s)}）`,`（上次寄存：${ymd(bk().s)}）`):''}</p>
+    <div class="row between"><span>${L('復元コード','恢复码')}</span><b style="font-family:monospace;letter-spacing:.08em;user-select:all">${bk().rc?bk().rc.replace(/(.{4})(?=.)/g,'$1-'):L('（はじめて預けたときに作られます）','（首次寄存时生成）')}</b></div>
+    <div class="row"><button class="btn small" id="bk-srv">${L('今すぐ預ける','立即寄存')}</button></div>`:`<p class="hint">${L('プロフィールを登録すると、サーバーにも自動で預けられるようになります。','登记个人资料后，也会自动寄存到服务器。')}</p>`}
+    <div class="row"><input id="bk-rc" placeholder="${L('復元コード（12文字）','恢复码（12位）')}" style="flex:1;min-width:0" autocomplete="off"><button class="btn small" id="bk-get">${L('取り出す','取出')}</button></div>
     <hr style="border:0;border-top:1px solid var(--line);width:100%">
     <div class="label">${L('セーブデータの引っ越し','存档迁移')}</div>
     <p class="hint">${L('別の端末に進み具合を移せます。コードを書き出して、移したい端末で読み込みます。','可以把进度转移到其他设备。导出代码后，在目标设备上读取即可。')}</p>
@@ -1421,7 +1465,7 @@ async function api(path,body){if(!ONLINE_URL)throw new Error('no server');
 const clearedFloors=()=>save.floor>TOP?(save.lap-1)*TOP+save.floor-1:Math.max(save.best||1,save.floor)-1;
 const dexCount=()=>ALL.filter(c=>owns(c.id)).length;
 let scoreT=null;
-function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);
+function pushScore(now){const p=save.prof;if(!p.reg)return;clearTimeout(scoreT);setTimeout(bkAuto,5000);
   scoreT=setTimeout(()=>{const run=save.inf.pend||0;api('/api/score',{id:p.id,sec:p.sec,inf:save.inf.best||0,exb:save.ex.best||0,exc:save.ex.clears||0,exd:(save.ex.dd||{}).f||0,exdk:(save.ex.dd||{}).k||0,exw:(save.ex.wk||{}).f||0,exwk:(save.ex.wk||{}).k||0,run,wins:save.st.wins||0,pvp:save.st.pvp||0,dex:dexCount()}).then(j=>{if(run&&!j.skip&&save.inf.pend===run){save.inf.pend=0;persist()}}).catch(()=>{})},now?0:1800)}
 async function pushProfile(){const p=ensureProf();
   await api('/api/profile',{id:p.id,sec:p.sec,w:p.w,icon:p.icon||save.party[0]||'',title:p.title||0,on:p.on!==false});
@@ -1596,6 +1640,8 @@ const unread=()=>NEWS.filter(n=>!save.newsRead.includes(n.id));
 function newsBadge(){const n=unread().length,b=$('#news-badge');b.hidden=!n;b.textContent=n>9?'9+':n}
 async function loadNews(){try{const r=await fetch('news.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();
   if(Array.isArray(j.items))NEWS=j.items.filter(n=>n&&typeof n.id==='string').slice(0,30)}catch(e){}
+  /* はじめての人には、これまでのお知らせを読んだことにする（9件のバッジや自動表示で迷わせない） */
+  if(!hasAny()&&!save.newsRead.length){save.newsRead=NEWS.map(n=>n.id);persist()}
   newsBadge();newsPop()}
 let newsTab='all',newsUn=[];
 function showNews(){sfx('tap');newsUn=unread().map(n=>n.id);newsTab='all';newsSheetOpen();save.newsRead=[...new Set([...save.newsRead,...NEWS.map(n=>n.id)])].slice(-100);persist();newsBadge()}
@@ -1954,7 +2000,7 @@ function exStartMoves(id){const ch=byId(id),own=(save.load[id]||[]).filter(j=>ch
   const rest=G.autoPick(ch,1,0,Math.random,save.lv[id]||{}).filter(j=>!own.includes(j));return[...own,...rest].slice(0,4)}
 function exStart(daily){if(daily&&save.ex.dd&&save.ex.dd.k===exDayKey()){toast(L('今日の探索はもう挑戦しました。毎日15時に新しいマップになります','今天的探索已经挑战过了。每天15点更换新地图'));return}if(save.ex.run){toast(L('探索はすでに挑戦中です（続きから再開してください）','探索已在进行中（请从继续开始）'));return}
   const ids=G.CHARS.concat(G.HIDDEN?[G.HIDDEN]:[],G.HWC||[]).map(c=>c.id).filter(owns);if(!ids.length)return;
-  const ov=exSheet(daily?L('今日の探索：出発するキャラを1人選ぶ','今日探索：选择1名出发的角色'):L('探索に出発するキャラを1人選ぶ','选择1名出发探索的角色'),`<p class="hint">${L('最初は1人。5階・10階のボスを倒すと仲間がふえます。技は★1の技から始まり、訓練所で覚えていきます。','开始只有1人。打倒5层·10层的头目后伙伴会增加。技能从★1技能开始，在训练所学习。')}</p>
+  exTipK='start';const ov=exSheet(daily?L('今日の探索：出発するキャラを1人選ぶ','今日探索：选择1名出发的角色'):L('探索に出発するキャラを1人選ぶ','选择1名出发探索的角色'),`<p class="hint">${L('最初は1人。5階・10階のボスを倒すと仲間がふえます。技は★1の技から始まり、訓練所で覚えていきます。','开始只有1人。打倒5层·10层的头目后伙伴会增加。技能从★1技能开始，在训练所学习。')}</p>
     <div class="ex-chars">${ids.map(id=>`<button type="button" class="ex-ch" data-c="${id}"><img src="${byId(id).img}" alt=""><b>${byId(id).name}</b></button>`).join('')}</div>
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-cancel">${L('やめる','取消')}</button></div>`,true);
   ov.querySelector('#ex-cancel').onclick=()=>{ov.remove();nav('ex')};
@@ -2011,7 +2057,7 @@ function exMap(){const run=save.ex.run;if(!run)return;document.querySelectorAll(
   const showHint=(save.ex.hint||0)<5;if(showHint&&fm.row===-1&&!fm.hn){fm.hn=1;save.ex.hint=(save.ex.hint||0)+1}/* 説明は最初の5フロアだけ */
   const hintHTML=showHint?`<p class="hint">${L(`手前の光っている3枚から選んで進みます。いちばん奥の列は${boss?'ボス':'階段'}で、あと${EX_R-n}歩。3段先まで見えます。`,`从前方发光的3张卡牌中选择前进。最里面一列是${boss?'头目':'楼梯'}，还有${EX_R-n}步。可以看到3排以内。`)}</p>`:'';
   const rr=fm.row+1<EX_R-1&&!(fm.row+1===0&&run.fl===1);
-  const ov=exSheet(L(`${run.fl}F　あと${EX_R-n}歩`,`${run.fl}F　还有${EX_R-n}步`),`<div class="exb">${rows.join('')}</div>
+  exTipK='map';const ov=exSheet(L(`${run.fl}F　あと${EX_R-n}歩`,`${run.fl}F　还有${EX_R-n}步`),`<div class="exb">${rows.join('')}</div>
     ${hintHTML}${rr?`<div class="row" style="justify-content:center"><button class="btn small" id="ex-reroll" ${run.gear<EX_REROLL?'disabled':''}>🔄 ${L(`道を変える（手前の3枚を引き直す）⚙️${EX_REROLL}`,`改变道路（重抽前方3张）⚙️${EX_REROLL}`)}</button></div>`:''}`);
   const rb=ov.querySelector('#ex-reroll');if(rb)rb.onclick=()=>{if(run.gear<EX_REROLL)return;sfx('tap');run.gear-=EX_REROLL;fm.rs=(fm.rs||0)+1;const r=fm.row+1;for(let o=-1;o<=1;o++)delete fm.c[r+':'+(fm.lane+o)];persist();exMap()};
   
@@ -2068,7 +2114,7 @@ function exWin(big){const run=save.ex.run,i=big?1:0;
   if(!run.rw||!run.rw.length){let ks=Object.keys(EX_RW);if(!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)))ks=ks.filter(k=>k!=='mv');if(!run.party.some(id=>(exUp(run,id).rw||0)<EX_RWHP&&exHpRoom(run,id)>0))ks=ks.filter(k=>k!=='hp');run.rw=ks.sort(()=>Math.random()-.5).slice(0,3);persist()}
   const v=k=>EX_RW[k][i],done=()=>{run.pend=null;run.rw=null;persist();exMap()};
   const D={heal:['💚',L('回復','恢复'),L(`全員の体力+${v('heal')}`,`全员体力+${v('heal')}`)],mv:['🔨',L('技の強化','技能强化'),L(`技を1つ+${v('mv')}`,`1个技能+${v('mv')}`)],hp:['💪',L('体力アップ','体力提升'),L(`1人の最大体力+${v('hp')}<br>（1人+${EX_RWHP}まで）`,`1人最大体力+${v('hp')}<br>（每人最多+${EX_RWHP}）`)],gear:['⚙️',L('ギア','齿轮'),L(`さらにギア+${v('gear')}`,`再得齿轮+${v('gear')}`)]};
-  const ov=exSheet(big?L('強敵の報酬','强敌奖励'):L('勝利の報酬','胜利奖励'),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row">${run.rw.map(k=>`<button type="button" class="ex-node can" data-w="${k}"><span class="ex-i">${exIco(D[k][0])}</span><b>${D[k][1]}</b><small>${D[k][2]}</small></button>`).join('')}</div>`);
+  exTipK='win';const ov=exSheet(big?L('強敵の報酬','强敌奖励'):L('勝利の報酬','胜利奖励'),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row">${run.rw.map(k=>`<button type="button" class="ex-node can" data-w="${k}"><span class="ex-i">${exIco(D[k][0])}</span><b>${D[k][1]}</b><small>${D[k][2]}</small></button>`).join('')}</div>`);
   ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.w,n=v(k);
     if(k==='heal'){run.party.forEach(id=>{if((run.hp[id]||0)>0)run.hp[id]=Math.min(exMax(run,id),run.hp[id]+n)});return done()}
     if(k==='gear'){run.gear+=n;return done()}
@@ -2080,8 +2126,21 @@ function exHud(){const run=save.ex.run,el=$('#ex-hud');
   el.innerHTML=`<div class="ex-hud-top"><button type="button" class="btn small" id="ex-back-tower">◀ ${L('もどる','返回')}</button><b>🧭 ${run?(run.dk?L(`今日の探索 ${run.fl}F`,`今日探索 ${run.fl}F`):L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)):L('探索','探索')}${run&&EX_BOSS.includes(run.fl)?`<small>${L('ボスの階','头目层')}</small>`:''}</b>${run?`<span>⚙️ <b>${run.gear}</b>${run.dice?'　🎲+1':''}</span>`:'<span></span>'}</div>
     ${run?`<div class="ex-party">${run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('')}</div>`:''}`;
   el.querySelector('#ex-back-tower').onclick=()=>{sfx('tap');document.querySelectorAll('.ex-o').forEach(e=>e.remove());nav('ex')}}
+/* Ver 2.20 探索のチュートリアル：はじめてその画面を開いたときだけ、上に短い説明を出す（「あそびかた」でもう一度見られる） */
+let exTipK=null;
+const EX_TIPS={
+  start:['探索のあそびかた','探索玩法','1人で出発して、カードを選びながらフロアを進み、いちばん奥の<em>階段</em>で次の階へ。5階・10階・15階は<em>ボス</em>。倒すと仲間がふえます。<br>体力は戦いのあとも<em>持ちこし</em>。負けると探索は終わりです。','1人出发，一边选择卡牌一边在楼层中前进，从最里面的<em>楼梯</em>前往下一层。5·10·15层有<em>头目</em>，打倒后伙伴会增加。<br>体力在战斗后<em>保留</em>。落败则探索结束。'],
+  map:['カードを選んで進む','选择卡牌前进','手前の<em>光っている3枚</em>のどれかを選んで1歩進みます。奥の列も見えているので、先を読んで道を選ぼう。<br>体力が少ないときは🔥休憩・🔧工房へ。⚙️ギアを3払うと<em>道を変える</em>（手前の3枚を引き直し）もできます。','从前方<em>发光的3张</em>中选择1张前进1步。后面几排也能看到，提前规划路线吧。<br>体力少时去🔥休息·🔧工坊。支付3个⚙️齿轮可以<em>改变道路</em>（重抽前方3张）。'],
+  win:['勝利の報酬','胜利奖励','勝つとギアがもらえて、さらに<em>3つから1つ</em>選べます。回復・技の強化・体力アップ・ギア。強化は<em>この探索の中だけ</em>です。','获胜后获得齿轮，还可以<em>从3个中选1个</em>。恢复·技能强化·体力提升·齿轮。强化<em>仅限本次探索</em>。'],
+  rest:['休憩','休息','<em>回復</em>（全員40%・たおれた仲間も復活）か、<em>技の強化</em>のどちらか1つ。ボスの前は回復がおすすめ。','<em>恢复</em>（全员40%·倒下的伙伴也复活）或<em>技能强化</em>，二选一。头目前推荐恢复。'],
+  shop:['工房','工坊','ギアを使って<em>大きな強化</em>ができます。品物は1回の来店で1つずつ。ギアは訓練所や道を変えるにも使うので、使い道を考えよう。','可以用齿轮进行<em>大强化</em>。每次来店每种商品限购1次。齿轮也能用于训练所和改变道路，好好规划吧。'],
+  train:['訓練所','训练所','まだ持っていない技を<em>1つ覚えて</em>、今の技と入れかえます。★1は無料、★2・★3はギアが必要です。','学会1个<em>新技能</em>，与现有技能交换。★1免费，★2·★3需要齿轮。'],
+  boss:['ボスの報酬','头目奖励','ボスを倒すと特別な報酬を1つ選べます。<em>サイコロ+1</em>は1回の探索で1回だけ。このあと仲間も1人ふえます。','打倒头目可以选择1个特别奖励。<em>骰子+1</em>每次探索只能选1次。之后还会增加1名伙伴。']};
 function exSheet(title,html){document.querySelectorAll('.ex-o').forEach(e=>e.remove());exView();exHud();const st=$('#ex-stage'),ov=document.createElement('div');ov.className='ex-o';
-  ov.innerHTML=`<div class="panel ex-in"><div class="ex-top"><b>${title}</b></div>${html}</div>`;st.append(ov);window.scrollTo(0,0);return ov}
+  const k=exTipK;exTipK=null;const tips=save.ex.tips||(save.ex.tips=[]),T=k&&EX_TIPS[k]&&!tips.includes(k)?EX_TIPS[k]:null;
+  ov.innerHTML=`<div class="panel ex-in"><div class="ex-top"><b>${title}</b></div>${T?`<div class="ex-tip"><b>💡 ${L(T[0],T[1])}</b><p>${L(T[2],T[3])}</p><button type="button" class="btn small primary" data-tipok>${L('わかった','知道了')}</button></div>`:''}${html}</div>`;st.append(ov);window.scrollTo(0,0);
+  const tb=ov.querySelector('[data-tipok]');if(tb)tb.onclick=()=>{sfx('tap');tips.push(k);persist();tb.closest('.ex-tip').remove()};
+  return ov}
 /* 技を1つ選んで強化（探索の中だけ。1つの技は+3まで） */
 function exPickMove(title,done,cost,amt,back){amt=amt||1;const run=save.ex.run;
   const rows=run.party.map(id=>{const c=byId(id),u=exUp(run,id);return`<div class="ex-tr"><div class="label">${c.name}</div><div class="moves">${run.mv[id].map(j=>exMvBtn(run,id,j,`data-id="${id}" data-j="${j}" ${(u.mv[j]||0)>=3?'disabled':''}`,(u.mv[j]||0)>=3?`<small class="ex-max">${L('この探索では最大','本次探索已达上限')}</small>`:'')).join('')}</div></div>`}).join('');
@@ -2093,14 +2152,14 @@ function exPickChar(title,pick,ok,back){const run=save.ex.run;
   ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sfx('tap');ov.remove();pick(b.dataset.c)});
   ov.querySelector('#ex-cancel').onclick=()=>{ov.remove();back()}}
 function exRest(){const run=save.ex.run;
-  const ov=exSheet(L(`${run.fl}F 休憩`,`${run.fl}F 休息`),`<p class="hint">${L('どちらか1つ選べます','可以选择其中一项')}</p><div class="ex-row two">
+  exTipK='rest';const ov=exSheet(L(`${run.fl}F 休憩`,`${run.fl}F 休息`),`<p class="hint">${L('どちらか1つ選べます','可以选择其中一项')}</p><div class="ex-row two">
     <button type="button" class="ex-node can" data-r="heal"><span class="ex-i">${exIco('💚')}</span><b>${L('回復','恢复')}</b><small>${L('全員の体力を最大の40%回復<br>たおれた仲間も30%で復活','全员恢复最大体力的40%<br>倒下的伙伴以30%复活')}</small></button>
     <button type="button" class="ex-node can" data-r="up"><span class="ex-i">${exIco('🔨')}</span><b>${L('きたえる','锻炼')}</b><small>${L('技を1つ強化','强化1个技能')}</small></button></div>`);
   ov.querySelector('[data-r="heal"]').onclick=()=>{sfx('tap');run.party.forEach(id=>{const mx=exMax(run,id),h=run.hp[id]||0;run.hp[id]=h<=0?Math.round(mx*.3):Math.min(mx,h+Math.round(mx*.4))});exCellDone()};
   ov.querySelector('[data-r="up"]').onclick=()=>{sfx('tap');exPickMove(L('きたえる：強化する技を選ぶ','锻炼：选择要强化的技能'),()=>exCellDone())}}
 function exShop(){const run=save.ex.run,items=[['full','💚',L('全回復','完全恢复'),L('全員の体力を最大まで','全员体力回满')],['rev','✨',L('復活','复活'),L('たおれた仲間1人を50%で','1名倒下的伙伴以50%')],['mv','🔨',L('技の大強化','技能大强化'),L(`技を1つ+${EX_SHOPV.mv}`,`1个技能+${EX_SHOPV.mv}`)],['hp','💪',L('体力の大強化','体力大强化'),L(`1人の最大体力+${EX_SHOPV.hp}`,`1人最大体力+${EX_SHOPV.hp}`)]];
   run.sb=run.sb||[];const alive=run.party.filter(id=>(run.hp[id]||0)>0),dis=k=>run.sb.includes(k)||run.gear<EX_SHOP[k]||(k==='hp'&&!run.party.some(id=>exHpRoom(run,id)>0))||(k==='rev'&&alive.length===run.party.length)||(k==='full'&&alive.every(id=>run.hp[id]>=exMax(run,id)))||(k==='mv'&&!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)));
-  const ov=exSheet(L(`${run.fl}F 工房`,`${run.fl}F 工坊`),`<p class="hint">${L(`ギアを使って、ここでしかできない大きな強化ができます。品物は1回の来店で1つずつ。最大体力の強化は報酬などと合わせて1人+${EX_HPCAP}まで`,`可以使用齿轮进行只有这里才有的大强化。每次来店每种商品限购1次。最大体力强化与奖励等合计每人最多+${EX_HPCAP}`)}</p><div class="ex-row two">${items.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-s="${k}" ${dis(k)?'disabled':''}><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}<br>${run.sb.includes(k)?L('購入済み','已购买'):'⚙️'+EX_SHOP[k]}</small></button>`).join('')}</div>
+  exTipK='shop';const ov=exSheet(L(`${run.fl}F 工房`,`${run.fl}F 工坊`),`<p class="hint">${L(`ギアを使って、ここでしかできない大きな強化ができます。品物は1回の来店で1つずつ。最大体力の強化は報酬などと合わせて1人+${EX_HPCAP}まで`,`可以使用齿轮进行只有这里才有的大强化。每次来店每种商品限购1次。最大体力强化与奖励等合计每人最多+${EX_HPCAP}`)}</p><div class="ex-row two">${items.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-s="${k}" ${dis(k)?'disabled':''}><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}<br>${run.sb.includes(k)?L('購入済み','已购买'):'⚙️'+EX_SHOP[k]}</small></button>`).join('')}</div>
     <div class="row" style="justify-content:center"><button class="btn primary" id="ex-leave">${L('工房を出る','离开工坊')}</button></div>`);
   ov.querySelector('#ex-leave').onclick=()=>{sfx('tap');exCellDone()};
   ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.s,c=EX_SHOP[k];if(dis(k))return;
@@ -2114,7 +2173,7 @@ function exMvBtn(run,id,j,attr,extra){const m0=byId(id).moves[j];return`<button 
 function exTrain(){const run=save.ex.run;
   const rows=run.party.map(id=>{const c=byId(id),eq=run.mv[id],nw=c.moves.map((m,j)=>j).filter(j=>!eq.includes(j));
     return`<div class="ex-tr"><div class="label">${c.name}${L(' が覚えられる技',' 可学技能')}</div><div class="moves">${nw.length?nw.map(j=>{const st=c.moves[j].t||1,cost=EX_LEARN[st]||0,lock=st>=3&&run.fl<EX_LEARN3_FL,poor=run.gear<cost;return exMvBtn(run,id,j,`data-id="${id}" data-j="${j}" ${lock||poor?'disabled':''}`,`<small class="ex-cost${lock||poor?' no':''}">${lock?L(`🔒 ${EX_LEARN3_FL}Fから覚えられる`,`🔒 ${EX_LEARN3_FL}F起可学`):cost?`⚙️ ${L('ギア','齿轮')} ${cost}${poor?L('（たりない）','（不足）'):''}`:L('無料','免费')}</small>`)}).join(''):`<p class="hint">${L('もう全部の技を覚えています','已学会全部技能')}</p>`}</div></div>`}).join('');
-  const ov=exSheet(L(`${run.fl}F 訓練所`,`${run.fl}F 训练所`),`<p class="hint">${L(`新しい技を1つ覚えられます。★1は無料、★2はギア${EX_LEARN[2]}、★3はギア${EX_LEARN[3]}（${EX_LEARN3_FL}Fから）。覚えたい技をタップすると、入れかえる技を選べます。`,`可以学会1个新技能。★1免费，★2需齿轮${EX_LEARN[2]}，★3需齿轮${EX_LEARN[3]}（${EX_LEARN3_FL}F起）。点击想学的技能后，选择要交换的技能。`)}</p>${rows}
+  exTipK='train';const ov=exSheet(L(`${run.fl}F 訓練所`,`${run.fl}F 训练所`),`<p class="hint">${L(`新しい技を1つ覚えられます。★1は無料、★2はギア${EX_LEARN[2]}、★3はギア${EX_LEARN[3]}（${EX_LEARN3_FL}Fから）。覚えたい技をタップすると、入れかえる技を選べます。`,`可以学会1个新技能。★1免费，★2需齿轮${EX_LEARN[2]}，★3需齿轮${EX_LEARN[3]}（${EX_LEARN3_FL}F起）。点击想学的技能后，选择要交换的技能。`)}</p>${rows}
     <div class="row" style="justify-content:center"><button class="btn small" id="ex-leave">${L('覚えずに出る','不学习离开')}</button></div>`);
   ov.querySelector('#ex-leave').onclick=()=>{sfx('tap');exCellDone()};
   ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{sfx('tap');const id=b.dataset.id,nj=+b.dataset.j,c=byId(id),nm=c.moves[nj];
@@ -2131,7 +2190,7 @@ function exBossReward(){const run=save.ex.run;
   const ops=[['mv2','🔨',L('技を大きく強化','大幅强化技能'),L('技を1つ+2','1个技能+2')],['hpall','💪',L('全員の体力アップ','全员体力提升'),L('全員の最大体力+6、体力も+6','全员最大体力+6，体力也+6')]];
   if(!run.dice)ops.push(['dice','🎲',L('サイコロ+1','骰子+1'),L('この探索の間ずっと、サイコロが1個ふえる（1回だけ）','本次探索期间骰子+1（仅1次）')]);
   const after=()=>{persist();if(run.party.length<3&&run.fl<EX_F)return exRecruit();exNextFloor()};
-  const ov=exSheet(L(`${run.fl}F ボスの報酬`,`${run.fl}F 头目奖励`),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row two">${ops.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-b="${k}"><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}</small></button>`).join('')}</div>`);
+  exTipK='boss';const ov=exSheet(L(`${run.fl}F ボスの報酬`,`${run.fl}F 头目奖励`),`<p class="hint">${L('1つ選んでください','请选择1个')}</p><div class="ex-row two">${ops.map(([k,i,n,d])=>`<button type="button" class="ex-node can" data-b="${k}"><span class="ex-i">${exIco(i)}</span><b>${n}</b><small>${d}</small></button>`).join('')}</div>`);
   ov.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{sfx('tap');const k=b.dataset.b;
     if(k==='dice'){run.dice=1;return after()}
     if(k==='hpall'){run.party.forEach(id=>exAddHp(run,id,6));return after()}
@@ -2156,14 +2215,15 @@ function exEnd(clear){const run=save.ex.run;if(!run)return;const f=clear?EX_F:Ma
     hint:L(`突破した階×${EX_REW.floor}・ボス1体${EX_REW.boss}${clear?`・踏破${EX_REW.clear}`:''}コイン（1日${EX_REW.cap}コインまで。今日 ${D.c}/${EX_REW.cap}）`,`突破层数×${EX_REW.floor}·每个头目${EX_REW.boss}${clear?`·踏破${EX_REW.clear}`:''}金币（每天最多${EX_REW.cap}。今日 ${D.c}/${EX_REW.cap}）`),
     go:[['ex-again',L('もう一度探索する','再次探索'),()=>{nav('ex');exStart()}],['ex',L('探索の画面へ','前往探索画面')]]})}
 function renderEx(){const el=$('#expanel'),run=save.ex.run,D=save.ex.day.d===today()?save.ex.day.c:0;
-  el.innerHTML=`<h2>🧭 ${L('探索','探索')}<small class="ex-new">NEW</small></h2>
+  el.innerHTML=`<div class="row between"><h2>🧭 ${L('探索','探索')}<small class="ex-new">NEW</small></h2><button type="button" class="btn small" id="ex-howto">${L('あそびかた','玩法')}</button></div>
     <p class="hint">${L(`全${EX_F}階。1人で出発して、フロアを歩いて階段をさがします。5階・10階のボスを倒すと仲間がふえます。技は★1から始まり、訓練所で覚えます。体力は持ちこし。「ギア」を集めて工房で強化しながら、${EX_F}階のボスを目指します（強化はこの探索の中だけ）。`,`共${EX_F}层。1人出发，在楼层中行走寻找楼梯。打倒5层·10层的头目后伙伴会增加。技能从★1开始，在训练所学习。体力保留。收集「齿轮」在工坊强化，目标是${EX_F}层的头目（强化仅限本次探索）。`)}</p>
-    <div class="t-rec"><span>${L('最高','最高')}</span><b>${save.ex.best}F</b><span>${L('踏破','踏破')}</span><b>${save.ex.clears}${L('回','次')}</b><span>${L('今日の報酬','今日奖励')}</span><b>${D}/${EX_REW.cap}</b></div>
+    <div class="t-rec"><span>${L('最高','最高')}</span><b>${save.ex.best}F</b><span>${L('踏破','踏破')}</span><b>${save.ex.clears}${L('回','次')}</b><span>${L('今日もらったコイン','今日获得金币')}</span><b>${D}/${EX_REW.cap}</b></div>
     ${(()=>{const dk=exDayKey(),dd=save.ex.dd||{},done=dd.k===dk;return`<div class="ex-daily"><div><b>📅 ${L('今日の探索','今日探索')}</b><small>${L('全員が同じマップに挑戦（1日1回・毎日15時に新しいマップ）','所有人挑战同一张地图（每天1次·每天15点更新）')}</small>${done?`<small class="ex-dd-done">${L(`今日の記録：${dd.f}F`,`今日记录：${dd.f}F`)}${run&&run.dk===dk?L('（挑戦中）','（挑战中）'):''}</small>`:''}</div><button type="button" class="btn small${done?'':' primary'}" id="ex-daily" ${done||run?'disabled':''}>${done?L('挑戦済み','已挑战'):L('挑戦する','挑战')}</button></div>`})()}
     <p class="hint">${['battle','elite','treasure','shop','rest','train','stairs','boss'].map(k=>`${EXK[k].i}${L(EXK[k].ja,EXK[k].zh)}`).join('　')}</p>
     ${run?`<div class="label">${L(`挑戦中：${run.fl}F（${run.party.map(id=>byId(id).name).join('・')}・ギア${run.gear}）`,`挑战中：${run.fl}F（${run.party.map(id=>byId(id).name).join('·')}·齿轮${run.gear}）`)}</div><div class="row"><button class="btn small" id="ex-quit">${L('リタイア','放弃')}</button></div>`:''}`;
   const b=$('#ex-bar-go');b.textContent=run?L(`続きから（${run.fl}F）`,`继续（${run.fl}F）`):L('キャラを選んで出発','选择角色出发');
     b.onclick=()=>{ac();sfx('tap');exResume()};
+  const hb=$('#ex-howto');if(hb)hb.onclick=()=>{sfx('tap');openSheet(`<h2>${L('探索のあそびかた','探索玩法')}</h2>${Object.values(EX_TIPS).map(T=>`<div class="ex-tip" style="margin:6px 0"><b>💡 ${L(T[0],T[1])}</b><p>${L(T[2],T[3])}</p></div>`).join('')}`,L('閉じる','关闭'))};
   const dB=$('#ex-daily');if(dB)dB.onclick=()=>{ac();sfx('tap');exStart(true)};
   const q=$('#ex-quit');if(q)q.onclick=()=>{if(!confirm(L('リタイアしますか？ ここまでのコインを受け取って終わります','要放弃吗？将领取到目前为止的金币并结束')))return;exEnd(false)}}
 
@@ -2288,7 +2348,7 @@ function updF(i){const v=B.view[i],t=v.team[v.idx],el=$('#f'+i),f=B.S.sides[i].t
   el.querySelector('.chips').innerHTML=c.join('');el.querySelector('.chip.pas').onclick=()=>infoSheet(i)}
 async function say(t,ms=650){if(!t)return;const p=document.createElement('p');p.textContent=t;const l=$('#log');l.append(p);l.scrollTop=l.scrollHeight;await W(ms)}
 function bubble(i,text){const el=$('#f'+i);el.querySelector('.bubble')?.remove();const b=document.createElement('div');b.className='bubble';b.textContent='「'+text+'」';el.append(b);setTimeout(()=>b.remove(),2600)}
-function floatText(i,text,color,big){const el=$('#f'+i),d=document.createElement('div');d.className='float'+(big?' big':'');d.textContent=text;d.style.color=color;el.append(d);setTimeout(()=>d.remove(),1000)}
+function floatText(i,text,color,big,cls){const el=$('#f'+i),d=document.createElement('div');d.className='float'+(big?' big':'')+(cls?' '+cls:'');d.textContent=text;d.style.color=color;el.append(d);setTimeout(()=>d.remove(),1000)}
 function burst(i,color){const c=$('#f'+i+' .crest');if(!c)return;const b=document.createElement('div');b.className='burst';b.style.setProperty('--bc',color);c.append(b);setTimeout(()=>b.remove(),450)}
 function shake(i){const c=$('#f'+i+' .crest');if(!c)return;c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}
 const colorOf=(side)=>B.S.sides[side].team[B.view[side].idx].ch.color;
@@ -2302,7 +2362,7 @@ async function play(evs){for(const e of evs){if(!B)return;const prevIdx=B.view.m
     case'cast':if(e.side===1){const f=B.S.sides[1].team[B.view[1].idx];B.hist.push({r:B.round,t:'cast',who:f.ch.name,m:e.ult?G.ultOf(f.ch,f.spLv||0):f.moves[e.mi],vals:e.vals})}burst(e.side,colorOf(e.side));sfx('buff');renderControl();await say(e.msg,450);break;
     case'hit':{const src=e.src>=0?colorOf(e.src):'#8893AA';
       if(e.amt>0){shake(e.side);burst(e.side,src);sfx('hit',e.amt);if(e.amt>=10){const a=$('#arena');a.classList.remove('flash');void a.offsetWidth;a.classList.add('flash')}}else sfx('guard');
-      floatText(e.side,e.amt>0?'-'+e.amt:'0','var(--low)',e.amt>=10);await say(e.msg);break}
+      floatText(e.side,e.amt>0?'-'+e.amt:'0','var(--low)',e.amt>=10);if(e.amt>=20){floatText(e.side,e.amt>=30?L('超ダメージ！','超级伤害！'):L('大ダメージ！','大伤害！'),'#FFE08A',false,'lbl');const a=$('#arena');a.classList.remove('quake');void a.offsetWidth;a.classList.add('quake')}await say(e.msg);break}
     case'heal':if(e.amt){sfx('heal');floatText(e.side,'+'+e.amt,'var(--good)')}await say(e.msg);break;
     case'guard':sfx('guard');floatText(e.side,L('ガード+','护盾+')+e.amt,'var(--guard)');await say(e.msg);break;
     case'buff':sfx('buff');floatText(e.side,'UP','var(--good)');await say(e.msg);break;
@@ -2364,7 +2424,7 @@ function bmvHTML(m,mi,st,est){const d=G.dmgLabel(m.dmg),fx=G.fxLabel(m.fx);
 function renderControl(rolled){if(!B)return;const el=$('#control');
   if(B.done){el.innerHTML='';el.style.minHeight='';B.ctlHTML='';return}
   const i=B.S.turn,v=B.view[i],sd=B.S.sides[i],human=i===0,me=B.S.sides[0],mf=me.team[me.idx],mv=B.view[0];
-  const dice=`<div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${human&&B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${L('サイコロなし','没有骰子')}</span>`}</div>`;
+  const dice=`<div class="tray">${v.dice.map((d,k)=>`<button class="die${d.used?' used':''}${rolled?' roll':''}" data-k="${k}" aria-pressed="${human&&B.sel===k}" aria-label="${L('出目','点数')}${d.v}${d.used?L('（使用済み）','（已使用）'):''}" ${human?'':'tabindex="-1"'}>${Array.from({length:9},(_,j)=>`<i class="${PIPS[d.v].includes(j)?'on':''}"></i>`).join('')}</button>`).join('')||`<span class="hint">${human?L('サイコロなし','没有骰子'):L('相手のターン…','对方的回合…')}</span>`}</div>`;
   const moves=`<div class="bmoves">${mf.moves.map((m,mi)=>{const used=human&&me.used.has(mi),ks=!human||used||B.busy?null:G.diceFor(B.S,0,mi,B.sel);
     return bmvHTML(m,mi,!human?'wait':used?'used':ks?'ready':'cant',human&&B.sel!=null&&ks&&ks.includes(B.sel)?estTxt(mi,ks):'')}).join('')}</div>`;
   const html=`${moves}${human?ultHTML():''}<div class="bbar"><span class="blab">${human?(B.busy?'':L('サイコロを技へドラッグ','把骰子拖到技能上')):L('相手のターン','对方的回合')}</span>${dice}${TUT.on?(human&&!B.busy?`<button class="btn small" id="end">${L('ターン終了','结束回合')}</button>`:''):`<button class="btn small auto${save.auto?' on':''}" id="auto" aria-pressed="${!!save.auto}">AUTO<br>${save.auto?'ON':'OFF'}</button>`}</div>`;
@@ -2761,6 +2821,7 @@ function hwTeaser(){if(Date.now()>=HW_FROM)return;
   ov.querySelector('#hw-teaser-ok').onclick=()=>{try{localStorage.setItem('hwTeaser',day)}catch(e){}ov.remove()};
 }
 setTimeout(hwTeaser,2500);
+setTimeout(()=>{localGen();bkAuto();bkNag()},6000);
 /* 読み込みに失敗していたら、全部の準備ができた今もう一度読む */
 if(loadErr){try{save=sanitize(JSON.parse(loadErr.raw));loadErr=null;persist();updCoins();try{nav(hasAny()?'tower':'gacha')}catch(e){}}catch(e){loadErr.e2=String(e);console.error('save load failed',loadErr);toast(L('セーブデータの読み込みに失敗しました。データは消さずに残してあります。開発者に連絡してください','存档读取失败。数据已保留未删除，请联系开发者'))}}
 </script>
