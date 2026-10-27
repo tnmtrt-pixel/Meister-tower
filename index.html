@@ -877,7 +877,7 @@ body:has(#arena:not([hidden])) header .hrow{display:none}
 
 <script src="engine.js?v=2970d3a5"></script>
 <script>
-const VERSION='2.18.1';
+const VERSION='2.18.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -932,8 +932,8 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
       run:okRun?{fl:N(xr.fl,1,15),fm:{c:Object.fromEntries(Object.entries(fm.c).filter(([k,c])=>/^-?\d+:-?\d+$/.test(k)&&c&&KS.includes(c.k)).slice(0,300).map(([k,c])=>[k,{k:c.k,e:en(c.e)}])),boss:en(fm.boss),row:N(fm.row,-1,4),lane:N(fm.lane,-99,99),rs:N(fm.rs,0,9999)},seed:N(xr.seed,0,4294967295),dk:N(xr.dk,0,1e6),
         gear:N(xr.gear,0,1e6),dice:xr.dice?1:0,at:['rest','shop','train'].includes(xr.at)?xr.at:null,boss:N(xr.boss,0,3),party:xr.party.filter(cid).slice(0,3),
         mv:Object.fromEntries(Object.entries(xr.mv||{}).filter(([id])=>cid(id)).map(([id,a])=>[id,(Array.isArray(a)?a:[]).map(j=>Math.floor(+j)).filter(j=>j>=0&&j<byId(id).moves.length).slice(0,4)])),
-        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),rw:N((u||{}).rw,0,EX_RWHP),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
-        hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go','win'].includes(xr.pend)?xr.pend:null,rw:Array.isArray(xr.rw)?xr.rw.filter(k=>k in EX_RW).slice(0,3):null,bossId:cid(xr.bossId)?xr.bossId:null}:null};
+        up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),rw:N((u||{}).rw,0,20),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
+        hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go','win'].includes(xr.pend)?xr.pend:null,rw:Array.isArray(xr.rw)?xr.rw.filter(k=>['heal','mv','hp','gear'].includes(k)).slice(0,3):null,/* ここは定数が作られる前に動くので、名前を直接書く */bossId:cid(xr.bossId)?xr.bossId:null}:null};
     if(s.ex.run&&(s.ex.run.party.some(id=>!(s.ex.run.mv[id]||[]).length)||([5,10,15].includes(s.ex.run.fl)&&!s.ex.run.fm.boss)))s.ex.run=null}
   s.dexReward2=!!v.dexReward2;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0));
@@ -956,8 +956,10 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   for(const k in (v.load||{}))if(byId(k)&&Array.isArray(v.load[k]))s.load[k]=v.load[k].map(m=>mapI(k,m)).filter(m=>m>=0&&byId(k).moves[m]!=null).slice(0,4);
   s.party=(Array.isArray(v.party)?v.party:[]).filter(id=>s.owned[id]).slice(0,3);
   return s}
-try{const v2=localStorage.getItem(SKEY);if(v2)save=sanitize(JSON.parse(v2));else{const v1=JSON.parse(localStorage.getItem('okc-save')||'null');if(v1)save=sanitize(v1)}}catch(e){}
-function persist(){if(save.parties)save.parties[save.pidx]=save.party.slice(0,3);/* 今のパーティを、選んでいる組に記録 */try{localStorage.setItem(SKEY,JSON.stringify(save))}catch(e){}}
+/* Ver 2.18.2 セーブの読み込み：失敗しても上書きしない。元のデータを残して、全部の準備ができたあとにもう一度読む */
+let loadErr=null;
+try{const v2=localStorage.getItem(SKEY);if(v2){try{save=sanitize(JSON.parse(v2));try{localStorage.setItem(SKEY+'-prev',v2)}catch(e){}}catch(e){loadErr={raw:v2,e:String(e)};try{localStorage.setItem(SKEY+'-bak-'+Date.now(),v2)}catch(_){}}}else{const v1=JSON.parse(localStorage.getItem('okc-save')||'null');if(v1)save=sanitize(v1)}}catch(e){}
+function persist(){if(loadErr)return;/* 読み込みに失敗している間は書きこまない（元のデータを守る） */if(save.parties)save.parties[save.pidx]=save.party.slice(0,3);/* 今のパーティを、選んでいる組に記録 */try{localStorage.setItem(SKEY,JSON.stringify(save))}catch(e){}}
 const owns=id=>!!save.owned[id];
 const starOf=id=>save.owned[id]||0;
 const hasAny=()=>Object.keys(save.owned).length>0;
@@ -2751,6 +2753,8 @@ function hwTeaser(){if(Date.now()>=HW_FROM)return;
   ov.querySelector('#hw-teaser-ok').onclick=()=>{try{localStorage.setItem('hwTeaser',day)}catch(e){}ov.remove()};
 }
 setTimeout(hwTeaser,2500);
+/* 読み込みに失敗していたら、全部の準備ができた今もう一度読む */
+if(loadErr){try{save=sanitize(JSON.parse(loadErr.raw));loadErr=null;persist();updCoins();try{nav(hasAny()?'tower':'gacha')}catch(e){}}catch(e){loadErr.e2=String(e);console.error('save load failed',loadErr);toast(L('セーブデータの読み込みに失敗しました。データは消さずに残してあります。開発者に連絡してください','存档读取失败。数据已保留未删除，请联系开发者'))}}
 </script>
 </body>
 </html>
