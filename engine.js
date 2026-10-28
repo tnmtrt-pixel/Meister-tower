@@ -707,6 +707,7 @@ function rollPart(S,i,R){const sd=S.sides[i];
   if(gk==='wb'){g.white=!g.white;E(S,'buff',g.white?L(`${g.ch.name}は 白の羽に。受けるダメージ−1`,`${g.ch.name} 变为白之羽，受到的伤害−1`):L(`${g.ch.name}は 黒の羽に。攻撃+2`,`${g.ch.name} 变为黑之羽，攻击+2`),{side:i})}
   if(gk==='decree'){S.decree=R()<.5?1:0;E(S,'buff',S.decree?L('審判の宣告：「奇数」！ 奇数の出目の攻撃+3、偶数は−3','审判宣告：「奇数」！奇数点数的攻击+3，偶数−3'):L('審判の宣告：「偶数」！ 偶数の出目の攻撃+3、奇数は−3','审判宣告：「偶数」！偶数点数的攻击+3，奇数−3'),{side:i})}
   if(gk==='balance'){const vs=sd.dice.map(d=>d.v);if(vs.some(v=>v%2)&&vs.some(v=>v%2===0)){g.pow+=3;g.balDone=true;E(S,'buff',L('天秤！ 偶数と奇数がそろって 次の攻撃+3','天秤！ 偶数与奇数齐备，下次攻击+3'),{side:i})}}
+  if(g.gStart){const gg=gain(S,g,g.gStart);E(S,'guard',L(`守りのお守りで ガード${gg}`,`守护护符：护盾${gg}`),{side:i,amt:gg})}/* 探索のお守り・鉄壁（ふだんは0） */
   if(gk==='guardStart'){const gg=gain(S,g,4);E(S,'guard',L(`ふかふか羽毛で ガード${gg}`,`蓬松羽毛：护盾${gg}`),{side:i,amt:gg})}
   if(gk==='pairPow'){const vs=sd.dice.map(d=>d.v);if(vs.some((v,k)=>vs.indexOf(v)!==k)){g.pow+=3;E(S,'buff',L('星降る夜！ ゾロ目で 次の攻撃+3','星降之夜！ 掷出对子，下次攻击+3'),{side:i})}}}
 /* 倒れたあとに次のキャラを選ぶ（無料）。ターン開始で倒れていたら、そのあとサイコロを振る */
