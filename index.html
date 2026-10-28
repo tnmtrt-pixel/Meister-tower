@@ -757,6 +757,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 .ex-rtag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(#FFE08A,#D9AE45);color:#3B2A06;font:900 10px var(--f-body);padding:1px 8px;border-radius:8px;white-space:nowrap}
 .ex-buffs{display:flex;flex-wrap:wrap;gap:4px}.ex-buffs span{font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;border:1px solid rgba(255,224,138,.6);background:rgba(255,224,138,.1);white-space:nowrap}
 .ex-got .ex-i{font-size:60px}.ex-got .ex-i img{width:72px;height:72px}.ex-jp b{color:#FFE08A}
+.ex-buffs span{display:inline-flex;align-items:center;gap:2px}.ex-cic{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -909,7 +910,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=0a4da6c4"></script>
 <script>
-const VERSION='2.23.0';
+const VERSION='2.23.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1998,7 +1999,7 @@ const EX_GEAR={battle:2,elite:5,boss:6};
 const EX_LEARN={1:0,2:6,3:12},EX_LEARN3_FL=6,EX_SHOP={mv:12,hp:10},EX_SHOPV={mv:2,hp:10},EX_REROLL=3;
 const EX_RW={mv:[1,2],hp:[4,8],gear:[8,15],fire:[3,4],wall:[4,5],map:[1,2],coupon:[1,1]},EX_RWHP=20;
 /* Ver 2.23 お守り：この探索の間ずっと効く（3つまで）。勝利報酬にたまに出る */
-const EX_CHARM={atk:['⚔️','力のお守り','力量护符','攻撃+1（ずっと）','攻击+1（持续）'],grd:['🛡️','守りのお守り','守护护符','自分のターンのはじめにガード2','自己回合开始时护盾2'],gear:['⚙️','歯車のお守り','齿轮护符','勝つとギア+2','获胜时齿轮+2'],heal:['💚','いやしのお守り','治愈护符','勝つと全員の体力+3','获胜时全员体力+3']};/* 勝利報酬の体力アップは1人+20まで */
+const EX_CHARM={atk:['charm-atk','力のお守り','力量护符','攻撃+1（ずっと）','攻击+1（持续）'],grd:['charm-grd','守りのお守り','守护护符','自分のターンのはじめにガード2','自己回合开始时护盾2'],gear:['charm-gear','歯車のお守り','齿轮护符','勝つとギア+2','获胜时齿轮+2'],heal:['charm-heal','いやしのお守り','治愈护符','勝つと全員の体力+3','获胜时全员体力+3']};/* 勝利報酬の体力アップは1人+20まで */
 const EX_BOSSM=[1.0,1.8,2.4];/* ボスの体力の倍率（5F・10F・15F）。中盤の戦闘はサクサク、ボスは壁 *//* 勝利報酬：[一般戦闘, 強敵] */
 const EXK={battle:{i:'⚔️',ja:'対戦',zh:'对战'},elite:{i:'💀',ja:'強敵',zh:'强敌'},boss:{i:'👑',ja:'ボス',zh:'头目'},stairs:{i:'🪜',ja:'階段',zh:'楼梯'},
   rest:{i:'🔥',ja:'休憩',zh:'休息'},shop:{i:'🔧',ja:'工房',zh:'工坊'},train:{i:'📖',ja:'訓練所',zh:'训练所'},treasure:{i:'🎁',ja:'宝箱',zh:'宝箱'},empty:{i:'',ja:'',zh:''},start:{i:'',ja:'',zh:''}};
@@ -2144,7 +2145,7 @@ function exNext(){const run=save.ex.run;if(!run)return;const p=run.pend;
 /* 勝利報酬：ギアは必ずもらえて、さらに3つから1つ選ぶ（強敵は効果が大きい） */
 /* 報酬のアイコン：絵文字に合う絵（img/rw-*.webp）があれば絵を出す */
 const EX_ICO={'💚':'heal','🔨':'mv','💪':'hp','⚙️':'gear','✨':'rev','🎲':'dice'};
-const exIco=e=>EX_ICO[e]?`<img src="img/rw-${EX_ICO[e]}.webp" alt="" width="48" height="48">`:e;
+const exIco=e=>/^charm-/.test(e)?`<img src="img/${e}.webp" alt="" width="48" height="48">`:EX_ICO[e]?`<img src="img/rw-${EX_ICO[e]}.webp" alt="" width="48" height="48">`:e;
 function exWin(big){const run=save.ex.run,i=big?1:0;run.ch=run.ch||[];
   if(!run.rw||!run.rw.length){let ks=['mv','hp','gear','fire','wall','map','coupon'];if(!run.party.some(id=>run.mv[id].some(j=>(exUp(run,id).mv[j]||0)<3)))ks=ks.filter(k=>k!=='mv');if(!run.party.some(id=>(exUp(run,id).rw||0)<EX_RWHP&&exHpRoom(run,id)>0))ks=ks.filter(k=>k!=='hp');if(run.cp)ks=ks.filter(k=>k!=='coupon');
     ks=ks.sort(()=>Math.random()-.5).slice(0,3);const left=Object.keys(EX_CHARM).filter(c=>!run.ch.includes(c));if(left.length&&run.ch.length<3&&Math.random()<.35)ks[Math.floor(Math.random()*3)]='charm:'+left[Math.floor(Math.random()*left.length)];/* お守りはたまに（金の枠） */
@@ -2186,7 +2187,7 @@ function exView(){if(!$('#v-ex').hidden&&$('#arena').hidden)return;['tower','par
 /* 探索画面の上の帯：もどる・階・ギア・仲間の体力（いつも表示） */
 function exHud(){const run=save.ex.run,el=$('#ex-hud');if(run)run.party.forEach(id=>{if((run.hp[id]||0)>exMax(run,id))run.hp[id]=exMax(run,id)});/* 前の版で始めた探索は体力を上限にそろえる */
   el.innerHTML=`<div class="ex-hud-top"><button type="button" class="btn small" id="ex-back-tower">◀ ${L('もどる','返回')}</button><b>${run?(run.dk?L(`今日の探索 ${run.fl}F`,`今日探索 ${run.fl}F`):L(`探索 ${run.fl}F`,`探索 ${run.fl}F`)):L('探索','探索')}${run&&EX_BOSS.includes(run.fl)?`<small>${L('ボスの階','头目层')}</small>`:''}</b>${run?`<span>⚙️ <b id="ex-gear">${run.gear}</b>${run.dice?'　🎲+1':''}</span>`:'<span></span>'}</div>
-    ${run&&((run.ch||[]).length||run.bf||run.fr||run.cp)?`<div class="ex-buffs">${(run.ch||[]).map(c=>`<span title="${L(EX_CHARM[c][1],EX_CHARM[c][2])}">${EX_CHARM[c][0]}${L(EX_CHARM[c][1],EX_CHARM[c][2])}</span>`).join('')}${run.bf&&run.bf.atk?`<span>🔥${L('次の戦闘 攻撃+','下一战 攻击+')}${run.bf.atk}</span>`:''}${run.bf&&run.bf.gs?`<span>🧱${L('次の戦闘 ガード','下一战 护盾')}${run.bf.gs}</span>`:''}${run.fr?`<span>🗺️×${run.fr}</span>`:''}${run.cp?`<span>🎫${L('割引券','折扣券')}</span>`:''}</div>`:''}${run?`<div class="ex-party">${run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('')}</div>`:''}`;
+    ${run&&((run.ch||[]).length||run.bf||run.fr||run.cp)?`<div class="ex-buffs">${(run.ch||[]).map(c=>`<span title="${L(EX_CHARM[c][1],EX_CHARM[c][2])}"><img src="img/${EX_CHARM[c][0]}.webp" alt="" class="ex-cic">${L(EX_CHARM[c][1],EX_CHARM[c][2])}</span>`).join('')}${run.bf&&run.bf.atk?`<span>🔥${L('次の戦闘 攻撃+','下一战 攻击+')}${run.bf.atk}</span>`:''}${run.bf&&run.bf.gs?`<span>🧱${L('次の戦闘 ガード','下一战 护盾')}${run.bf.gs}</span>`:''}${run.fr?`<span>🗺️×${run.fr}</span>`:''}${run.cp?`<span>🎫${L('割引券','折扣券')}</span>`:''}</div>`:''}${run?`<div class="ex-party">${run.party.map(id=>{const h=run.hp[id]??0,mx=exMax(run,id);return`<div class="ex-pm${h<=0?' down':''}"><b>${byId(id).name}<small>★${exStar(run,id)}</small></b><span class="ex-hp"><i style="width:${Math.max(0,h)/mx*100}%"></i></span><small>${Math.max(0,h)}/${mx}</small></div>`}).join('')}</div>`:''}`;
   el.querySelector('#ex-back-tower').onclick=()=>{sfx('tap');document.querySelectorAll('.ex-o').forEach(e=>e.remove());nav('ex')}}
 /* Ver 2.20 探索のチュートリアル：はじめてその画面を開いたときだけ、上に短い説明を出す（「あそびかた」でもう一度見られる） */
 let exTipK=null;
