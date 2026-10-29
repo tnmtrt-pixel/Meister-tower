@@ -910,7 +910,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=0a4da6c4"></script>
 <script>
-const VERSION='2.24.3';
+const VERSION='2.24.4';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1398,7 +1398,7 @@ function openSettings(){const zh=G.getLang()==='zh';
 
 /* ================= プレゼントコード ================= */
 /* コードそのものは書かず、ハッシュだけを置く（make_gift.py で作る） */
-const GIFTS=[{h:'065bceea344a626eca40a28e49e45087cc3b573c536425bda962accbd4457f86',coins:0,ch:'origin',st:3}/* 2026-10-28 始原の紫翼皇★3（運営用・コードは公開しない） */,{h:'a2db6d3ee1a67f1e34f6542ec328fc1a0fd9eca9c0324f7277bbf04226af9c4e',coins:0,ch:'nerohw',st:3}/* 2026-10-28 ハロウィン・ネロ★3（運営用・コードは公開しない） */,{h:'538d930abd5a3ce424577db355aff9bd77d10553a64308958d47aa4f0e048612',coins:10000}/* 2026-10-27 データ消失の補填（運営用・コードは公開しない） */,{h:'5a476028c900202560269e1577928d5006a737ef14099c9624deb941942ba26b',coins:300}/* 文化祭 2026（11/7）100連相当 */,{h:'c1fc58e3d71787f06ad526ef5e4b30785993c147847a3753f074742f62b9337c',coins:100},{h:'4afca4e846db5c71ab2cc88f080ffcc7ddf488a77c863883143a8bb40caf242d',coins:100}/* Ver 2.0 記念 */,{h:'0a6bd537001d03572d45305322c9e8b9a3e6cdf88bb3937f012ad1bf246119f3',coins:1000}/* 2026-10-18 1000コイン */];
+const GIFTS=[{h:'f8091a71b9532416fbca2733d2f8da1c84e04d25f1ef7bc6cd1fe7c5f0045009',coins:300}/* KOUKASAI2026：宣伝広告用・100連分（2026-10-30） */,{h:'065bceea344a626eca40a28e49e45087cc3b573c536425bda962accbd4457f86',coins:0,ch:'origin',st:3}/* 2026-10-28 始原の紫翼皇★3（運営用・コードは公開しない） */,{h:'a2db6d3ee1a67f1e34f6542ec328fc1a0fd9eca9c0324f7277bbf04226af9c4e',coins:0,ch:'nerohw',st:3}/* 2026-10-28 ハロウィン・ネロ★3（運営用・コードは公開しない） */,{h:'538d930abd5a3ce424577db355aff9bd77d10553a64308958d47aa4f0e048612',coins:10000}/* 2026-10-27 データ消失の補填（運営用・コードは公開しない） */,{h:'5a476028c900202560269e1577928d5006a737ef14099c9624deb941942ba26b',coins:300}/* 文化祭 2026（11/7）100連相当 */,{h:'c1fc58e3d71787f06ad526ef5e4b30785993c147847a3753f074742f62b9337c',coins:100},{h:'4afca4e846db5c71ab2cc88f080ffcc7ddf488a77c863883143a8bb40caf242d',coins:100}/* Ver 2.0 記念 */,{h:'0a6bd537001d03572d45305322c9e8b9a3e6cdf88bb3937f012ad1bf246119f3',coins:1000}/* 2026-10-18 1000コイン */];
 const GKEY='okc-gifts';/* セーブを消しても残る＝同じ端末で1回だけ */
 function giftUsed(){let a=[];try{a=JSON.parse(localStorage.getItem(GKEY)||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 async function giftHash(c){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('meister-tower:'+c));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
