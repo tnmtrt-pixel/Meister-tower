@@ -13,7 +13,7 @@
 import { cleanParty, hexId, rid, ENGINE_V } from './ladder.js';
 
 export const RAID = {
-  boss: 'origin', elv: 3, bonus: 3, tries: 3, maxRound: 99,
+  boss: 'origin', elv: 3, bonus: 3, tries: 2, maxRound: 99, /* 1日の挑戦回数（2026-10-30 に3→2） */
   avg: 140, k: 0.7, hp0: 2000, hpMin: 1500, hpMax: 60000, /* 体力 = 前の日の挑戦回数 × 1回の平均ダメージ × k */
   rally: 1.5,
   coin: (d) => Math.min(12, 2 + Math.floor(d / 25)), /* 1回の挑戦のコイン */

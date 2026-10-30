@@ -910,7 +910,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=0a4da6c4"></script>
 <script>
-const VERSION='2.24.5';
+const VERSION='2.24.6';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1781,13 +1781,13 @@ function shardPick(){if(!(save.rshard>0))return;const ids=ALL.filter(c=>owns(c.i
   draw()}
 
 /* ================= レイドバトル（Ver 2.6） ================= */
-/* 始原の紫翼皇の体力を、みんなで1日かけて削る。1日3回・パーティ全員が倒れるまで。対戦はサーバーが計算する */
+/* 始原の紫翼皇の体力を、みんなで1日かけて削る。1日2回・パーティ全員が倒れるまで。対戦はサーバーが計算する */
 const RD={d:null,at:0,busy:false,err:''};
 async function raidLoad(){try{const j=await api('/api/raid'+(save.prof.reg?'?id='+save.prof.id:''));RD.d=j.raid;RD.off=(j.now||Date.now())-Date.now();RD.at=Date.now();RD.down=false}catch(e){RD.down=true;RD.at=Date.now()}renderRaid()}
 const raidBoss=()=>byId('origin');
 function raidBar(r){const p=Math.max(0,r.hp/r.max);return`<div class="rhp" role="img" aria-label="${Math.round(p*100)}%"><i style="width:${(p*100).toFixed(1)}%"></i>${(r.rew&&r.rew.stage||[.75,.5,.25]).map(x=>`<u style="left:${x*100}%"></u>`).join('')}</div>
   <div class="rhp-t"><span>${L('みんなの残りHP','大家剩余HP')}</span><span>${r.hp.toLocaleString()} / ${r.max.toLocaleString()}（${Math.ceil(p*100)}%）</span></div>`}
-function raidLeft(r){return Math.max(0,(r.triesMax||3)-((r.me&&r.me.tries)||0))}
+function raidLeft(r){return Math.max(0,(r.triesMax||2)-((r.me&&r.me.tries)||0))}
 function renderRaid(){const el=$('#raid');const tw=$('#raid-tw');const r=RD.d,bo=raidBoss();
   if(tw){tw.innerHTML=r&&bo?`<button type="button" class="raid-tw" id="raid-tw-go">${crest(bo)}<span class="rt"><b>${L('レイドバトル','团队战')}：${L('始原の紫翼皇','始原紫翼皇')}</b>
     <small>${r.killed?L('🎉 今日はみんなで倒した！ また明日','🎉 今天大家一起打倒了！明天再来'):L(`残りHP ${Math.ceil(r.hp/r.max*100)}%・今日のあなたの挑戦 あと${raidLeft(r)}回`,`剩余HP ${Math.ceil(r.hp/r.max*100)}%·你今天还能挑战 ${raidLeft(r)}次`)}${r.rally&&!r.killed?L('・集合タイム中はダメージ1.5倍！','·集合时间伤害1.5倍！'):''}</small></span></button>`:'';
@@ -1836,7 +1836,7 @@ async function finishRaidOn(win,me,foe){ON.state='idle';const ws=ON.ws;ON.ws=nul
   await W(700);ON.lad=null;for(let i=0;i<40&&!ON.ladRes;i++)await W(100);const r=ON.ladRes;ON.ladRes=null;
   if(r&&RD.d){RD.d.hp=r.hp;if(r.kill)RD.d.killed=1;RD.d.me=Object.assign(RD.d.me||{},{tries:r.tries,dmg:r.myTotal})}
   setTimeout(()=>{claimRank(true);raidLoad()},300);
-  const left=r?Math.max(0,(r.triesMax||3)-(r.tries||0)):0,again=r&&!r.kill&&!(RD.d&&RD.d.killed)&&left>0;
+  const left=r?Math.max(0,(r.triesMax||2)-(r.tries||0)):0,again=r&&!r.kill&&!(RD.d&&RD.d.killed)&&left>0;
   return showOverlay({word:r&&r.kill?'VICTORY!':'RAID',ch:r&&r.kill?me.ch:raidBoss(),win:true,coins:0,noCoin:true,
     go:[...(again?[['raid-again',L(`もう一度挑む（あと${left}回）`,`再挑战（还剩${left}次）`),()=>{nav('raid');raidGo()}]]:[]),['raid',L('レイドへ','前往团队战')],['party',L('編成へ','前往编队')],['tower',L('タワーへ','前往塔')]],
     sub:r?L(`紫翼皇に <b>${r.dmg}</b> ダメージ！`,`对紫翼皇造成 <b>${r.dmg}</b> 伤害！`)+(r.mul>1?L(`（集合タイムで ${r.mul}倍）`,`（集合时间 ${r.mul}倍）`):'')+
