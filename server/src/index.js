@@ -320,7 +320,7 @@ const PER = { exw: { col: 'exwb', key: 'exwk', last: 'exwl', fn: (t) => weekKey(
 /* Ver 2.19 ウィークリー報酬：1位50・2位30・3位20・4〜10位10コイン（無限の塔・探索・レイド合計ダメージ） */
 const WREW = [50, 30, 20, 10, 10, 10, 10, 10, 10, 10];
 const REW = { infd: [10, 6, 3], infw: WREW, exw: WREW, raidw: WREW };
-const WEEKLY = ['infw', 'exw'];
+const WEEKLY = []; /* Ver 2.26：ランキングは通算の記録に。週の上位報酬はおわり */
 const EX_MAXF = 15; /* 探索のいちばん上の階（階がふえたらここも上げる） */
 export const dayKey = (now = Date.now()) => Math.floor((now + (9 - 15) * 3600e3) / 86400e3);
 export const weekKey = (now = Date.now()) => Math.floor((dayKey(now) + 3) / 7);
@@ -432,7 +432,7 @@ export class Rank {
       if (url.pathname === '/mm') return this.mmAccept();
       if (url.pathname === '/int' && request.method === 'POST') return this.internal(await request.json());
       this.ensureAlarm().catch(() => {});
-      if (request.method === 'GET' && url.pathname === '/api/rank') { await this.settle(); if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); if (url.searchParams.get('type') === 'raidw') return this.raidWeekRank(url); return this.rank(url); }
+      if (request.method === 'GET' && url.pathname === '/api/rank') { await this.settle(); if (url.searchParams.get('type') === 'lad') return this.ladRank(url, json); if (url.searchParams.get('type') === 'raidw') return this.raidWeekRank(url); if (url.searchParams.get('type') === 'raida') return this.raidAllRank(url); return this.rank(url); }
       if (request.method === 'GET' && url.pathname === '/api/rally') return this.rallyGet(json, url);
       if (request.method === 'GET' && url.pathname === '/api/raid') return this.raidGet(url, json);
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
@@ -514,6 +514,17 @@ export class Rank {
   /* レイドの「週」：その日の朝5時から10時間後（15時）の週。月曜のレイドから新しい週 */
   raidWeek(day) { return weekKey(day * DAY - (9 - 5) * 3600e3 + 10 * 3600e3); }
   raidWeekDays(K) { const d0 = raidDayNo(); const out = []; for (let d = d0 - 21; d <= d0 + 1; d++) if (this.raidWeek(d) === K) out.push(d); return out; }
+  /* Ver 2.26 レイドのこれまでの合計ダメージ */
+  raidAllRank(url) {
+    const all = this.sql.exec('SELECT r.id, SUM(r.dmg) AS v, MAX(r.last) AS l FROM raid_u r JOIN u ON u.id = r.id WHERE r.tries > 0 AND u.hidden = 0 AND u.ison = 1 GROUP BY r.id HAVING v > 0 ORDER BY v DESC, l ASC').toArray();
+    const info = (id) => this.sql.exec('SELECT w, icon, title FROM u WHERE id=?', id).toArray()[0] || { w: '[]' };
+    const pub = (x, n) => { const u = info(x.id); return { n, id: x.id.slice(-4), w: JSON.parse(u.w || '[]'), icon: u.icon, title: u.title, v: x.v }; };
+    const top = all.slice(0, 50).map((x, i) => pub(x, i + 1));
+    const id = url.searchParams.get('id') || '';
+    const k = ID_RE.test(id) ? all.findIndex((x) => x.id === id) : -1;
+    const near = k >= 0 ? all.slice(Math.max(0, k - 2), k + 3).map((x, i) => pub(x, Math.max(0, k - 2) + i + 1)) : null;
+    return json({ type: 'raida', top, me: k >= 0 ? { n: k + 1, v: all[k].v, near } : null, total: all.length });
+  }
   /* レイドの今週の合計ダメージ */
   raidWeekRank(url) {
     const K = weekKey(), days = this.raidWeekDays(K), lo = days[0] ?? 0, hi = days[days.length - 1] ?? -1;
@@ -557,7 +568,7 @@ export class Rank {
   /* Ver 2.19 ウィークリー：週が切りかわったら、前の週の上位10人に報酬を記録する（だれかがアクセスしたときに行う） */
   async settle(now = Date.now()) {
     const K = weekKey(now);
-    for (const type of [...WEEKLY, 'raidw']) {
+    for (const type of [...WEEKLY]) {
       const sk = 'setw_' + type, done = await this.store.get(sk);
       if (done === undefined) { await this.store.put(sk, K); continue; } /* はじめて動いた週は記録だけ（さかのぼらない） */
       if (done >= K) continue;

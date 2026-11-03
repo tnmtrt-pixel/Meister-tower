@@ -105,6 +105,7 @@ export const LadderMixin = {
       id TEXT PRIMARY KEY, season INTEGER NOT NULL, rank INTEGER NOT NULL DEFAULT 1, stars INTEGER NOT NULL DEFAULT 0,
       streak INTEGER NOT NULL DEFAULT 0, rate INTEGER NOT NULL DEFAULT 1500, best INTEGER NOT NULL DEFAULT 1,
       games INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0, gparty TEXT NOT NULL DEFAULT '', last INTEGER NOT NULL DEFAULT 0)`);
+    try { this.sql.exec('ALTER TABLE lad ADD COLUMN played INTEGER NOT NULL DEFAULT 0'); this.sql.exec('UPDATE lad SET played=1 WHERE games > 0 OR rate != 1500'); } catch (e) { /* 追加済み */ }
     this.queue = [];
     this.mmTimer = null;
     this.rallyInit();
@@ -138,7 +139,7 @@ export const LadderMixin = {
   /* Ver 2.25 ランクバトルの順位はレート順（同じなら先に到達した人） */
   ladRank(url, json) {
     const s = seasonNo();
-    const where = 'l.season = ? AND l.games > 0 AND u.ison = 1 AND u.hidden = 0';
+    const where = '(l.played = 1 OR l.games > 0) AND u.ison = 1 AND u.hidden = 0 AND ? > 0'; /* Ver 2.26 これまでに1戦でもした人（シーズンに関係なく）。? はダミー */
     const sel = `SELECT l.id, l.rank, l.stars, l.rate, u.w, u.icon, u.title FROM lad l JOIN u ON u.id = l.id WHERE ${where} ORDER BY l.rate DESC, l.last ASC`;
     const pub = (r, n) => ({ n, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, rank: r.rank, stars: r.stars, rate: r.rate, v: r.rate });
     const top = this.sql.exec(`${sel} LIMIT 50`, s).toArray().map((r, i) => pub(r, i + 1));
@@ -146,7 +147,7 @@ export const LadderMixin = {
     const id = url.searchParams.get('id') || '';
     if (/^[0-9a-f]{16,32}$/.test(id)) {
       const r = this.sql.exec('SELECT l.*, u.ison, u.hidden FROM lad l JOIN u ON u.id = l.id WHERE l.id = ?', id).toArray()[0];
-      if (r && r.season === s && r.games > 0 && r.ison && !r.hidden) {
+      if (r && (r.played || r.games > 0) && r.ison && !r.hidden) {
         const n = this.sql.exec(`SELECT COUNT(*) AS c FROM lad l JOIN u ON u.id = l.id WHERE ${where} AND (l.rate > ? OR (l.rate = ? AND l.last < ?))`, s, r.rate, r.rate, r.last).toArray()[0].c + 1;
         const o = Math.max(0, n - 3);
         me = { n, rank: r.rank, stars: r.stars, rate: r.rate, v: r.rate, near: this.sql.exec(`${sel} LIMIT 5 OFFSET ${o}`, s).toArray().map((x, i) => pub(x, o + i + 1)) };
@@ -271,7 +272,7 @@ export const LadderMixin = {
       const opId = b.ids.find((x) => x !== id);
       const opp = opId ? rows[opId] : (b.ghostLad || { rank: rows[id].rank, stars: 0, rate: 1500 });
       const nr = applyResult(rows[id], b.win === id, opp, !!b.ghost);
-      this.sql.exec('UPDATE lad SET rank=?, stars=?, streak=?, rate=?, best=?, games=?, wins=?, last=? WHERE id=?', nr.rank, nr.stars, nr.streak, nr.rate, nr.best, nr.games, nr.wins, Date.now(), id);
+      this.sql.exec('UPDATE lad SET played=1, rank=?, stars=?, streak=?, rate=?, best=?, games=?, wins=?, last=? WHERE id=?', nr.rank, nr.stars, nr.streak, nr.rate, nr.best, nr.games, nr.wins, Date.now(), id);
       out[id] = { before: this.ladPub(rows[id]), after: this.ladPub(nr), gain: nr.gain || 0, delta: nr.delta || 0, up: !!nr.up, down: !!nr.down, rally: bonus[id] || null };
     }
     return out;

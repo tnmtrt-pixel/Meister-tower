@@ -924,7 +924,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=0a4da6c4"></script>
 <script>
-const VERSION='2.25.0';
+const VERSION='2.26.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1561,7 +1561,7 @@ const ladTxt=x=>`${x.rate||1500}<small style="display:block;font-size:10px;opaci
 const leftTxt=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),h=Math.floor(m/60);return h>=24?L(`${Math.floor(h/24)}日${h%24}時間`,`${Math.floor(h/24)}天${h%24}小时`):h?L(`${h}時間${m%60}分`,`${h}小时${m%60}分`):L(`${m}分`,`${m}分钟`)};
 let rtype='lad',rdata={};
 /* Ver 2.19 ランキングはぜんぶウィークリー（月曜15時に切りかえ）。上位10人に報酬 */
-const RKT={inf:'infw',raid:'raidw',ex:'exw',lad:'lad'};
+const RKT={inf:'inf',raid:'raida',ex:'ex',lad:'lad'};/* Ver 2.26 ランキングはぜんぶ通算の記録 */
 const wkLeft=d=>d&&d.reset?leftTxt(d.reset-Date.now()):'';
 const WREW_TXT=()=>L('上位10人に報酬：1位50・2位30・3位20・4〜10位10コイン（翌週に「報酬」で受け取り）','前10名有奖励：第1名50·第2名30·第3名20·第4〜10名10金币（下周在「奖励」领取）');
 const exRk=r=>`${r.v}F`+(r.s?L(`・踏破${r.s}回`,`·踏破${r.s}次`):'');
@@ -1569,7 +1569,7 @@ const exRk=r=>`${r.v}F`+(r.s?L(`・踏破${r.s}回`,`·踏破${r.s}次`):'');
 function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   if(cr&&rtype!=='cup')cr.hidden=true;
   const d=rdata[rtype],p=save.prof,myTag=p.id?p.id.slice(-4):'';
-  const TT={ex:L('探索：今週の最高到達階','探索：本周最高到达层'),inf:L('無限の塔：今週の最高到達F','无限之塔：本周最高到达F'),raid:L('レイド：今週の合計ダメージ','团队战：本周累计伤害'),lad:L('ランクバトル：レート順位','排位赛：积分排名'),cup:L('大会の記録','大赛记录')};
+  const TT={ex:L('探索：最高到達階','探索：最高到达层'),inf:L('無限の塔：最高到達F','无限之塔：最高到达F'),raid:L('レイド：合計ダメージ','团队战：累计伤害'),lad:L('ランクバトル：レート順位','排位赛：积分排名'),cup:L('大会の記録','大赛记录')};
   const head=`<div class="row between"><h2>${TT[rtype]}</h2>${rtype==='cup'?'':`<button class="btn small" id="r-re">${L('更新','刷新')}</button>`}</div>`;
   const row=(n,icon,title,w,id,v,me)=>`<div class="rk${me?' me':''}"><span class="n">${n}</span><span>${byId(icon)?crest(byId(icon)):''}</span><span class="nm">${title?`<span class="ptitle">${titleTxt(title)}</span><br>`:''}${nameOf(w,id)}</span><span class="v">${v}</span></div>`;
   let hint='',body;
@@ -1579,20 +1579,20 @@ function renderRank(){const el=$('#rank'),cr=$('#cuprec');
     if(cr){renderCupRec()}}
   else if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
-  else{const wk=rtype!=='lad'&&d.reset?L(`今週の記録です（あと${wkLeft(d)}で切りかえ）。`,`本周记录（${wkLeft(d)}后切换）。`)+WREW_TXT():'';
-    hint=rtype==='lad'?L('ランクバトルのレート順の順位です。レートは勝つと上がり、強い相手ほど大きく動きます（シーズンが変わっても続きます）。シーズン報酬は、毎週月曜15時に最高ランクに応じてもらえます。','排位赛按积分排名。获胜积分上升，对手越强变动越大（换赛季也会保留）。每周一15点根据最高段位获得赛季奖励。')+(d.end?L(`（あと${leftTxt(d.end-Date.now())}）`,`（还有${leftTxt(d.end-Date.now())}）`):''):(rtype==='ex'?L('探索で今週いちばん上まで行った階です。','本周在探索中到达的最高层。'):rtype==='raid'?L('始原の紫翼皇に今週与えたダメージの合計です。','本周对始原紫翼皇造成的伤害总和。'):L('無限の塔で今週いちばん上まで行った階です。','本周在无限之塔到达的最高层。'))+wk;
+  else{const wk='';
+    hint=rtype==='lad'?L('ランクバトルのレート順の順位です。レートは勝つと上がり、強い相手ほど大きく動きます（シーズンが変わっても続きます）。シーズン報酬は、毎週月曜15時に最高ランクに応じてもらえます。','排位赛按积分排名。获胜积分上升，对手越强变动越大（换赛季也会保留）。每周一15点根据最高段位获得赛季奖励。')+(d.end?L(`（あと${leftTxt(d.end-Date.now())}）`,`（还有${leftTxt(d.end-Date.now())}）`):''):(rtype==='ex'?L('探索でこれまでにいちばん上まで行った階です。同じ階なら踏破回数が多い人が上です。','探索至今到达的最高层。同层时踏破次数多者在前。'):rtype==='raid'?L('始原の紫翼皇にこれまで与えたダメージの合計です。','至今对始原紫翼皇造成的伤害总和。'):L('無限の塔でこれまでにいちばん上まで行った階です。','至今在无限之塔到达的最高层。'))+wk;
     /* Ver 2.25 表彰台（1〜3位）・自分のまわり（あと何で抜けるか）・4位から下の一覧 */
-    const VT=r=>rtype==='ex'||rtype==='inf'?`${r.v}F`:rtype==='raid'?`${r.v}`:ladTxt(r),U=rtype==='ex'||rtype==='inf'?'F':rtype==='raid'?L('ダメージ','伤害'):L('レート','积分');
+    const VT=r=>rtype==='ex'?exRk(r):rtype==='inf'?`${r.v}F`:rtype==='raid'?`${r.v}`:ladTxt(r),U=rtype==='ex'||rtype==='inf'?'F':rtype==='raid'?L('ダメージ','伤害'):L('レート','积分');
     const MED=['👑','🥈','🥉'],top=d.top||[],me=d.me,isMe=r=>p.reg&&r.id===myTag;
     const pod=top.length?`<div class="rk-pod">${[1,0,2].map(i=>top[i]?`<div class="rk-p p${i+1}${isMe(top[i])?' me':''}"><span class="rk-m">${MED[i]}</span>${byId(top[i].icon)?crest(byId(top[i].icon)):''}<b>${nameOf(top[i].w,top[i].id)}</b><span class="v">${VT(top[i])}</span><span class="rk-pn">${i+1}${L('位','名')}</span></div>`:'<div></div>').join('')}</div>`:'';
     let near='';
     if(!p.reg)near=`<p class="hint">${L('プロフィールを登録すると、ランキングに参加できます。','登记个人资料后即可参加排行。')}</p>`;
     else if(me&&me.n){const nb=me.near||[],up=nb.find(x=>x.n===me.n-1);
-      const goal=me.n===1?L('👑 1位！ このまま守りきろう','👑 第1名！保持住吧'):up?(()=>{const diff=Math.max(0,(up.v||0)-(me.v||0))+(rtype==='ex'||rtype==='inf'?0:1);return diff>0?L(`あと <b>${diff}${U}</b> で ${nameOf(up.w,up.id)} を抜ける！`,`再 <b>${diff}${U}</b> 就能超过 ${nameOf(up.w,up.id)}！`):L(`${nameOf(up.w,up.id)} と同じ記録。もうひと押し！`,`与 ${nameOf(up.w,up.id)} 记录相同。再加把劲！`)})():'';
+      const goal=me.n===1?L('👑 1位！ このまま守りきろう','👑 第1名！保持住吧'):up?(()=>{const diff=Math.max(0,(up.v||0)-(me.v||0))+1;/* 同じ記録なら先に出した人が上なので、1つ上回る必要がある */return diff>0?L(`あと <b>${diff}${U}</b> で ${nameOf(up.w,up.id)} を抜ける！`,`再 <b>${diff}${U}</b> 就能超过 ${nameOf(up.w,up.id)}！`):L(`${nameOf(up.w,up.id)} と同じ記録。もうひと押し！`,`与 ${nameOf(up.w,up.id)} 记录相同。再加把劲！`)})():'';
       near=`<div class="rk-near"><div class="row between"><span class="label">${L('あなたのまわり','你的周围')}</span><b class="rk-my">${me.n}${L('位','名')} / ${d.total}${L('人','人')}</b></div>${goal?`<p class="rk-goal">${goal}</p>`:''}<div>${(nb.length?nb:[{...me,id:myTag,w:p.w,icon:p.icon,title:p.title}]).map(r=>row(r.n<=3?MED[r.n-1]:r.n,r.icon,r.title,r.w,r.id,VT(r),isMe(r))).join('')}</div></div>`}
-    else near=`<div class="rk-near"><p class="rk-goal">${rtype==='lad'?L('ランクバトルで1戦すると、ここに順位が出ます','进行1场排位赛后，这里会显示名次'):L('今週はまだ記録がありません。1回遊ぶとランキングに入ります！','本周还没有记录。玩1次就能进入排行！')}</p></div>`;
+    else near=`<div class="rk-near"><p class="rk-goal">${rtype==='lad'?L('ランクバトルで1戦すると、ここに順位が出ます','进行1场排位赛后，这里会显示名次'):L('まだ記録がありません。1回遊ぶとランキングに入ります！','还没有记录。玩1次就能进入排行！')}</p></div>`;
     const rest=top.slice(3);
-    body=top.length?`${pod}${near}${rest.length?`<details class="rk-all"><summary>${L(`4位から下を見る（${rest.length}人）`,`查看第4名以后（${rest.length}人）`)}</summary><div class="rlist">${rest.map(r=>row(r.n,r.icon,r.title,r.w,r.id,VT(r),isMe(r))).join('')}</div></details>`:''}`:`${near}<p class="hint">${rtype!=='lad'?L('今週はまだ誰もいません。一番乗りをねらおう！','本周还没有人上榜。争取第一个上榜吧！'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}
+    body=top.length?`${pod}${near}${rest.length?`<details class="rk-all"><summary>${L(`4位から下を見る（${rest.length}人）`,`查看第4名以后（${rest.length}人）`)}</summary><div class="rlist">${rest.map(r=>row(r.n,r.icon,r.title,r.w,r.id,VT(r),isMe(r))).join('')}</div></details>`:''}`:`${near}<p class="hint">${rtype!=='lad'?L('まだ誰もいません。一番乗りをねらおう！','还没有人上榜。争取第一个上榜吧！'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}
   el.innerHTML=head+(hint?`<p class="hint">${hint}</p>`:'')+body;
   const re=$('#r-re');if(re)re.onclick=()=>{sfx('tap');loadRank()};
 }
