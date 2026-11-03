@@ -35,13 +35,16 @@ export function applyResult(r0, win, opp, ghost) {
   const r = { ...r0 };
   r.games = (r.games || 0) + 1;
   if (win) r.wins = (r.wins || 0) + 1;
-  if (r.rank >= MASTER) {
-    const ex = 1 / (1 + Math.pow(10, (estRate(opp || { rank: MASTER, rate: 1500 }) - r.rate) / 400));
+  /* Ver 2.25 レートは全員につく（ランクに関係なく、勝ち負けと相手のレートで上下。ゴースト戦は半分） */
+  {
+    const ex = 1 / (1 + Math.pow(10, (((opp && opp.rate) || 1500) - (r.rate || 1500)) / 400));
     let d = Math.round(32 * ((win ? 1 : 0) - ex));
     if (ghost) d = Math.round(d / 2);
-    r.rate = Math.max(1000, r.rate + d);
-    r.streak = win ? (r.streak || 0) + 1 : 0;
+    r.rate = Math.max(1000, (r.rate || 1500) + d);
     r.delta = d;
+  }
+  if (r.rank >= MASTER) {
+    r.streak = win ? (r.streak || 0) + 1 : 0;
     return r;
   }
   if (win) {
@@ -54,7 +57,7 @@ export function applyResult(r0, win, opp, ghost) {
       r.rank++;
       r.up = true;
     }
-    if (r.rank >= MASTER) { r.rank = MASTER; r.stars = 0; r.rate = 1500; }
+    if (r.rank >= MASTER) { r.rank = MASTER; r.stars = 0; }
   } else {
     r.streak = 0;
     r.gain = 0;
@@ -118,7 +121,7 @@ export const LadderMixin = {
     if (r.season < s) {
       if (r.games > 0) this.sql.exec('INSERT OR IGNORE INTO rw (id, kind, pkey, rank, coins) VALUES (?,?,?,?,?)', id, 'lad', r.season, r.best, seasonCoins(r.best));
       const nr = r.season === s - 1 ? nextSeasonRank(r.rank) : 1;
-      this.sql.exec('UPDATE lad SET season=?, rank=?, stars=0, streak=0, rate=1500, best=?, games=0, wins=0 WHERE id=?', s, nr, nr, id);
+      this.sql.exec('UPDATE lad SET season=?, rank=?, stars=0, streak=0, best=?, games=0, wins=0 WHERE id=?', s, nr, nr, id); /* レートはシーズンをまたいで続く */
       r = this.sql.exec('SELECT * FROM lad WHERE id = ?', id).toArray()[0];
     }
     return r;
@@ -132,21 +135,21 @@ export const LadderMixin = {
     if (!a.r) return json({ err: 'no profile' }, 404);
     return json({ ok: true, me: this.ladPub(this.ladRow(b.id)), v: ENGINE_V });
   },
+  /* Ver 2.25 ランクバトルの順位はレート順（同じなら先に到達した人） */
   ladRank(url, json) {
     const s = seasonNo();
-    const ord = 'l.rank DESC, CASE WHEN l.rank >= 11 THEN l.rate ELSE l.stars END DESC, l.last ASC';
     const where = 'l.season = ? AND l.games > 0 AND u.ison = 1 AND u.hidden = 0';
-    const top = this.sql.exec(`SELECT l.id, l.rank, l.stars, l.rate, u.w, u.icon, u.title FROM lad l JOIN u ON u.id = l.id WHERE ${where} ORDER BY ${ord} LIMIT 50`, s).toArray()
-      .map((r, i) => ({ n: i + 1, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, rank: r.rank, stars: r.stars, rate: r.rate }));
+    const sel = `SELECT l.id, l.rank, l.stars, l.rate, u.w, u.icon, u.title FROM lad l JOIN u ON u.id = l.id WHERE ${where} ORDER BY l.rate DESC, l.last ASC`;
+    const pub = (r, n) => ({ n, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, rank: r.rank, stars: r.stars, rate: r.rate, v: r.rate });
+    const top = this.sql.exec(`${sel} LIMIT 50`, s).toArray().map((r, i) => pub(r, i + 1));
     let me = null;
     const id = url.searchParams.get('id') || '';
     if (/^[0-9a-f]{16,32}$/.test(id)) {
       const r = this.sql.exec('SELECT l.*, u.ison, u.hidden FROM lad l JOIN u ON u.id = l.id WHERE l.id = ?', id).toArray()[0];
       if (r && r.season === s && r.games > 0 && r.ison && !r.hidden) {
-        const v = score(r);
-        const n = this.sql.exec(`SELECT COUNT(*) AS c FROM lad l JOIN u ON u.id = l.id WHERE ${where} AND (l.rank > ? OR (l.rank = ? AND (CASE WHEN l.rank >= 11 THEN l.rate ELSE l.stars END > ? OR (CASE WHEN l.rank >= 11 THEN l.rate ELSE l.stars END = ? AND l.last < ?))))`,
-          s, r.rank, r.rank, r.rank >= MASTER ? r.rate : r.stars, r.rank >= MASTER ? r.rate : r.stars, r.last).toArray()[0].c + 1;
-        me = { n, rank: r.rank, stars: r.stars, rate: r.rate, v };
+        const n = this.sql.exec(`SELECT COUNT(*) AS c FROM lad l JOIN u ON u.id = l.id WHERE ${where} AND (l.rate > ? OR (l.rate = ? AND l.last < ?))`, s, r.rate, r.rate, r.last).toArray()[0].c + 1;
+        const o = Math.max(0, n - 3);
+        me = { n, rank: r.rank, stars: r.stars, rate: r.rate, v: r.rate, near: this.sql.exec(`${sel} LIMIT 5 OFFSET ${o}`, s).toArray().map((x, i) => pub(x, o + i + 1)) };
       }
     }
     const total = this.sql.exec(`SELECT COUNT(*) AS c FROM lad l JOIN u ON u.id = l.id WHERE ${where}`, s).toArray()[0].c;

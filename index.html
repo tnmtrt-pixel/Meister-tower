@@ -758,6 +758,20 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 .ex-buffs{display:flex;flex-wrap:wrap;gap:4px}.ex-buffs span{font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;border:1px solid rgba(255,224,138,.6);background:rgba(255,224,138,.1);white-space:nowrap}
 .ex-got .ex-i{font-size:60px}.ex-got .ex-i img{width:72px;height:72px}.ex-jp b{color:#FFE08A}
 .ex-buffs span{display:inline-flex;align-items:center;gap:2px}.ex-cic{width:18px;height:18px}
+
+/* Ver 2.25 順位：表彰台・自分のまわり */
+.rk-pod{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:6px;align-items:end;margin:4px 0 10px}
+.rk-p{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;border-radius:12px;border:2px solid rgba(255,255,255,.2);background:rgba(8,14,34,.6);text-align:center;min-width:0;position:relative}
+.rk-p .crest{width:52px}.rk-p.p1 .crest{width:66px}.rk-p b{font-size:11px;line-height:1.25;word-break:break-all}.rk-p .v{font:800 15px var(--f-body);color:#FFE08A}.rk-pn{font:900 12px var(--f-display);opacity:.8}
+.rk-p.p1{border-color:#F4BA1C;background:linear-gradient(180deg,rgba(244,186,28,.28),rgba(8,14,34,.6));box-shadow:0 0 16px rgba(244,186,28,.45);padding-top:14px}
+.rk-p.p2{border-color:#C9D2E6}.rk-p.p3{border-color:#D08A4A}
+.rk-m{position:absolute;top:-14px;font-size:22px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}.rk-p.p1 .rk-m{font-size:28px;top:-18px}
+.rk-p.me,.rk.me{box-shadow:0 0 0 2px #7FE0FF,0 0 14px rgba(127,224,255,.6)!important;background:rgba(127,224,255,.12)!important;border-radius:8px}
+.rk-near{border:2px solid #7FE0FF;border-radius:12px;padding:8px;background:rgba(127,224,255,.06);margin-bottom:8px}.rk-my{font:900 18px var(--f-display);color:#7FE0FF}
+.rk-goal{margin:4px 0 6px;font-weight:800;font-size:14px;color:#fff}.rk-goal b{color:#FFE08A;font-size:17px}
+.rk-all summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--muted);padding:6px 0}
+.lad-rate{margin-left:auto;text-align:center;font-size:11px;color:var(--muted)}.lad-rate b{display:block;font:900 22px var(--f-display);color:#7FE0FF}
+.rk-near .rk .n,.rk-all .rk .n{color:inherit}
 </style>
 </head>
 <body>
@@ -910,7 +924,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=0a4da6c4"></script>
 <script>
-const VERSION='2.24.6';
+const VERSION='2.25.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1543,7 +1557,7 @@ function renderProf(){const el=$('#prof'),p=ensureProf();if(!p.icon||!owns(p.ico
 const MASTER=11;
 const rankName=rk=>rk>=MASTER?L('マスター','大师'):L(`ランク${rk}`,`等级${rk}`);
 const starsHTML=(n,need)=>`<span class="lad-stars">${'★'.repeat(Math.max(0,n))}<i>${'★'.repeat(Math.max(0,need-n))}</i></span>`;
-const ladTxt=x=>x.rank>=MASTER?`${rankName(x.rank)} <small>${x.rate}</small>`:`${rankName(x.rank)} <small>${'★'.repeat(x.stars)}</small>`;
+const ladTxt=x=>`${x.rate||1500}<small style="display:block;font-size:10px;opacity:.8">${rankName(x.rank)}</small>`;/* Ver 2.25 ランクバトルの順位はレート */
 const leftTxt=ms=>{const m=Math.max(0,Math.ceil(ms/60000)),h=Math.floor(m/60);return h>=24?L(`${Math.floor(h/24)}日${h%24}時間`,`${Math.floor(h/24)}天${h%24}小时`):h?L(`${h}時間${m%60}分`,`${h}小时${m%60}分`):L(`${m}分`,`${m}分钟`)};
 let rtype='lad',rdata={};
 /* Ver 2.19 ランキングはぜんぶウィークリー（月曜15時に切りかえ）。上位10人に報酬 */
@@ -1555,7 +1569,7 @@ const exRk=r=>`${r.v}F`+(r.s?L(`・踏破${r.s}回`,`·踏破${r.s}次`):'');
 function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   if(cr&&rtype!=='cup')cr.hidden=true;
   const d=rdata[rtype],p=save.prof,myTag=p.id?p.id.slice(-4):'';
-  const TT={ex:L('探索：今週の最高到達階','探索：本周最高到达层'),inf:L('無限の塔：今週の最高到達F','无限之塔：本周最高到达F'),raid:L('レイド：今週の合計ダメージ','团队战：本周累计伤害'),lad:L('ランクバトル：今週のシーズン','排位赛：本周赛季'),cup:L('大会の記録','大赛记录')};
+  const TT={ex:L('探索：今週の最高到達階','探索：本周最高到达层'),inf:L('無限の塔：今週の最高到達F','无限之塔：本周最高到达F'),raid:L('レイド：今週の合計ダメージ','团队战：本周累计伤害'),lad:L('ランクバトル：レート順位','排位赛：积分排名'),cup:L('大会の記録','大赛记录')};
   const head=`<div class="row between"><h2>${TT[rtype]}</h2>${rtype==='cup'?'':`<button class="btn small" id="r-re">${L('更新','刷新')}</button>`}</div>`;
   const row=(n,icon,title,w,id,v,me)=>`<div class="rk${me?' me':''}"><span class="n">${n}</span><span>${byId(icon)?crest(byId(icon)):''}</span><span class="nm">${title?`<span class="ptitle">${titleTxt(title)}</span><br>`:''}${nameOf(w,id)}</span><span class="v">${v}</span></div>`;
   let hint='',body;
@@ -1566,9 +1580,19 @@ function renderRank(){const el=$('#rank'),cr=$('#cuprec');
   else if(!d)body=`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   else if(d.err)body=`<p class="hint">${L('ランキングを読み込めませんでした。通信できる場所でもう一度開いてください。','无法读取排行榜，请在网络良好的地方重新打开。')}</p>`;
   else{const wk=rtype!=='lad'&&d.reset?L(`今週の記録です（あと${wkLeft(d)}で切りかえ）。`,`本周记录（${wkLeft(d)}后切换）。`)+WREW_TXT():'';
-    hint=rtype==='lad'?L('今シーズンのランクバトルの順位です。シーズンは毎週月曜15時に切りかわり、最高ランクに応じて報酬がもらえます。','本赛季排位赛的名次。赛季每周一15点切换，根据最高段位获得奖励。')+(d.end?L(`（あと${leftTxt(d.end-Date.now())}）`,`（还有${leftTxt(d.end-Date.now())}）`):''):(rtype==='ex'?L('探索で今週いちばん上まで行った階です。','本周在探索中到达的最高层。'):rtype==='raid'?L('始原の紫翼皇に今週与えたダメージの合計です。','本周对始原紫翼皇造成的伤害总和。'):L('無限の塔で今週いちばん上まで行った階です。','本周在无限之塔到达的最高层。'))+wk;
-    body=`<div class="rlist">${d.top.map(r=>row(r.n,r.icon,r.title,r.w,r.id,rtype==='ex'||rtype==='inf'?`${r.v}F`:rtype==='raid'?`${r.v}`:ladTxt(r),p.reg&&r.id===myTag)).join('')||`<p class="hint">${rtype!=='lad'?L('今週はまだ誰もいません。','本周还没有人上榜。'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}</div>
-    <div class="row between" style="margin-top:6px"><span class="label">${L('あなたの順位','你的名次')}</span><b>${!p.reg?L('未登録','未登记'):d.me&&d.me.n?`${d.me.n}${L('位','名')} / ${d.total}${L('人','人')}（${rtype==='ex'||rtype==='inf'?`${d.me.v}F`:rtype==='raid'?`${d.me.v}${L('ダメージ','伤害')}`:ladTxt(d.me)}）`:(rtype!=='lad'?L('今週はまだ記録なし','本周还没有记录'):L('まだ対戦していません','还没有对战'))}</b></div>`}
+    hint=rtype==='lad'?L('ランクバトルのレート順の順位です。レートは勝つと上がり、強い相手ほど大きく動きます（シーズンが変わっても続きます）。シーズン報酬は、毎週月曜15時に最高ランクに応じてもらえます。','排位赛按积分排名。获胜积分上升，对手越强变动越大（换赛季也会保留）。每周一15点根据最高段位获得赛季奖励。')+(d.end?L(`（あと${leftTxt(d.end-Date.now())}）`,`（还有${leftTxt(d.end-Date.now())}）`):''):(rtype==='ex'?L('探索で今週いちばん上まで行った階です。','本周在探索中到达的最高层。'):rtype==='raid'?L('始原の紫翼皇に今週与えたダメージの合計です。','本周对始原紫翼皇造成的伤害总和。'):L('無限の塔で今週いちばん上まで行った階です。','本周在无限之塔到达的最高层。'))+wk;
+    /* Ver 2.25 表彰台（1〜3位）・自分のまわり（あと何で抜けるか）・4位から下の一覧 */
+    const VT=r=>rtype==='ex'||rtype==='inf'?`${r.v}F`:rtype==='raid'?`${r.v}`:ladTxt(r),U=rtype==='ex'||rtype==='inf'?'F':rtype==='raid'?L('ダメージ','伤害'):L('レート','积分');
+    const MED=['👑','🥈','🥉'],top=d.top||[],me=d.me,isMe=r=>p.reg&&r.id===myTag;
+    const pod=top.length?`<div class="rk-pod">${[1,0,2].map(i=>top[i]?`<div class="rk-p p${i+1}${isMe(top[i])?' me':''}"><span class="rk-m">${MED[i]}</span>${byId(top[i].icon)?crest(byId(top[i].icon)):''}<b>${nameOf(top[i].w,top[i].id)}</b><span class="v">${VT(top[i])}</span><span class="rk-pn">${i+1}${L('位','名')}</span></div>`:'<div></div>').join('')}</div>`:'';
+    let near='';
+    if(!p.reg)near=`<p class="hint">${L('プロフィールを登録すると、ランキングに参加できます。','登记个人资料后即可参加排行。')}</p>`;
+    else if(me&&me.n){const nb=me.near||[],up=nb.find(x=>x.n===me.n-1);
+      const goal=me.n===1?L('👑 1位！ このまま守りきろう','👑 第1名！保持住吧'):up?(()=>{const diff=Math.max(0,(up.v||0)-(me.v||0))+(rtype==='ex'||rtype==='inf'?0:1);return diff>0?L(`あと <b>${diff}${U}</b> で ${nameOf(up.w,up.id)} を抜ける！`,`再 <b>${diff}${U}</b> 就能超过 ${nameOf(up.w,up.id)}！`):L(`${nameOf(up.w,up.id)} と同じ記録。もうひと押し！`,`与 ${nameOf(up.w,up.id)} 记录相同。再加把劲！`)})():'';
+      near=`<div class="rk-near"><div class="row between"><span class="label">${L('あなたのまわり','你的周围')}</span><b class="rk-my">${me.n}${L('位','名')} / ${d.total}${L('人','人')}</b></div>${goal?`<p class="rk-goal">${goal}</p>`:''}<div>${(nb.length?nb:[{...me,id:myTag,w:p.w,icon:p.icon,title:p.title}]).map(r=>row(r.n<=3?MED[r.n-1]:r.n,r.icon,r.title,r.w,r.id,VT(r),isMe(r))).join('')}</div></div>`}
+    else near=`<div class="rk-near"><p class="rk-goal">${rtype==='lad'?L('ランクバトルで1戦すると、ここに順位が出ます','进行1场排位赛后，这里会显示名次'):L('今週はまだ記録がありません。1回遊ぶとランキングに入ります！','本周还没有记录。玩1次就能进入排行！')}</p></div>`;
+    const rest=top.slice(3);
+    body=top.length?`${pod}${near}${rest.length?`<details class="rk-all"><summary>${L(`4位から下を見る（${rest.length}人）`,`查看第4名以后（${rest.length}人）`)}</summary><div class="rlist">${rest.map(r=>row(r.n,r.icon,r.title,r.w,r.id,VT(r),isMe(r))).join('')}</div></details>`:''}`:`${near}<p class="hint">${rtype!=='lad'?L('今週はまだ誰もいません。一番乗りをねらおう！','本周还没有人上榜。争取第一个上榜吧！'):L('まだ誰もいません。ランクバトルで一番乗りをねらおう！','还没有人上榜。在排位赛中争取第一个上榜吧！')}</p>`}
   el.innerHTML=head+(hint?`<p class="hint">${hint}</p>`:'')+body;
   const re=$('#r-re');if(re)re.onclick=()=>{sfx('tap');loadRank()};
 }
@@ -1697,7 +1721,10 @@ $('#news-btn').onclick=showNews;
    対戦の勝ち負けはサーバーが計算して決める */
 const LAD={me:null,ws:null,state:'idle',t0:0,tick:null,err:'',ghostMs:30000};
 function ladChange(r){const a=r.before,b=r.after;
-  if(b.rank>=MASTER&&a.rank>=MASTER)return`<span class="lad-chg${r.delta<0?' dn':''}">${L('レート','积分')} ${a.rate} → ${b.rate}（${r.delta>=0?'+':''}${r.delta}）</span>`;
+  const rt=`<span class="lad-chg${r.delta<0?' dn':''}">${L('レート','积分')} ${a.rate} → ${b.rate}（${r.delta>=0?'+':''}${r.delta||0}）</span>`;
+  if(b.rank>=MASTER&&a.rank>=MASTER)return rt;
+  return rt+ladChange0(r)}
+function ladChange0(r){const a=r.before,b=r.after;
   if(b.rank>a.rank)return`<span class="lad-chg">🎉 ${rankName(a.rank)} → ${rankName(b.rank)}${L(' に昇格！',' 晋级！')}</span>`;
   if(b.rank<a.rank)return`<span class="lad-chg dn">${rankName(a.rank)} → ${rankName(b.rank)}</span>`;
   return`<span class="lad-chg${r.gain<0?' dn':''}">${rankName(b.rank)} ${starsHTML(b.stars,b.need)} ${r.gain>0?'★+'+r.gain:r.gain<0?'★'+r.gain:'±0'}</span>`}
@@ -1722,7 +1749,7 @@ function renderLad(){const el=$('#lad');if(!el)return;const p=save.prof,me=LAD.m
   const head=`<div class="row between"><h2>⚔️ ${L('ランクバトル','排位赛')}</h2>${me?`<span class="hint">${L(`シーズン${me.season}・あと${leftTxt(me.end-Date.now())}`,`第${me.season}赛季·还剩${leftTxt(me.end-Date.now())}`)}</span>`:''}</div>`;
   if(!p.reg){el.innerHTML=head+`<p class="hint">${L('ランクバトルに参加するには、下のプロフィールで名前を決めて「登録」してください。','参加排位赛前，请先在下方个人资料中决定名字并「登记」。')}</p><button class="btn" id="lad-reg">${L('プロフィールを登録する','登记个人资料')}</button>`;
     $('#lad-reg').onclick=()=>{sfx('tap');pedit=true;nav('rank');setTimeout(()=>$('#prof').scrollIntoView({behavior:'smooth'}),150)};return}
-  const rk=me?`<div class="lad-rank"><div class="lad-badge${me.rank>=MASTER?' m':''}">${me.rank>=MASTER?L('マスター','大师'):me.rank}<small>${me.rank>=MASTER?L('レート ','积分 ')+me.rate:L('ランク','等级')}</small></div>
+  const rk=me?`<div class="lad-rank"><div class="lad-badge${me.rank>=MASTER?' m':''}">${me.rank>=MASTER?L('マスター','大师'):me.rank}<small>${me.rank>=MASTER?L('レート ','积分 ')+me.rate:L('ランク','等级')}</small></div><div class="lad-rate">${L('レート','积分')}<b>${me.rate||1500}</b></div>
     <div>${me.rank>=MASTER?'':starsHTML(me.stars,me.need)}${me.streak>=2?`<div class="lad-streak">🔥 ${L(`${me.streak}連勝中`,`${me.streak}连胜中`)}</div>`:''}<div class="hint">${L(`今シーズン ${me.wins}勝${me.games-me.wins}敗・最高 ${rankName(me.best)}`,`本赛季 ${me.wins}胜${me.games-me.wins}负·最高 ${rankName(me.best)}`)}</div></div></div>`:`<p class="hint">${L('読み込み中…','读取中…')}</p>`;
   let act;
   if(LAD.state==='connect')act=`<p class="lad-wait">${L('サーバーにつないでいます…','正在连接服务器…')}</p>`;

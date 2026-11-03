@@ -523,15 +523,17 @@ export class Rank {
     const top = all.slice(0, 50).map((x, i) => { const u = info(x.id); return { n: i + 1, id: x.id.slice(-4), w: JSON.parse(u.w || '[]'), icon: u.icon, title: u.title, v: x.v }; });
     const id = url.searchParams.get('id') || '';
     const k = ID_RE.test(id) ? all.findIndex((x) => x.id === id) : -1;
-    return json({ type: 'raidw', top, me: k >= 0 ? { n: k + 1, v: all[k].v } : null, total: all.length, wk: K, reset: nextReset('raidw'), rew: WREW });
+    const near = k >= 0 ? all.slice(Math.max(0, k - 2), k + 3).map((x, i) => { const u = info(x.id); return { n: Math.max(0, k - 2) + i + 1, id: x.id.slice(-4), w: JSON.parse(u.w || '[]'), icon: u.icon, title: u.title, v: x.v }; }) : null;
+    return json({ type: 'raidw', top, me: k >= 0 ? { n: k + 1, v: all[k].v, near } : null, total: all.length, wk: K, reset: nextReset('raidw'), rew: WREW });
   }
 
   rank(url) {
     const type = TYPES[url.searchParams.get('type')] ? url.searchParams.get('type') : 'floor';
     const col = TYPES[type], sub = SUB[type], wk = weekNo(), P = PER[type], tl = P ? P.last : 'last';
     const where = `ison=1 AND hidden=0 AND ${col} > 0` + (type === 'week' ? ` AND wk=${wk}` : '') + (P ? ` AND ${P.key}=${P.fn(Date.now())}` : '');
-    const top = this.sql.exec(`SELECT id, w, icon, title, ${col} AS v${sub ? `, ${sub} AS s` : ''} FROM u WHERE ${where} ORDER BY ${col} DESC${sub ? `, ${sub} DESC` : ''}, ${tl} ASC LIMIT 50`).toArray()
-      .map((r, i) => ({ n: i + 1, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, v: r.v, s: r.s }));
+    const ord = `${col} DESC${sub ? `, ${sub} DESC` : ''}, ${tl} ASC`, sel = `SELECT id, w, icon, title, ${col} AS v${sub ? `, ${sub} AS s` : ''} FROM u WHERE ${where} ORDER BY ${ord}`;
+    const pub = (r, n) => ({ n, id: r.id.slice(-4), w: JSON.parse(r.w), icon: r.icon, title: r.title, v: r.v, s: r.s });
+    const top = this.sql.exec(`${sel} LIMIT 50`).toArray().map((r, i) => pub(r, i + 1));
     let me = null;
     const id = url.searchParams.get('id') || '';
     if (ID_RE.test(id)) {
@@ -543,6 +545,8 @@ export class Rank {
           ? this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND (${sub} > ? OR (${sub} = ? AND last < ?))))`, v, v, r[sub], r[sub], r.last).toArray()[0].c + 1
           : this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where} AND (${col} > ? OR (${col} = ? AND ${tl} < ?))`, v, v, r[tl]).toArray()[0].c + 1;
         me = { n, v, s: sub ? r[sub] : undefined, hidden: !!r.hidden };
+        /* Ver 2.25 自分のまわり（上2人・自分・下2人） */
+        if (n) { const o = Math.max(0, n - 3); me.near = this.sql.exec(`${sel} LIMIT 5 OFFSET ${o}`).toArray().map((x, i) => pub(x, o + i + 1)); }
       }
     }
     const total = this.sql.exec(`SELECT COUNT(*) AS c FROM u WHERE ${where}`).toArray()[0].c;
