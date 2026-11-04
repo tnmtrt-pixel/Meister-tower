@@ -334,7 +334,7 @@ const T4={"de_s": {"c": {"t": "even"}, "dmg": {"b": 4, "m": 1}, "ty": "de"}, "de
 const V4={"dodo":[["ch_s","ドドアタック"],["ch_m","大きなくちばし"],["ch_l","ドド体当たり"],["ch_t","ヒップドロップ"],["ke_s","つつき"],["ma_m","先輩の説教"],["mamoru","ガード"],["kaifuku","のんびり昼寝"],["tameru","力をためる"],["odosu","先輩の貫禄"]],"fox":[["me_s","ドライバー突き"],["me_m","電動ドライバー"],["me_l","分解"],["me_t","トルク全開"],["ch_l","スパナ叩き"],["ke_s","キツネ跳び"],["mamoru","防護ゴーグル"],["kaifuku","ひと休み"],["tameru","ゴーグル分析"],["odosu","にらみつける"]],"wolf":[["de_s","アーク放電"],["de_m","溶接ビーム"],["de_l","スパーク溶断"],["de_t","フルパワー溶接"],["ke_s","ウルフファング"],["ke_t","ツインファング"],["mamoru","安全第一"],["kaifuku","ひと休み"],["tameru","気合い"],["odosu","にらみつける"],["totonoeru","資格勉強"]],"onmyo":[["ma_s","鬼の睨み"],["ma_m","呪符"],["ma_l","陰の刃"],["ma_t","急急如律令"],["de_s","雷符"],["ch_s","鬼の金棒"],["mamoru","陽の結界"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","にらみつける"],["totonoeru","墨染め"]],"tsukiyo":[["ma_s","星の爪"],["ma_m","三日月"],["ma_l","夜空の翼"],["ma_t","月影の惑い"],["me_m","歯車ショット"],["me_t","天体観測ビーム"],["mamoru","歯車の加護"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","にらみつける"],["totonoeru","星座の導き"]],"mouse":[["me_s","スパナパンチ"],["me_m","ロボ発進"],["me_l","ロボドリル"],["me_t","ロボアッパー"],["ke_s","かじる"],["de_m","ロボビーム"],["mamoru","ガード"],["kaifuku","ロボ修理"],["tameru","力をためる"],["odosu","にらみつける"]],"owl":[["me_s","ルーペ観察"],["me_m","精密計算"],["me_l","精密レーザー"],["me_t","精密射撃"],["ma_s","ホーホー"],["ma_m","まどわしの羽"],["mamoru","理論武装"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","にらみつける"],["totonoeru","夜目"]],"gorilla":[["de_s","放電"],["de_m","エレキナックル"],["de_l","サンダードラム"],["de_t","ハイボルテージ"],["ch_s","ゴリラパンチ"],["ch_t","ゴリラプレス"],["mamoru","ガード"],["kaifuku","ひと休み"],["tameru","胸たたき"],["odosu","にらみつける"]],"robot":[["me_s","ロボパンチ"],["me_m","センサー照準"],["me_l","ドリルアーム"],["me_t","パイルバンカー"],["ch_m","ロケットパンチ"],["de_s","放電アーム"],["mamoru","ガード"],["kaifuku","修理プログラム"],["tameru","力をためる"],["odosu","にらみつける"],["totonoeru","ブースター"]],"rocker":[["de_s","ギタースマッシュ"],["de_m","パワーコード"],["de_l","ハウリング"],["de_t","ギターソロ"],["ma_s","スピーカー爆音"],["ch_s","ステージダイブ"],["mamoru","ガード"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","シャウト"]],"nero":[["ma_s","投げキッス"],["ma_m","タトゥーの呪い"],["ma_l","シルバーリング"],["ma_t","小悪魔の囁き"],["ch_s","キャンディ投げ"],["ch_m","チェーンウィップ"],["mamoru","鎖の盾"],["kaifuku","ペロッ"],["tameru","力をためる"],["odosu","にらみつける"]],"okajun":[["ch_s","鉄拳"],["ch_m","フルスイング"],["ch_l","タイヤ投げ"],["ch_t","番長ラリアット"],["me_m","スパナ一閃"],["me_s","ラチェット回し"],["mamoru","ガード"],["kaifuku","油差し"],["tameru","力をためる"],["odosu","メンチ切り"]],"hayate":[["ch_s","正拳突き"],["ch_m","グラインダー"],["ch_l","軍手パンチ"],["ch_t","全力正拳"],["me_s","ジャブ"],["ke_m","速攻ラッシュ"],["mamoru","安全メガネ"],["kaifuku","水分補給"],["tameru","力をためる"],["odosu","にらみつける"]],"kurogane":[["ke_s","ねこパンチ"],["ke_m","スパナひっかき"],["ke_l","ねこパンチ一閃"],["ke_t","招き猫クロー"],["me_l","ドライバー投げ"],["me_t","ねこの手工具"],["mamoru","しっぽバランス"],["kaifuku","ひと休み"],["tameru","ピース"],["odosu","にらみつける"]],"lionex":[["de_s","たてがみの稲光"],["de_m","落雷"],["de_l","雷鳴の牙"],["de_t","百獣の雷鳴"],["ma_s","王者の威光"],["ke_m","雷爪"],["mamoru","ガード"],["kaifuku","ひと休み"],["tameru","帯電"],["odosu","咆哮"]],"seraph":[["ma_s","光の手"],["ma_m","聖なる羽"],["ma_l","光輪"],["ma_t","天使の微笑み"],["ke_s","鳩の使い"],["de_m","光の矢"],["mamoru","聖なる輪"],["kaifuku","祝福の光"],["tameru","力をためる"],["odosu","にらみつける"]],"hakurou":[["ke_s","白牙"],["ke_m","狼爪連舞"],["ke_l","白銀の爪"],["ke_t","双牙"],["ma_m","金の房"],["ma_s","月光の舞"],["mamoru","天衣無縫"],["kaifuku","ひと休み"],["tameru","遠吠え"],["odosu","にらみつける"]],"guardian":[["ke_s","かみつき"],["ke_m","大あご"],["ke_l","ワニのひと噛み"],["ke_t","デスロール"],["ch_l","しっぽ払い"],["ch_m","騎士の一撃"],["mamoru","腕組み"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","騎士の誓い"]],"libra":[["ma_s","白のサイコロ"],["ma_m","天秤の傾き"],["ma_l","黒のサイコロ"],["ma_t","有罪宣告"],["ch_m","公正な裁き"],["de_s","雷の裁き"],["mamoru","天秤の守り"],["kaifuku","ひと休み"],["tameru","力をためる"],["odosu","判決"]],"spino":[["ke_s","骨かみ"],["ke_m","背骨ムチ"],["ke_l","ボーンクロー"],["ke_t","化石の双爪"],["ch_m","しっぽ叩きつけ"],["ma_s","古代の呪い"],["mamoru","ガード"],["kaifuku","化石の眠り"],["tameru","力をためる"],["odosu","古代の咆哮"]],"takumi":[["ch_s","匠の一打"],["ch_m","荒削り"],["ch_l","大槌"],["ch_t","鍛造の一撃"],["me_m","仕上げ"],["me_t","寸分の狂いなく"],["mamoru","段取り八分"],["kaifuku","ひと休み"],["tameru","研ぎ澄ます"],["odosu","にらみつける"]],"sora":[["me_s","ドローン偵察"],["me_m","プロペラカッター"],["me_l","ドローン体当たり"],["me_t","急降下アタック"],["de_t","電波妨害"],["de_s","バッテリー放電"],["mamoru","ホバリング"],["kaifuku","ひと休み"],["tameru","空撮"],["odosu","にらみつける"]]};
 const SP4={"tsukiyo": 18, "robot": 30, "seraph": 35, "libra": 30, "gorilla": 36, "onmyo": 34, "mouse": 23, "sora": 25, "rocker": 14, "hayate": 27, "kurogane": 13, "spino": 36, "guardian": 13, "lionex": 26, "takumi": 21, "owl": 36, "nero": 36, "okajun": 27};
 /* レイドバトルのボス（Ver 2.6）：みんなで共通の体力を削る。ガチャ・図鑑には出ない */
-const ORIGIN={id:'origin',no:25,name:'始原の紫翼皇',img:'img/origin.webp',color:'#B48AD0',role:'プライマル・ヴァイオレット・伝説のレイドボス',raidBoss:true,reward:'raid',types:['hikari'],
+const ORIGIN={id:'origin',no:25,name:'始原の紫翼皇',img:'img/origin.webp',color:'#B48AD0',role:'プライマル・ヴァイオレット・はじまりのレイドボス',reward:'raid0',types:['hikari'],
   passive:{k:'master',n:'始原の羽',d:'攻撃ダメージ+1、得るガード+1'},
   lines:['……よく来たね。ここが、すべての始まりの場所','まだまだ、これからだよ','……強くなったね。また、いつでもおいで'],moves:[
   {n:'はじまりの羽ばたき',c:{t:'any'},dmg:{b:1,m:1},ty:'hikari'},
@@ -343,6 +343,16 @@ const ORIGIN={id:'origin',no:25,name:'始原の紫翼皇',img:'img/origin.webp',
   {n:'ごきげんな歌',c:{t:'max',n:2},fx:{heal:4,pow:3},t:2},
   {n:'光のくちばし',c:{t:'min',n:5},dmg:{b:12},t:2,ty:'hikari'},
   {n:'始源の光',c:{t:'pair'},dmg:{b:20},t:3,ty:'hikari'}]};
+/* Ver 2.27 レイドボス：カプりす（宝物のカプセルを集めるリス） */
+const CAPRIS={id:'capris',no:30,name:'カプりす',img:'img/capris.webp',color:'#D98A4A',role:'カプセル・コレクター・伝説のレイドボス',raidBoss:true,reward:'raid',types:['ke'],
+  passive:{k:'master',n:'宝物のカプセル',d:'攻撃ダメージ+1、得るガード+1'},
+  lines:['ぼくの宝物、見ていく？','えへへ、また宝物がふえちゃった！','またカプセル拾っちゃった……！'],moves:[
+  {n:'しっぽアタック',c:{t:'any'},dmg:{b:1,m:1},ty:'ke'},
+  {n:'カプセルの殻',c:{t:'even'},fx:{guard:5}},
+  {n:'どんぐりスパナ',c:{t:'min',n:4},dmg:{b:3,m:1},ty:'ke'},
+  {n:'ほっぺにため込む',c:{t:'max',n:2},fx:{heal:4,pow:3},t:2},
+  {n:'フラスコ・スプラッシュ',c:{t:'min',n:5},dmg:{b:12},t:2,ty:'ke'},
+  {n:'宝物ぜんぶ開放！',c:{t:'pair'},dmg:{b:20},t:3,ty:'ke'}]};
 const TY1={"dodo":"ch","fox":"me","wolf":"de","onmyo":"ma","tsukiyo":"ma","mouse":"me","owl":"me","gorilla":"de","robot":"me","rocker":"de","nero":"ma","okajun":"ch","hayate":"ch","kurogane":"ke","lionex":"de","seraph":"ma","hakurou":"ke","guardian":"ke","libra":"ma","spino":"ke","takumi":"ch","sora":"me"};
 const TK4={"fox":{"dmg":{"b":2},"fx":{"reroll":1}}};
 const OLD23={},OLD24={};/* Ver 2.3・2.4 の技の名前（セーブの技番号を移すため） */
@@ -389,7 +399,7 @@ const NEROHW={id:'nerohw',no:29,name:'ハロウィン・ネロ',img:'img/nero-hw
   {n:'トリック・オア・トリート',c:{t:'pair'},dmg:{b:30},fx:{weak:3},t:3,ty:'ma',sp:1}]};
 NEROHW.moves.forEach(m=>m.jn=m.n);
 CHARS.forEach(c=>c.vol=c.vol||1);
-const ALL=[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,...HWC,NEROHW];ORIGIN.moves.forEach(m=>m.jn=m.n);
+const ALL=[...CHARS,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,CAPRIS,...HWC,NEROHW];ORIGIN.moves.forEach(m=>m.jn=m.n);CAPRIS.moves.forEach(m=>m.jn=m.n);
 ALL.forEach(c=>c.moves.forEach(m=>m.t=m.t||1));
 const byId=id=>ALL.find(c=>c.id===id);
 
@@ -909,7 +919,7 @@ function wordText(p,i){const w=(WORDS[p]||[])[i];if(!w)return'？';let t=L(w[0],
   if(t.includes('{c}')){const c=byId(String(w[2]).split(':')[1]);t=t.replace('{c}',c?c.name:'？')}return t}
 const TITLE_NAMES=[['見習い','学徒'],['塔の挑戦者','塔之挑战者'],['塔の主を倒した者','击败塔之主者'],['真・マイスター','真·大师'],['コレクター','收藏家'],['★3コレクター','★3收藏家'],['皆勤職人','全勤工匠'],['ミッション達人','任务达人'],['通信の猛者','联机猛将'],['天空の覇者','天空霸者'],['チャンピオン','冠军'],['マイスター位 2026','大师位 2026'],['無限の挑戦者','无限挑战者'],['無限の覇者','无限霸者']];
 /* Ver 2.13.3：必殺技（ゾロ目）はキャラごとの値のまま、最大36。ちょこまかは3回攻撃 */
-for(const c of [...CHARS,...HWC,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,NEROHW]){if(!c)continue;(c.moves||[]).forEach(m=>{
+for(const c of [...CHARS,...HWC,HIDDEN,SORA,VERDICT,ECLIPSE,ORIGIN,CAPRIS,NEROHW]){if(!c)continue;(c.moves||[]).forEach(m=>{
   if(m.c&&m.c.t==='pair'&&m.dmg)m.dmg.b=Math.min(m.dmg.b,36);
   if(m.n==='ちょこまか'&&m.dmg){m.dmg.h=3;m.hits=3}
 })}
