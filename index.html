@@ -1701,6 +1701,8 @@ const NTAG={update:['更新','更新'],event:['イベント','活动'],info:['�
 const unread=()=>NEWS.filter(n=>!save.newsRead.includes(n.id));
 function newsBadge(){const n=unread().length,b=$('#news-badge');b.hidden=!n;b.textContent=n>9?'9+':n}
 async function loadNews(){try{const r=await fetch('news.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();
+  /* Ver 3.0.0：ページが古いまま（キャッシュ）なら、新しい版を一度だけ読み直す。news.json の ver は build_index.py が書く */
+  if(j.ver&&j.ver!==VERSION){try{if(sessionStorage.getItem('mt-ver')!==j.ver){sessionStorage.setItem('mt-ver',j.ver);location.replace(location.pathname+'?v='+encodeURIComponent(j.ver)+location.hash);return}}catch(e){}}
   if(Array.isArray(j.items))NEWS=j.items.filter(n=>n&&typeof n.id==='string').slice(0,30)}catch(e){}
   /* はじめての人には、これまでのお知らせを読んだことにする（9件のバッジや自動表示で迷わせない） */
   if(!hasAny()&&!save.newsRead.length){save.newsRead=NEWS.map(n=>n.id);persist()}
