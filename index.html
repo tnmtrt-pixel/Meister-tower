@@ -349,6 +349,7 @@ details p{margin:6px 0 0}
 .bn-p{position:absolute;right:10px;bottom:10px;padding:4px 10px;border-radius:99px;background:linear-gradient(#FFE08A,#D9AE45);color:#3B2A06;font:800 14px var(--f-body);border:2px solid #3B2A06}
 .bn-p::before{content:"●";color:#B07A10;margin-right:4px}
 .banner.soon{border-color:#5a6378;cursor:default;aspect-ratio:16/5}
+.bn-new{position:absolute;top:8px;left:8px;z-index:2;background:#E8463C;color:#fff;font:900 12px var(--f-body);padding:3px 9px;border-radius:999px;letter-spacing:.06em;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .bn-q{position:absolute;inset:0;display:grid;place-items:center;font:900 64px var(--f-display);color:rgba(255,255,255,.12)}
 .bn-s{position:absolute;right:10px;top:50%;transform:translateY(-50%) rotate(-4deg);padding:4px 12px;border:2px solid #FFE08A;color:#FFE08A;font:800 13px var(--f-body);letter-spacing:.15em;background:rgba(0,0,0,.4)}
 .soon .bn-t{background:none;padding-bottom:12px}.soon .bn-t b{font-size:18px;color:#c9d2e6}
@@ -840,10 +841,11 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
         <div class="pullrow" id="pullrow"><button class="btn" id="pull1" type="button"><span data-zh="扭蛋1次">1回引く</span><small>3<span data-zh="金币">コイン</span></small></button><button class="btn primary" id="pull10" type="button"><span data-zh="11连抽">11連</span><small>30<span data-zh="金币">コイン</span> · <span data-zh="必得★2以上">★2以上1体確定</span></small></button></div>
         <button class="banner" id="pull-v2" type="button"><img src="img/gacha-v2.webp" alt=""><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.2">キャラクター vol.2</b></span><span class="bn-p" id="pull-price2">3</span></button>
         <div class="pullrow" id="pullrow2"><button class="btn" id="pull1-v2" type="button"><span data-zh="扭蛋1次">1回引く</span><small>3<span data-zh="金币">コイン</span></small></button><button class="btn primary" id="pull10-v2" type="button"><span data-zh="11连抽">11連</span><small>30<span data-zh="金币">コイン</span> · <span data-zh="必得★2以上">★2以上1体確定</span></small></button></div>
-        <button class="banner soon" type="button" data-soon="3"><img src="img/gacha-v3.webp" alt=""><span class="bn-q">?</span><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.3">キャラクター vol.3</b></span><span class="bn-s">COMING SOON</span></button>
+        <button class="banner" id="pull-v3" type="button"><img src="img/gacha-v3.webp" alt=""><span class="bn-new">NEW</span><span class="bn-t"><small>CHARACTER</small><b data-zh="角色 vol.3">キャラクター vol.3</b></span><span class="bn-p" id="pull-price3">3</span></button>
+        <div class="pullrow" id="pullrow3"><button class="btn" id="pull1-v3" type="button"><span data-zh="扭蛋1次">1回引く</span><small>3<span data-zh="金币">コイン</span></small></button><button class="btn primary" id="pull10-v3" type="button"><span data-zh="11连抽">11連</span><small>30<span data-zh="金币">コイン</span> · <span data-zh="必得★2以上">★2以上1体確定</span></small></button></div>
       </div>
       <div class="row" style="justify-content:center"><button class="btn" id="to-tower" data-zh="前往塔">タワーへ</button></div>
-      <p class="hint" data-zh="vol.1和vol.2出现的角色不同。★3为10%，★2为30%，★1为60%。抽到已有角色更高的★时★提升；★相同或更低则获得该角色的「碎片」1个（★3为2个）。11连抽只需30金币（多送1次），并必得1个★2以上。">vol.1とvol.2では出てくるキャラがちがいます。★3は10%、★2は30%、★1は60%。持っているキャラが今より多い★で出たら★アップ。同じ★以下ならそのキャラの「かけら」が1つ（★3なら2つ）手に入ります。11連は30コイン（10回分の値段で1回おまけ）で、★2以上が1体確定。</p>
+      <p class="hint" data-zh="vol.1、vol.2和vol.3出现的角色不同。★3为10%，★2为30%，★1为60%。抽到已有角色更高的★时★提升；★相同或更低则获得该角色的「碎片」1个（★3为2个）。11连抽只需30金币（多送1次），并必得1个★2以上。">vol.1・vol.2・vol.3では出てくるキャラがちがいます。★3は10%、★2は30%、★1は60%。持っているキャラが今より多い★で出たら★アップ。同じ★以下ならそのキャラの「かけら」が1つ（★3なら2つ）手に入ります。11連は30コイン（10回分の値段で1回おまけ）で、★2以上が1体確定。</p>
     </div>
   </section>
 
@@ -922,9 +924,9 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
   <div class="t-flash"></div>
 </div>
 
-<script src="engine.js?v=5097677b"></script>
+<script src="engine.js?v=c929e1d8"></script>
 <script>
-const VERSION='2.27.0';
+const VERSION='2.28.0';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -947,7 +949,7 @@ const crest=(ch,cls='')=>ch.img?`<div class="crest ${cls}${ch.wide?' wide':''}" 
 
 /* ================= セーブ ================= */
 const SKEY='okc-save2';
-function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{tips:[],wk:{k:0,f:0},hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
+function blank(){return{v:2,tw:{judge:{floor:1,best:1,lap:1,clears:0},sougi:{floor:1,best:1,lap:1,clears:0}},dexReward2:false,dexReward3:false,hw:{best:0,clears:0,pity:0,done:[],run:null},auto:false,hpLv:{},inf:{best:0,run:null,day:{d:'',c:0}},ex:{tips:[],wk:{k:0,f:0},hint:0,dd:{k:0,f:0},best:0,clears:0,day:{d:'',c:0},run:null},parties:[[],[],[]],pidx:0,use:{},keepW:[],boss:{},cup:{},wseen:[],wnote:[],newsRead:[],prof:{},st:{},login:{d:'',n:0},daily:{},tseen:[],coins:0,owned:{},shards:{},lv:{},party:[],load:{},floor:1,best:1,lap:1,clears:0,dexReward:false,tutDone:false,se:true,bgm:true}}
 let save=blank();
 function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.coins=Math.max(0,Math.floor(+v.coins||0));s.floor=Math.min(TOP2,Math.max(1,Math.floor(+v.floor||1)));s.lap=Math.max(1,Math.floor(+v.lap||1));s.best=Math.min(TOP2,Math.max(s.floor,Math.floor(+v.best||1)));
@@ -970,7 +972,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
   s.hpLv={};for(const k in (v.hpLv||{}))if(byId(k))s.hpLv[k]=Math.min(5,Math.max(0,v.hpLv[k]|0));
   {const I=v.inf||{},r=I.run;s.inf={best:Math.max(0,I.best|0),pend:Math.max(0,I.pend|0),day:{d:String((I.day||{}).d||'').slice(0,10),c:Math.max(0,(I.day||{}).c|0),f:(Array.isArray((I.day||{}).f)?I.day.f:[]).filter(n=>Number.isInteger(n)&&n>0).slice(0,2000)},
     run:r&&Array.isArray(r.party)&&r.f>0?{f:r.f|0,party:r.party.filter(id=>byId(id)).slice(0,3),hp:Object.fromEntries(Object.entries(r.hp||{}).map(([k,h])=>[k,Math.max(0,h|0)])),pidx:Math.min(2,Math.max(0,Math.floor(+r.pidx||0)))}:null}}
-  {const j=(v.tw||{}).judge||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw={judge:{floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
+  {s.tw={};for(const k of ['judge','sougi']){const j=(v.tw||{})[k]||{};const fl=Math.min(TOP2,Math.max(1,Math.floor(+j.floor||1)));s.tw[k]={floor:fl,lap:Math.max(1,Math.floor(+j.lap||1)),best:Math.min(TOP2,Math.max(fl,Math.floor(+j.best||1))),clears:Math.max(0,Math.floor(+j.clears||0))}}}
   {const H=v.hw||{},hr=H.run;s.hw={best:Math.min(10,Math.max(0,Math.floor(+H.best||0))),clears:Math.max(0,Math.floor(+H.clears||0)),pity:Math.min(30,Math.max(0,Math.floor(+H.pity||0))),done:(Array.isArray(H.done)?H.done:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=1&&n<=10&&a.indexOf(n)===i),run:hr&&Number.isInteger(+hr.f)&&hr.f>=1&&hr.f<=10?{f:+hr.f,nlv:Math.min(10,Math.max(0,Math.floor(+hr.nlv||0))),picks:(Array.isArray(hr.picks)?hr.picks:[]).filter(id=>[...G.TOT.treat,...G.TOT.trick].some(c=>c.id===id)).slice(0,10),pidx:Math.min(2,Math.max(0,Math.floor(+hr.pidx||0)))}:null}}
   {const X=v.ex||{},xr=X.run,KS=['stairs','boss','battle','elite','rest','shop','train','treasure'];
     const fm=xr&&xr.fm,okRun=xr&&Array.isArray(xr.party)&&xr.party.length&&fm&&fm.c&&typeof fm.c==='object';
@@ -983,7 +985,7 @@ function sanitize(v){const s=blank();if(!v||typeof v!=='object')return s;
         up:Object.fromEntries(Object.entries(xr.up||{}).filter(([id])=>cid(id)).map(([id,u])=>[id,{hp:N((u||{}).hp,0,999),rw:N((u||{}).rw,0,20),mv:Object.fromEntries(Object.entries((u||{}).mv||{}).map(([j,n])=>[j,N(n,0,3)]))}])),
         hp:Object.fromEntries(Object.entries(xr.hp||{}).map(([k,h])=>[k,N(h,0,999)])),curK:['battle','elite','boss'].includes(xr.curK)?xr.curK:null,pend:['boss','elite','go','win'].includes(xr.pend)?xr.pend:null,rw:Array.isArray(xr.rw)?xr.rw.filter(k=>/^(mv|hp|gear|fire|wall|map|coupon|charm:(atk|grd|gear|heal))$/.test(k)).slice(0,3):null,/* ここは定数が作られる前に動くので、名前を直接書く */bossId:cid(xr.bossId)?xr.bossId:null}:null};
     if(s.ex.run&&(s.ex.run.party.some(id=>!(s.ex.run.mv[id]||[]).length)||([5,10,15].includes(s.ex.run.fl)&&!s.ex.run.fm.boss)))s.ex.run=null}
-  s.dexReward2=!!v.dexReward2;
+  s.dexReward2=!!v.dexReward2;s.dexReward3=!!v.dexReward3;
   s.rshard=Math.max(0,Math.floor(+v.rshard||0));
   s.feather=Math.max(0,Math.floor(+v.feather||0)); /* レイドの「カプセル」（10枚でカプりすが仲間に） */ /* 集合タイムでもらった「選べるかけら」（まだ使っていない数） */
   s.auto=!!v.auto;
@@ -1131,10 +1133,10 @@ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
 const TOWERS=[{id:'ex',icon:'🧭',ja:'探索',zh:'探索',ex:true,img:'img/tower-ex.webp'},{id:'inf',icon:'🗼',ja:'無限の塔',zh:'无限之塔',inf:true,img:'img/tower-inf.webp'},{id:'hw',icon:'',ja:'ハロウィンの塔',zh:'万圣节之塔',hw:true,img:'img/tower-halloween.webp'},{id:'meister',icon:'🏰',ja:'マイスターの塔',zh:'迈斯特之塔',vol:1,img:'img/tower-meister.webp'},
-  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'t3',icon:'🔒',ja:'？？？の塔',zh:'？？？之塔',vol:3,soon:true}];
+  {id:'judge',icon:'⚖️',ja:'審判の塔',zh:'审判之塔',vol:2,img:'img/tower-judge.webp'},{id:'sougi',icon:'⚙️',ja:'創技の塔',zh:'创技之塔',vol:3,img:'img/tower-sougi.webp'}];
 /* 塔ごとの進み具合（マイスターの塔は今までどおり save の直下、ほかの塔は save.tw） */
 const TPof=id=>id==='meister'?save:save.tw[id];
-const curTower=()=>towerMode==='judge'?'judge':'meister';
+const curTower=()=>towerMode==='judge'||towerMode==='sougi'?towerMode:'meister';
 const TP=()=>TPof(curTower());
 const TFL=()=>G.towerOf(curTower()).floors;
 const towerName=id=>{const t=TOWERS.find(x=>x.id===id);return t?L(t.ja,t.zh):''};
@@ -1259,9 +1261,11 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
 
 /* ================= ガチャ ================= */
 let pulling=false;
-function renderGacha(){updCoins();const first=!hasAny();$('#pull-price').textContent=first?L('無料','免费'):'3';$('#pull-price2').textContent=first?L('無料','免费'):'3';
+function renderGacha(){updCoins();const first=!hasAny();$('#pull-price').textContent=first?L('無料','免费'):'3';$('#pull-price2').textContent=first?L('無料','免费'):'3';$('#pull-price3').textContent=first?L('無料','免费'):'3';
   $('#pullrow').hidden=first;$('#pull1').disabled=pulling||save.coins<3;$('#pull10').disabled=pulling||save.coins<G10;
   $('#pullrow2').hidden=first;$('#pull1-v2').disabled=pulling||save.coins<3;$('#pull10-v2').disabled=pulling||save.coins<G10;
+  $('#pullrow3').hidden=first;$('#pull1-v3').disabled=pulling||save.coins<3;$('#pull10-v3').disabled=pulling||save.coins<G10;$('#pull-v3').disabled=pulling||(!first&&save.coins<3);
+  $('#pull-v3').setAttribute('aria-label',first?L('最初の1体を引く（無料）','抽取第一个伙伴（免费）'):L('キャラクター vol.3 ガチャを引く（3コイン）','扭蛋 角色 vol.3（3金币）'));
   $('#pull').disabled=pulling||(!first&&save.coins<3);$('#pull-v2').disabled=pulling||(!first&&save.coins<3);$('#to-tower').hidden=first;
   $('#pull-v2').setAttribute('aria-label',first?L('最初の1体を引く（無料）','抽取第一个伙伴（免费）'):L('キャラクター vol.2 ガチャを引く（3コイン）','扭蛋 角色 vol.2（3金币）'));
   $('#pull').setAttribute('aria-label',first?L('最初の1体を引く（無料）','抽取第一个伙伴（免费）'):L('キャラクター vol.1 ガチャを引く（3コイン）','扭蛋 角色 vol.1（3金币）'));
@@ -1273,7 +1277,7 @@ document.querySelectorAll('.banner.soon').forEach(b=>b.onclick=()=>{sfx('tap');t
 const G1=3,G10=30,GN=11;/* 11連：10回分の値段で1回おまけ */
 function rollStar(){const r=Math.random();return r<.1?3:r<.4?2:1}
 function gachaRoll(force,vol=1){const pool=hwOpen()&&Math.random()<.03?G.HWC:CHARS.filter(x=>x.vol===vol),st=Math.max(force||1,rollStar()),c=pool[Math.floor(Math.random()*pool.length)],before=starOf(c.id),res=grant(c.id,st);return{st,c,before,res}}
-[['',1],['-v2',2]].forEach(([k,v])=>{
+[['',1],['-v2',2],['-v3',3]].forEach(([k,v])=>{
   $('#pull'+k).onclick=()=>{ac();if(pulling)return;const first=!hasAny();if(!first&&save.coins<G1)return;gachaShow(1,v)};
   $('#pull1'+k).onclick=()=>{ac();if(pulling||save.coins<G1)return;gachaShow(1,v)};
   $('#pull10'+k).onclick=()=>{ac();if(pulling||save.coins<G10)return;gachaShow(GN,v)}});
@@ -1307,22 +1311,23 @@ async function gachaShow(n=1,vol=1){pulling=true;const first=!hasAny()&&n===1;
     $('#gacha-msg').textContent=L(`11連：★3 ×${n3}、新しい仲間 ×${nNew}`,`11连：★3 ×${n3}，新伙伴 ×${nNew}`)}
   ov.append(box);msg.textContent='';
   pulling=false;renderGacha();
-  const gc=box.querySelector('[data-gx="close"]');if(gc)gc.onclick=()=>{sfx('tap');ov.remove();renderGacha();checkDexReward();checkDexReward2()};
+  const gc=box.querySelector('[data-gx="close"]');if(gc)gc.onclick=()=>{sfx('tap');ov.remove();renderGacha();checkDexReward();checkDexReward2();checkDexReward3()};
   const gt=box.querySelector('[data-gx="tower"]');if(gt)gt.onclick=()=>{sfx('tap');ov.remove();nav('tower')};
   const a1=box.querySelector('[data-gx="again"]');if(a1)a1.onclick=()=>{if(save.coins<G1)return;ac();ov.remove();gachaShow(1,vol)};
   const a10=box.querySelector('[data-gx="again10"]');if(a10)a10.onclick=()=>{if(save.coins<G10)return;ac();ov.remove();gachaShow(GN,vol)};
   (gc||gt).focus({preventScroll:true})}
 
 /* ================= 図鑑 ================= */
-const DEXG=()=>[[L('キャラクター vol.1','角色 vol.1'),c=>c.vol===1&&!c.reward],[L('キャラクター vol.2','角色 vol.2'),c=>c.vol===2&&!c.reward],[L('ハロウィンの仲間（期間限定の塔）','万圣节伙伴（限时之塔）'),c=>c.vol==='hw'],[L('ボス（塔で倒す・レイドでカプセルを集めると仲間に）','头目（在塔中打倒·在团队战中收集胶囊即可成为伙伴）'),c=>!!c.reward]];
-function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vol===2),g1=v1.filter(c=>owns(c.id)).length,g2=v2.filter(c=>owns(c.id)).length,got=g1+g2;
+const DEXG=()=>[[L('キャラクター vol.1','角色 vol.1'),c=>c.vol===1&&!c.reward],[L('キャラクター vol.2','角色 vol.2'),c=>c.vol===2&&!c.reward],[L('キャラクター vol.3','角色 vol.3'),c=>c.vol===3&&!c.reward],[L('ハロウィンの仲間（期間限定の塔）','万圣节伙伴（限时之塔）'),c=>c.vol==='hw'],[L('ボス（塔で倒す・レイドでカプセルを集めると仲間に）','头目（在塔中打倒·在团队战中收集胶囊即可成为伙伴）'),c=>!!c.reward]];
+function renderDex(){const v1=CHARS.filter(c=>c.vol===1),v2=CHARS.filter(c=>c.vol===2),v3=CHARS.filter(c=>c.vol===3),g1=v1.filter(c=>owns(c.id)).length,g2=v2.filter(c=>owns(c.id)).length,g3=v3.filter(c=>owns(c.id)).length,got=g1+g2+g3;
   $('#dex-count').textContent=`${got} / ${CHARS.length}`+L('人','人');$('#dex-bar').style.width=got/CHARS.length*100+'%';
   $('#dex-reward').innerHTML=(save.dexReward?L('vol.1：コンプリート報酬を受け取りました！','vol.1：已领取全收集奖励！'):L(`vol.1：${v1.length}人を全員集めると、コイン10枚と特別な仲間がもらえます（${g1}/${v1.length}）`,`vol.1：集齐全部${v1.length}人，可获得10金币和特别的伙伴（${g1}/${v1.length}）`))+'<br>'+
-    (save.dexReward2?L('vol.2：コンプリート報酬を受け取りました！','vol.2：已领取全收集奖励！'):L(`vol.2：${v2.length}人を全員集めると、コイン10枚がもらえます（${g2}/${v2.length}）`,`vol.2：集齐全部${v2.length}人，可获得10金币（${g2}/${v2.length}）`));
+    (save.dexReward2?L('vol.2：コンプリート報酬を受け取りました！','vol.2：已领取全收集奖励！'):L(`vol.2：${v2.length}人を全員集めると、コイン10枚がもらえます（${g2}/${v2.length}）`,`vol.2：集齐全部${v2.length}人，可获得10金币（${g2}/${v2.length}）`))+'<br>'+
+    (save.dexReward3?L('vol.3：コンプリート報酬を受け取りました！','vol.3：已领取全收集奖励！'):L(`vol.3：${v3.length}人を全員集めると、コイン10枚がもらえます（${g3}/${v3.length}）`,`vol.3：集齐全部${v3.length}人，可获得10金币（${g3}/${v3.length}）`));
   $('#dex').innerHTML=DEXG().map(([t,fn])=>`<div class="label" style="grid-column:1/-1;margin-top:4px">${t}</div>`+ALL.filter(fn).map(c=>{const o=owns(c.id);return`<button class="cbtn${o?'':' locked'}" data-id="${c.id}">${crest(c)}<span class="rar">${o?stars(starOf(c.id)):(c.reward?'？':'')}</span><span class="${nmc(o?c.name:'')}">${o?c.name:L('？？？','？？？')}</span></button>`}).join('')).join('');
   document.querySelectorAll('#dex .cbtn').forEach(b=>b.onclick=()=>{sfx('tap');dexDetail(b.dataset.id)})}
 /* ボスキャラの入手方法 */
-const REWARD_TXT={hw10:['ハロウィンの塔 10Fのボス','万圣节之塔 10F的头目'],meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目']};
+const REWARD_TXT={hw10:['ハロウィンの塔 10Fのボス','万圣节之塔 10F的头目'],meister10:['マイスターの塔 10Fのボス','迈斯特之塔 10F的头目'],meister20:['マイスターの塔 20Fのボス','迈斯特之塔 20F的头目'],judge10:['審判の塔 10Fのボス','审判之塔 10F的头目'],judge20:['審判の塔 20Fのボス','审判之塔 20F的头目'],sougi10:['創技の塔 10Fのボス','创技之塔 10F的头目'],sougi20:['創技の塔 20Fのボス','创技之塔 20F的头目']};
 const rewardHow=c=>{if(c.reward==='raid0')return L('以前のレイドボス。今は手に入りません（プレゼントコードなどで配ることがあります）。','以前的团队首领。目前无法获得（可能通过礼物代码发放）。');if(c.reward==='raid')return L(`レイドバトルに挑戦した日に「カプセル」1枚、みんなで倒した日はさらに2枚。10枚集めると★3で仲間になります（いま ${Math.min(10,save.feather||0)}/10枚）。仲間になったあとのカプセルは、かけら1個になります。ガチャには出ません。`,`参加团队战的那天获得「胶囊」1根，大家一起打倒的那天再获得2根。集齐10根即可以★3成为伙伴（现在 ${Math.min(10,save.feather||0)}/10根）。成为伙伴后的羽毛会变成碎片1个。不会出现在扭蛋中。`);const t=REWARD_TXT[c.reward];return L(`${t[0]}。勝つたびに★が1つ上がり（再挑戦でもOK）、★3のあとは勝つと${pct(c.id)}の確率でかけら+2がもらえます。${c.id==='takumi'?'図鑑vol.1コンプリートでも★アップ。':''}ガチャには出ません。`,`${t[1]}。每次获胜★提升1（再挑战也可以），★3之后获胜有${pct(c.id)}的概率获得碎片+2。${c.id==='takumi'?'集齐图鉴vol.1也能提升★。':''}不会出现在扭蛋中。`)};
 function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   if(!o){el.innerHTML=`<p class="hint">${c.reward?L('まだ出会っていないボス。','尚未遇见的头目。')+rewardHow(c):L(`まだ出会っていないキャラ。ガチャ（vol.${c.vol}）で仲間にしよう。`,`尚未遇见的角色。用扭蛋（vol.${c.vol}）让它成为伙伴吧。`)}</p>`;return}
@@ -1331,6 +1336,8 @@ function dexDetail(id){const c=byId(id),o=owns(id),el=$('#dex-detail');
   ${c.reward?`<p class="hint">${rewardHow(c)}</p>`:''}
   <div><div class="label">${L('セリフ','台词')}</div><ul class="lines"><li>${L('登場','登场')}：「${c.lines[0]}」</li><li>${L('勝利','胜利')}：「${c.lines[1]}」</li><li>${L('敗北','失败')}：「${c.lines[2]}」</li></ul></div>
   <div class="label">${L('覚える技','可学技能')}</div><div class="moves">${mvOrder(c).map(k=>[c.moves[k],k]).map(([m,k])=>`<div class="mv${m.t>starOf(id)?' locked':''}" style="cursor:default">${mvHTML(moveOf(id,k),m.t>1?`<span class="tier">${'★'.repeat(m.t)}</span>`:'')}</div>`).join('')}</div>`}
+function checkDexReward3(){if(save.dexReward3||!CHARS.filter(c=>c.vol===3).every(c=>owns(c.id)))return;save.dexReward3=true;save.coins+=10;persist();updCoins();
+  showOverlay({word:'COMPLETE!',ch:byId('sakamata'),sub:L('図鑑 vol.3 コンプリート！','图鉴 vol.3 全收集！'),coins:10,win:true})}
 function checkDexReward2(){if(save.dexReward2||!CHARS.filter(c=>c.vol===2).every(c=>owns(c.id)))return;save.dexReward2=true;save.coins+=10;persist();updCoins();
   showOverlay({word:'COMPLETE!',ch:byId('libra'),sub:L('図鑑 vol.2 コンプリート！','图鉴 vol.2 全收集！'),coins:10,win:true})}
 function checkDexReward(){if(save.dexReward||!CHARS.filter(c=>c.vol===1).every(c=>owns(c.id)))return;save.dexReward=true;save.coins+=10;
@@ -2713,7 +2720,7 @@ function bossReward(id){const c=byId(id),st=starOf(id);
 /* サーバー（Cloudflare Workers）のURL。デプロイ後に設定する */
 const ONLINE_URL=window.MT_ONLINE_URL||'https://meister-tower-online.tnmtrt.workers.dev';
 const ON={ws:null,code:'',state:'idle',err:'',lad:null,ladRes:null};
-const ENGINE_V=20;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
+const ENGINE_V=21;/* サーバー（Cloudflare）の ENGINE_V と同じにする。技やルールを変えたら両方上げる */
 function onlineParty(){fixParty();return save.party.map(id=>({id,star:starOf(id),mv:loadout(id),lv:save.lv[id]||{}}))}
 function onlineClose(){if(ON.ws){try{ON.ws.close()}catch(e){}}ON.ws=null;if(ON.state!=='battle')ON.state='idle'}
 function onlineSend(m){try{ON.ws&&ON.ws.readyState===1&&ON.ws.send(JSON.stringify(m))}catch(e){}}
