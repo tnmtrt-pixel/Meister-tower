@@ -277,8 +277,11 @@ details p{margin:6px 0 0}
 .rs-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:#1b2440;border:2px solid #3c4f80;color:#fff;font:700 12px var(--f-body);cursor:pointer}
 .rs-grid button:active{transform:scale(.96)}.rs-grid small{color:#FFE08A}
 /* お知らせ */
+#nav{display:grid!important;grid-template-columns:repeat(4,1fr)}
+#nav button{border-left:1px solid rgba(217,174,69,.45)!important;border-top:1px solid rgba(217,174,69,.45)}#nav button:nth-child(4n+1){border-left:0!important}#nav button:nth-child(-n+4){border-top:0}
+#nav button{position:relative;overflow:visible}
 .news-btn{position:relative}
-.news-btn i{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#E5484D;color:#fff;font:800 11px/18px var(--f-body);font-style:normal;border:2px solid #0B1730}
+.news-btn i{position:absolute;top:2px;right:4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#E5484D;color:#fff;font:800 11px/18px var(--f-body);font-style:normal;border:2px solid #0B1730}
 .news{border-top:1px solid var(--line);padding:10px 0}
 .news:first-of-type{border-top:0}
 .news .nh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -692,6 +695,9 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 .bmv.wait{opacity:.7;cursor:default}
 .shoprow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;display:grid;gap:6px;background:rgba(255,255,255,.03)}
 #shop-info{margin-top:8px}
+.shop-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 10px}.shop-week span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;border:1px solid var(--line);border-radius:6px;font-size:11px}.shop-week span.on{border-color:var(--gold-hi);background:rgba(242,193,78,.15)}
+.shop-list{display:grid;gap:6px}.shop-it{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center;padding:6px;border:1px solid var(--line);border-radius:10px}.shop-it.half{border-color:var(--gold-hi);background:rgba(242,193,78,.08)}
+.shop-it .crest{width:48px;height:48px}.si-a{display:flex;gap:6px}.si-a .up{min-width:62px}
 .shoprow .row{display:grid!important;grid-template-columns:1fr auto;gap:8px;align-items:center}
 .bmv.ugbar{grid-template-columns:1fr auto!important;grid-template-areas:"st sc" "bf bf"!important;min-height:0!important;margin-top:6px;width:100%;position:relative;overflow:hidden;border-color:#B07AE8!important;background:linear-gradient(180deg,#2A1A44,#160E26)!important}
 .bmv.ugbar .sp-g{position:absolute;inset:0;pointer-events:none}.bmv.ugbar .sp-g i{position:absolute;left:0;top:0;bottom:0;width:var(--p);background:linear-gradient(90deg,rgba(170,110,255,.25),rgba(220,170,255,.55));transition:width .4s}
@@ -790,10 +796,10 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
   <header>
     <div class="hrow"><h1><span data-zh="迈斯特">マイスター</span><span class="h1-to" data-zh="之塔">の塔</span></h1>
       <div class="row"><span class="coins"><span data-zh="金币">コイン</span> <b id="coin">0</b></span>
-        <button class="snd news-btn" id="news-btn" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button><button class="snd" id="set-btn" data-zh="设置">設定</button><button class="snd" id="dex-btn" data-zh="图鉴">図鑑</button></div></div>
+        <button class="snd" id="set-btn" data-zh="设置">設定</button></div></div>
     <nav class="seg" id="nav">
       <button data-v="battle" aria-pressed="true" data-zh="对战">バトル</button><button data-v="party" aria-pressed="false" data-zh="编队">編成</button>
-      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排名">順位</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button></nav>
+      <button data-v="gacha" aria-pressed="false" data-zh="扭蛋">ガチャ</button><button data-v="rank" aria-pressed="false" data-zh="排名">順位</button><button data-v="reward" aria-pressed="false" data-zh="奖励">報酬</button><button data-v="shop" aria-pressed="false" data-zh="兑换所">交換所</button><button data-v="dex" aria-pressed="false" data-zh="图鉴">図鑑</button><button class="news-btn" id="news-btn" data-act="news" aria-pressed="false" aria-label="お知らせ" data-zh-aria="公告"><span data-zh="公告">お知らせ</span><i id="news-badge" hidden></i></button></nav>
     <nav class="seg subnav" id="subnav" aria-label="バトル">
       <button data-s="tower" aria-pressed="true" data-zh="塔">タワー</button><button data-s="raid" aria-pressed="false" data-zh="团队战">レイド</button><button data-s="lad" aria-pressed="false" data-zh="排位">ランク</button><button data-s="ex" aria-pressed="false" data-zh="探索" id="sub-ex" hidden>探索</button></nav>
     <div class="panel partybar" id="partybar" hidden><div class="row between"><span class="label">出撃パーティ</span><button class="btn small" id="pb-edit">編成を変える</button></div><div class="psets" id="psets-bar"></div><div class="pb-ex" data-zh="🧭 探索是1人出发（不使用队伍）">🧭 探索は1人で出発します（パーティは使いません）</div></div>
@@ -875,6 +881,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
     </div>
   </section>
 
+  <section class="view" id="v-shop" hidden><div class="panel" id="shop"></div></section>
   <section class="view" id="v-dex" hidden>
     <div class="panel">
       <div class="row between"><h2 data-zh="角色图鉴">キャラ図鑑</h2><span class="label" id="dex-count"></span></div>
@@ -936,7 +943,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=488b6fc0"></script>
 <script>
-const VERSION='3.3.0';
+const VERSION='3.3.1';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1099,7 +1106,7 @@ const BGM={timer:null,step:0,next:0,
     g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)},
   stop(){clearInterval(this.timer);this.timer=null}};
 function setSnd(){}
-$('#dex-btn').onclick=()=>{sfx('tap');nav('dex')};
+
 $('#set-btn').onclick=()=>{sfx('tap');openSettings()};
 
 /* ================= 共通表示 ================= */
@@ -1128,17 +1135,17 @@ function nav(v){if(B&&!B.done){toast(L('バトル中です。決着がついて�
   if(v==='ex')towerMode='ex';else if(v==='tower'&&towerMode==='ex')towerMode=lastTower;
   if(!hasAny()&&v!=='gacha'&&v!=='dex'&&v!=='reward'){toast(L('まずはガチャで最初の仲間を手に入れよう','先用扭蛋获得第一个伙伴吧'));v='gacha'}
   const sub=SUBS.includes(v)?v:null;if(sub)NAV.sub=sub;const main=sub?'battle':v,view=sub?(sub==='tower'||sub==='ex'?'tower':'online'):v;
-  document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
+  document.querySelectorAll('#nav button[data-v]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===main));
   document.querySelectorAll('#subnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===sub));$('#subnav').hidden=!sub;$('#partybar').hidden=main!=='battle';$('#partybar').classList.toggle('ex',sub==='ex');if(main==='battle'&&sub!=='ex')renderPartyBar();/* Ver 2.19.2 タブの下に出撃パーティ。探索のときは同じ高さで「1人で出発」と出す（画面が動かない） */$('#rsubnav').hidden=main!=='rank';document.querySelectorAll('#rsubnav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===rtype));
   if(view!=='online')onlineClose();if(sub!=='lad')ladCancel();
-  ['tower','party','gacha','dex','online','rank','reward','ex'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
+  ['tower','party','gacha','dex','online','rank','reward','ex','shop'].forEach(x=>$('#v-'+x).hidden=x!==view);$('#arena').hidden=true;$('#nav').hidden=false;
   if(view==='online')document.querySelectorAll('#v-online [data-sub]').forEach(d=>d.hidden=d.dataset.sub!==sub);
   dailyCheck();
   refundNotice();
-  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView,reward:renderReward})[view]();window.scrollTo(0,0)}
+  ({tower:renderTower,party:renderParty,gacha:renderGacha,dex:renderDex,online:renderOnline,rank:renderRankView,reward:renderReward,shop:renderShop})[view]();window.scrollTo(0,0)}
 document.querySelectorAll('#subnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.s)});
 document.querySelectorAll('#rsubnav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');rtype=b.dataset.r;document.querySelectorAll('#rsubnav button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRank();if(!rdata[rtype]||rtype==='raid')loadRank();if(rtype==='cup')cupLoad()});
-document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
+document.querySelectorAll('#nav button[data-v]').forEach(b=>b.onclick=()=>{ac();sfx('tap');nav(b.dataset.v)});
 
 /* ================= タワー ================= */
 /* 塔の一覧。vol.2 以降の塔はここに足していく */
@@ -1275,7 +1282,19 @@ function renderDetail(){const id=sel,ch=byId(id),el=$('#detail');if(!ch){el.inne
 
 /* ================= ガチャ ================= */
 let pulling=false;
-function renderGacha(){updCoins();{const e=$('#shop-info');if(e)e.innerHTML=hasAny()?L(`🛒 かけら交換所：今日は<b>${shopDayName()}</b>が半額（1個${SHOP.half}コイン）。編成でキャラを選ぶと買えます（1日${SHOP.limit}個まで）。かけらで★アップもできます。`,`🛒 碎片兑换所：今日<b>${shopDayName()}</b>半价（每个${SHOP.half}金币）。在编队中选择角色即可购买（每天最多${SHOP.limit}个）。也可以用碎片升星。`):''}const first=!hasAny();$('#pull-price').textContent=first?L('無料','免费'):'3';$('#pull-price2').textContent=first?L('無料','免费'):'3';$('#pull-price3').textContent=first?L('無料','免费'):'3';
+/* Ver 3.3.1：交換所タブ。今日半額のキャラから順に並べて、その場で買える・★アップできる */
+function renderShop(){updCoins();const el=$('#shop');const left=shopLeft(),dt=shopDayType();
+  const own=ALL.filter(c=>owns(c.id)).sort((a,b)=>(shopHalf(b.id)-shopHalf(a.id))||((a.no||99)-(b.no||99)));
+  const days=[[1,L('月','一')],[2,L('火','二')],[3,L('水','三')],[4,L('木','四')],[5,L('金','五')],[6,L('土','六')],[0,L('日','日')]];
+  el.innerHTML=`<div class="row between"><h2>${L('かけら交換所','碎片兑换所')}</h2><span class="label">${L('今日あと','今日还剩')} <b>${left}</b> / ${SHOP.limit}</span></div>
+  <p class="hint">${L(`好きなキャラのかけらを1個${SHOP.price}コインで買えます（1日${SHOP.limit}個まで・朝5時に切りかえ）。今日は<b>${shopDayName()}</b>が半額（${SHOP.half}コイン）。かけらで★アップもできます（★1→★2 かけら${SHOP.star[1]}、★2→★3 かけら${SHOP.star[2]}）。`,`可以用${SHOP.price}金币购买1个喜欢角色的碎片（每天最多${SHOP.limit}个·早上5点刷新）。今日<b>${shopDayName()}</b>半价（${SHOP.half}金币）。也可以用碎片升星（★1→★2 碎片${SHOP.star[1]}，★2→★3 碎片${SHOP.star[2]}）。`)}</p>
+  <div class="shop-week">${days.map(([d,n])=>{const t=SHOP_DAY[d];return`<span class="${t===dt&&new Date(Date.now()+(9-5)*3600e3).getUTCDay()===d?'on':''}"><b>${n}</b>${t==='all'?L('全部','全部'):tyHTML(t)}</span>`}).join('')}</div>
+  <div class="shop-list">${own.map(c=>{const id=c.id,st=starOf(id),sh=save.shards[id]||0,pr=shopPrice(id),need=SHOP.star[st]||0;
+    return`<div class="shop-it${shopHalf(id)?' half':''}">${crest(c)}<div class="si-b"><b>${c.name}</b> <span class="rar">${stars(st)}</span> ${typesHTML(c)}<br><small>${L('かけら','碎片')} ${sh}${shopHalf(id)?` <span class="chip up">${L('半額','半价')}</span>`:''}</small></div>
+      <div class="si-a"><button class="up" data-buy="${id}" ${left<=0||save.coins<pr?'disabled':''}>${L(`+1<br>${pr}コイン`,`+1<br>${pr}金币`)}</button>${st<3?`<button class="up" data-star="${id}" ${sh<need?'disabled':''}>${L(`★${st+1}へ<br>かけら${need}`,`升★${st+1}<br>碎片${need}`)}</button>`:''}</div></div>`}).join('')||`<p class="hint">${L('まだ仲間がいません','还没有伙伴')}</p>`}</div>`;
+  el.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{const id=b.dataset.buy,pr=shopPrice(id);if(shopLeft()<=0||save.coins<pr)return;save.coins-=pr;save.shop.n++;save.shards[id]=(save.shards[id]||0)+1;persist();sfx('buff');toast(L(`${byId(id).name}のかけらを1個買いました（${pr}コイン）`,`购买了1个${byId(id).name}的碎片（${pr}金币）`));renderShop()});
+  el.querySelectorAll('[data-star]').forEach(b=>b.onclick=()=>{const id=b.dataset.star,cur=starOf(id),need=SHOP.star[cur]||0;if(cur>=3||(save.shards[id]||0)<need)return;save.shards[id]-=need;save.owned[id]=cur+1;persist();sfx('reveal',cur+1);toast(L(`${byId(id).name}が★${cur+1}になった！`,`${byId(id).name}升到了★${cur+1}！`));checkTitles();renderShop()})}
+function renderGacha(){updCoins();{const e=$('#shop-info');if(e)e.innerHTML=hasAny()?L(`🛒 かけら交換所：今日は<b>${shopDayName()}</b>が半額（1個${SHOP.half}コイン）。「交換所」タブで買えます（1日${SHOP.limit}個まで）。かけらで★アップもできます。`,`🛒 碎片兑换所：今日<b>${shopDayName()}</b>半价（每个${SHOP.half}金币）。在「兑换所」标签购买（每天最多${SHOP.limit}个）。也可以用碎片升星。`):''}const first=!hasAny();$('#pull-price').textContent=first?L('無料','免费'):'3';$('#pull-price2').textContent=first?L('無料','免费'):'3';$('#pull-price3').textContent=first?L('無料','免费'):'3';
   $('#pullrow').hidden=first;$('#pull1').disabled=pulling||save.coins<3;$('#pull10').disabled=pulling||save.coins<G10;
   $('#pullrow2').hidden=first;$('#pull1-v2').disabled=pulling||save.coins<3;$('#pull10-v2').disabled=pulling||save.coins<G10;
   $('#pullrow3').hidden=first;$('#pull1-v3').disabled=pulling||save.coins<3;$('#pull10-v3').disabled=pulling||save.coins<G10;$('#pull-v3').disabled=pulling||(!first&&save.coins<3);
