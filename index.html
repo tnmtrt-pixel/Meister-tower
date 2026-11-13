@@ -943,7 +943,7 @@ body:has(#arena:not([hidden])) header .hrow,body:has(#v-ex:not([hidden])) header
 
 <script src="engine.js?v=488b6fc0"></script>
 <script>
-const VERSION='3.3.1';
+const VERSION='3.3.2';
 const G=window.ENGINE;
 if(!G||!G.WORDS){try{if(!sessionStorage.getItem('mt-reload')){sessionStorage.setItem('mt-reload','1');location.reload()}}catch(e){}}/* 古い engine.js が残っていたら一度だけ読み直す */
 const L=(ja,zh)=>G.L(ja,zh);
@@ -1757,7 +1757,7 @@ function newsSheetOpen(){const tabs=[['all',L('すべて','全部')],...Object.k
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${tabs.map(([k,t])=>`<button type="button" class="btn small${newsTab===k?' primary':''}" data-nt="${k}" aria-pressed="${newsTab===k}">${t}</button>`).join('')}</div>`+
     (list.map(n=>{const t=NTAG[n.tag]||NTAG.info;
       return`<div class="news"><div class="nh"><span class="nt ${NTAG[n.tag]?n.tag:'info'}">${L(t[0],t[1])}</span><span class="nd">${esc(n.date)}</span>${newsUn.includes(n.id)?'<span class="new">NEW</span>':''}</div>
-      <b>${esc(nTxt(n.title))}</b><p>${esc(nTxt(n.body))}</p></div>`}).join('')||`<p class="hint">${L('お知らせはありません','暂无公告')}</p>`),L('閉じる','关闭'));
+      <b>${esc(nTxt(n.title))}</b><p>${esc(nTxt(n.body))}</p>${n.link&&/^https:\/\/tnmtrt-pixel\.github\.io\//.test(n.link.url||'')?`<a class="btn primary" style="display:block;text-align:center;margin-top:8px;text-decoration:none" href="${esc(n.link.url)}" target="_blank" rel="noopener">${esc(nTxt(n.link.label||{ja:'ひらく',zh:'打开'}))}</a>`:''}</div>`}).join('')||`<p class="hint">${L('お知らせはありません','暂无公告')}</p>`),L('閉じる','关闭'));
   document.querySelectorAll('.sheet [data-nt]').forEach(x=>x.onclick=()=>{sfx('tap');newsTab=x.dataset.nt;newsSheetOpen()})}
 /* pop:true のお知らせは、タイトル画面・ログインボーナスのあとで自動表示 */
 let newsPopped=false;
