@@ -75,6 +75,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <button class="btn small" id="rk-open">ランキング管理</button>
     <button class="btn small" id="ra-open">📣 集合タイム</button>
     <button class="btn small" id="rd-open">レイドの体力</button>
+    <button class="btn small" id="bg-open">🐞 塔2 バグ報告</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
@@ -91,6 +92,12 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
+  </div>
+  <div id="bg" class="card hide">
+    <div class="big">マイスターの塔2　バグ報告</div>
+    <p class="st">塔2のメニュー「バグを報告」から届いたもの（新しい順200件）。直したら「対応済み」に。<label><input type="checkbox" id="bg-all"> 対応済みも表示</label></p>
+    <p><button class="btn small" id="bg-load">読みこむ</button> <button class="btn small" id="bg-close">閉じる</button></p>
+    <div id="bg-list"></div>
   </div>
   <div id="rd" class="card hide">
     <div class="big">レイドの体力（今日）</div>
@@ -270,6 +277,20 @@ function tick(){const el=$('#tm');if(!el||!S||!S.start)return;const left=Math.ma
   el.textContent=left?`${m}:${String(s).padStart(2,'0')}`:'TIME UP';el.classList.toggle('hot',left<60000)}
 setInterval(tick,500);
 if(KEY)boot();else showLogin();
+
+/* ===== マイスターの塔2 バグ報告 ===== */
+const BG_KIND={stop:'動かない',wrong:'おかしな動き',view:'表示',idea:'その他・要望'};
+async function bgLoad(){const el=$('#bg-list');el.textContent='読みこみ中…';
+  try{const j=await rkAdmin({mt2:'bugs'});const all=$('#bg-all').checked,rows=(j.bugs||[]).filter(b=>all||!b.done);
+    el.innerHTML=`<p class="st">未対応 ${j.open} 件</p>`+(rows.map(b=>{let inf={};try{inf=JSON.parse(b.info)}catch(e){}
+      return `<div class="card" style="margin:8px 0;padding:10px;${b.done?'opacity:.55':''}"><div><b>#${b.n}</b>　${new Date(b.t).toLocaleString('ja-JP')}　【${esc(BG_KIND[b.kind]||b.kind)}】　${esc(b.name||'名前なし')}　ver ${esc(inf.v||'?')}</div>
+        <div style="white-space:pre-wrap;margin:6px 0;font-size:15px">${esc(b.text)}</div>
+        <details><summary class="st">端末・状況</summary><pre style="white-space:pre-wrap;font-size:11px">${esc(JSON.stringify(inf,null,1))}</pre></details>
+        <button class="btn small" data-bgn="${b.n}" data-bgd="${b.done?0:1}">${b.done?'未対応にもどす':'対応済みにする'}</button></div>`}).join('')||'<p class="st">ありません</p>');
+    el.querySelectorAll('[data-bgn]').forEach(x=>x.onclick=async()=>{try{await rkAdmin({mt2:'done',n:+x.dataset.bgn,done:x.dataset.bgd==='1'});bgLoad()}catch(e){toast(String(e.message||e))}})}
+  catch(e){el.textContent='読みこめませんでした：'+(e.message||e)+'（サーバーの更新が終わるまで数分待ってください）'}}
+$('#bg-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#bg').classList.remove('hide');bgLoad()};
+$('#bg-close').onclick=()=>$('#bg').classList.add('hide');$('#bg-load').onclick=bgLoad;$('#bg-all').onchange=bgLoad;
 </script>
 </body>
 </html>
