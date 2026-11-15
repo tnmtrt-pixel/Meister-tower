@@ -3,6 +3,7 @@ import { CupMixin } from './cup.js';
 import { LadderMixin, ENGINE_V, cleanParty } from './ladder.js';
 import { RallyMixin } from './rally.js';
 import { RaidMixin, raidDayNo } from './raid.js';
+import { Mt2Mixin } from './mt2.js';
 /*
  * マイスターの塔 通信対戦サーバー（Cloudflare Workers + Durable Objects）
  *
@@ -436,6 +437,7 @@ export class Rank {
       if (request.method === 'GET' && url.pathname === '/api/rally') return this.rallyGet(json, url);
       if (request.method === 'GET' && url.pathname === '/api/raid') return this.raidGet(url, json);
       if (request.method === 'GET' && url.pathname === '/api/cup/pub') { const T = await this.cupCurrent(); return json({ cup: T ? this.pub(T) : null, hall: (await this.store.get('cuphall')) || [] }); }
+      if (url.pathname.startsWith('/api/mt2/')) return this.mt2Route(url.pathname, request, json); /* マイスターの塔2 */
       if (request.method !== 'POST') return json({ err: 'method' }, 405);
       const b = await request.json().catch(() => ({}));
       if (url.pathname === '/api/profile') return this.profile(b);
@@ -628,6 +630,7 @@ export class Rank {
     const ng = await this.adminGate(b); if (ng) return json(ng.body, ng.status);
     if (b.rally) return this.rallyAdmin(b, json);
     if (b.raid) return this.raidAdmin(b, json);
+    if (b.mt2) return this.mt2Admin(b, json);
     if (b.list) return json({ users: this.sql.exec('SELECT id, w, icon, floor, pvp, dex, wkv, hidden FROM u ORDER BY upd DESC LIMIT 200').toArray() });
     if (!ID_RE.test(b.id || '') && !/^[0-9a-f]{4}$/.test(b.id || '')) return json({ err: 'id' }, 400);
     /* 記録を0にもどす（ずるをした人など）。b.reset: true */
@@ -644,4 +647,4 @@ export class Rank {
   }
 }
 
-Object.assign(Rank.prototype, CupMixin, LadderMixin, RallyMixin, RaidMixin);
+Object.assign(Rank.prototype, CupMixin, LadderMixin, RallyMixin, RaidMixin, Mt2Mixin);
