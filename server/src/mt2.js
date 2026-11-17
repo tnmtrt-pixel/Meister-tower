@@ -1,11 +1,14 @@
 /*
  * マイスターの塔2（https://tnmtrt-pixel.github.io/mahoujin-rpg/）用の受け口
  *
- *  POST /api/mt2/profile {id, sec, w:[前,中,後], icon, title, v}   プロフィール（名前・称号・アイコンは塔2だけのもの）
+ *  POST /api/mt2/profile {id, sec, w:[前,中,後], icon, title, v, inf?} プロフィール（名前・称号・アイコンは塔2だけのもの）
+ *                         inf＝無限の塔で1回の挑戦で着いたいちばん高い階。今の記録より高いときだけ書きかえる
+ *  POST /api/mt2/rank    {id?}                                      無限の塔の攻略階数ランキング（上位50人＋自分の順位）
  *  POST /api/mt2/bug     {id?, name?, kind, text, info}             バグ報告（1つの端末・IDから1分に1件まで）
  *  運営：POST /api/admin {key, mt2:'bugs'}                      報告の一覧（新しい順200件）
  *        POST /api/admin {key, mt2:'done', n, done:true|false}   対応済みの印
  *        POST /api/admin {key, mt2:'users'}                     塔2のプロフィール一覧
+ *        POST /api/admin {key, mt2:'hide', id, hidden:true|false} ランキングから外す／もどす
  *
  * ・識別IDと合言葉はサイコロ版と共通。サイコロ版のプロフィール（u）があるIDは、その合言葉と同じでないと登録できない
  * ・サイコロ版の表（u など）には書きこまない
@@ -13,7 +16,9 @@
 const ID_RE = /^[0-9a-f]{24}$/;
 const SEC_RE = /^[0-9a-f]{32}$/;
 const KINDS = ['stop', 'wrong', 'view', 'idea'];
-const BUG_MAX = 3000; /* これより多くなったら、古い「対応済み」から消す */
+const BUG_MAX = 3000;
+const INF_MAX = 9999; /* 無限の塔の階数の上限 */
+const RANK_N = 50; /* これより多くなったら、古い「対応済み」から消す */
 const int = (v, lo, hi) => Math.min(hi, Math.max(lo, Math.floor(+v || 0)));
 const str = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').slice(0, n);
 async function sha(s) {
@@ -52,9 +57,27 @@ export const Mt2Mixin = {
       const w = (Array.isArray(b.w) ? b.w : []).slice(0, 3).map((n) => int(n, 0, 999));
       if (w.length !== 3) return json({ err: 'name' }, 400);
       const icon = str(b.icon, 16).replace(/[^a-z0-9]/g, ''), title = int(b.title, 0, 99), v = str(b.v, 16), now = Date.now();
+      const inf = int(b.inf, 0, INF_MAX);
       if (a.r) this.sql.exec('UPDATE mt2u SET w=?, icon=?, title=?, v=?, upd=? WHERE id=?', JSON.stringify(w), icon, title, v, now, b.id);
       else this.sql.exec('INSERT INTO mt2u (id, sec, w, icon, title, v, made, upd) VALUES (?,?,?,?,?,?,?,?)', b.id, a.h, JSON.stringify(w), icon, title, v, now, now);
+      if (inf > 0) this.sql.exec('UPDATE mt2u SET inf=?, infT=? WHERE id=? AND inf<?', inf, now, b.id, inf);
       return json({ ok: true });
+    }
+    if (path === '/api/mt2/rank') {
+      /* 同じ階なら、先にその階に着いた人が上 */
+      const rows = this.sql.exec('SELECT id, w, icon, title, inf, infT FROM mt2u WHERE inf > 0 AND hidden = 0 ORDER BY inf DESC, infT ASC LIMIT ?', RANK_N).toArray();
+      const total = this.sql.exec('SELECT COUNT(*) AS c FROM mt2u WHERE inf > 0 AND hidden = 0').toArray()[0].c;
+      const pub = (r, n) => ({ n, tag: r.id.slice(-4), w: JSON.parse(r.w || '[]'), icon: r.icon, title: r.title, inf: r.inf, me: r.id === b.id || undefined });
+      const list = rows.map((r, i) => pub(r, i + 1));
+      let me = null;
+      if (ID_RE.test(b.id || '')) {
+        const r = this.sql.exec('SELECT id, w, icon, title, inf, infT, hidden FROM mt2u WHERE id=?', b.id).toArray()[0];
+        if (r && r.inf > 0 && !r.hidden) {
+          const n = this.sql.exec('SELECT COUNT(*) AS c FROM mt2u WHERE hidden = 0 AND (inf > ? OR (inf = ? AND infT < ?))', r.inf, r.inf, r.infT).toArray()[0].c + 1;
+          me = pub(r, n);
+        }
+      }
+      return json({ list, me, total });
     }
     if (path === '/api/mt2/bug') {
       const text = str(b.text, 800).trim();
@@ -93,6 +116,10 @@ export const Mt2Mixin = {
     }
     if (b.mt2 === 'users') {
       return json({ users: this.sql.exec('SELECT id, w, icon, title, inf, hidden, v, made, upd FROM mt2u ORDER BY upd DESC LIMIT 200').toArray() });
+    }
+    if (b.mt2 === 'hide') {
+      const n = this.sql.exec('UPDATE mt2u SET hidden=? WHERE id=?', b.hidden === false ? 0 : 1, str(b.id, 24)).rowsWritten;
+      return json({ ok: true, n });
     }
     return json({ err: 'op' }, 400);
   },
