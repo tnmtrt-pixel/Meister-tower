@@ -3,12 +3,16 @@
  *
  *  POST /api/mt2/profile {id, sec, w:[前,中,後], icon, title, v, inf?} プロフィール（名前・称号・アイコンは塔2だけのもの）
  *                         inf＝無限の塔で1回の挑戦で着いたいちばん高い階。今の記録より高いときだけ書きかえる
+ *                         infR＝ゲームが受けとった「記録を0にした回数」。サーバーの回数より少ないと inf は使わない。返事に今の回数 infR
+ *                         nm＝名前と称号の文字（運営の画面用）
  *  POST /api/mt2/rank    {id?}                                      無限の塔の攻略階数ランキング（上位50人＋自分の順位）
  *  POST /api/mt2/bug     {id?, name?, kind, text, info}             バグ報告（1つの端末・IDから1分に1件まで）
  *  運営：POST /api/admin {key, mt2:'bugs'}                      報告の一覧（新しい順200件）
  *        POST /api/admin {key, mt2:'done', n, done:true|false}   対応済みの印
  *        POST /api/admin {key, mt2:'users'}                     塔2のプロフィール一覧
  *        POST /api/admin {key, mt2:'hide', id, hidden:true|false} ランキングから外す／もどす
+ *        POST /api/admin {key, mt2:'rank'}                      ランキング（非表示の人もふくむ上位200人、IDはそのまま）
+ *        POST /api/admin {key, mt2:'reset', id}                 無限の塔の記録を0にする（もとに戻せない）
  *
  * ・識別IDと合言葉はサイコロ版と共通。サイコロ版のプロフィール（u）があるIDは、その合言葉と同じでないと登録できない
  * ・サイコロ版の表（u など）には書きこまない
@@ -34,6 +38,10 @@ export const Mt2Mixin = {
       v TEXT NOT NULL DEFAULT '', made INTEGER NOT NULL DEFAULT 0, upd INTEGER NOT NULL DEFAULT 0)`);
     this.sql.exec(`CREATE TABLE IF NOT EXISTS mt2bug (n INTEGER PRIMARY KEY AUTOINCREMENT, t INTEGER NOT NULL, who TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '',
       kind TEXT NOT NULL DEFAULT '', text TEXT NOT NULL DEFAULT '', info TEXT NOT NULL DEFAULT '', done INTEGER NOT NULL DEFAULT 0)`);
+    /* nm＝名前と称号の文字（運営の画面で見るためだけ。ゲームの表示には使わない） */
+    try { this.sql.exec("ALTER TABLE mt2u ADD COLUMN nm TEXT NOT NULL DEFAULT ''"); } catch (e) { /* 追加済み */ }
+    /* infR＝運営が記録を0にした回数。ゲームは受けとった回数を覚え、それより古い記録は送っても使わない */
+    try { this.sql.exec('ALTER TABLE mt2u ADD COLUMN infR INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* 追加済み */ }
     this.mt2Ready = true;
   },
 
@@ -60,8 +68,10 @@ export const Mt2Mixin = {
       const inf = int(b.inf, 0, INF_MAX);
       if (a.r) this.sql.exec('UPDATE mt2u SET w=?, icon=?, title=?, v=?, upd=? WHERE id=?', JSON.stringify(w), icon, title, v, now, b.id);
       else this.sql.exec('INSERT INTO mt2u (id, sec, w, icon, title, v, made, upd) VALUES (?,?,?,?,?,?,?,?)', b.id, a.h, JSON.stringify(w), icon, title, v, now, now);
-      if (inf > 0) this.sql.exec('UPDATE mt2u SET inf=?, infT=? WHERE id=? AND inf<?', inf, now, b.id, inf);
-      return json({ ok: true });
+      const infR = a.r ? a.r.infR | 0 : 0;
+      if (inf > 0 && int(b.infR, 0, 1e6) >= infR) this.sql.exec('UPDATE mt2u SET inf=?, infT=? WHERE id=? AND inf<?', inf, now, b.id, inf);
+      if (b.nm) this.sql.exec('UPDATE mt2u SET nm=? WHERE id=?', str(b.nm, 40), b.id);
+      return json({ ok: true, infR });
     }
     if (path === '/api/mt2/rank') {
       /* 同じ階なら、先にその階に着いた人が上 */
@@ -116,6 +126,15 @@ export const Mt2Mixin = {
     }
     if (b.mt2 === 'users') {
       return json({ users: this.sql.exec('SELECT id, w, icon, title, inf, hidden, v, made, upd FROM mt2u ORDER BY upd DESC LIMIT 200').toArray() });
+    }
+    if (b.mt2 === 'rank') {
+      const rows = this.sql.exec('SELECT id, w, icon, title, nm, inf, infT, hidden, v, upd FROM mt2u WHERE inf > 0 ORDER BY inf DESC, infT ASC LIMIT 200').toArray();
+      const total = this.sql.exec('SELECT COUNT(*) AS c FROM mt2u').toArray()[0].c;
+      return json({ list: rows, total });
+    }
+    if (b.mt2 === 'reset') {
+      const n = this.sql.exec('UPDATE mt2u SET inf=0, infT=0, infR=infR+1 WHERE id=?', str(b.id, 24)).rowsWritten;
+      return json({ ok: true, n });
     }
     if (b.mt2 === 'hide') {
       const n = this.sql.exec('UPDATE mt2u SET hidden=? WHERE id=?', b.hidden === false ? 0 : 1, str(b.id, 24)).rowsWritten;

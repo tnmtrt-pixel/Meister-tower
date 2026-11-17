@@ -76,6 +76,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <button class="btn small" id="ra-open">📣 集合タイム</button>
     <button class="btn small" id="rd-open">レイドの体力</button>
     <button class="btn small" id="bg-open">🐞 塔2 バグ報告</button>
+    <button class="btn small" id="m2-open">🗼 塔2 ランキング</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
@@ -92,6 +93,12 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
+  </div>
+  <div id="m2" class="card hide">
+    <div class="big">塔2 無限の塔ランキング管理</div>
+    <p class="st">マイスターの塔2（ver2.1.0〜）の「無限の塔 攻略階数」。上位200人（非表示の人もふくむ）。<br>「非表示」：ランキングに出なくなります（「戻す」で元に戻せます）。「記録を0に」：その人の記録を0Fにします（元に戻せません。その人のゲームの最高記録も、次に通信したとき0になります）。<br>名前が「（名前未送信）」の人は、ver2.1.2より前のゲームで送った人です。次に記録を送ると名前が出ます。</p>
+    <p><button class="btn small" id="m2-load">読みこむ</button> <button class="btn small" id="m2-close">閉じる</button> <label><input type="checkbox" id="m2-hid"> 非表示の人だけ</label></p>
+    <div id="m2-list"></div>
   </div>
   <div id="bg" class="card hide">
     <div class="big">マイスターの塔2　バグ報告</div>
@@ -291,6 +298,20 @@ async function bgLoad(){const el=$('#bg-list');el.textContent='読みこみ中�
   catch(e){el.textContent='読みこめませんでした：'+(e.message||e)+'（サーバーの更新が終わるまで数分待ってください）'}}
 $('#bg-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#bg').classList.remove('hide');bgLoad()};
 $('#bg-close').onclick=()=>$('#bg').classList.add('hide');$('#bg-load').onclick=bgLoad;$('#bg-all').onchange=bgLoad;
+
+/* ===== マイスターの塔2 無限の塔ランキング ===== */
+async function m2Load(){const el=$('#m2-list');el.textContent='読みこみ中…';
+  try{const j=await rkAdmin({mt2:'rank'}),only=$('#m2-hid').checked;let n=0;
+    const rows=(j.list||[]).map(x=>({...x,n:x.hidden?0:++n})).filter(x=>!only||x.hidden);
+    el.innerHTML=`<p class="st">記録のある人 ${(j.list||[]).length} 人（登録 ${j.total|0} 人）</p><table style="width:100%;border-collapse:collapse">`+rows.map(x=>{const[nm,tt]=String(x.nm||'').split('／');
+      return `<tr style="border-top:1px solid var(--line);${x.hidden?'opacity:.55':''}"><td style="white-space:nowrap">${x.hidden?'非表示':x.n+'位'}</td><td><span class="tt">${esc(tt||'')}</span> <b>${esc(nm||'（名前未送信）')}</b><br><small>ID下4けた ${esc(String(x.id).slice(-4).toUpperCase())}　ver ${esc(x.v||'?')}　${x.infT?new Date(x.infT).toLocaleString('ja-JP'):''}</small></td><td style="white-space:nowrap"><b>${x.inf}F</b></td><td style="white-space:nowrap;text-align:right">${x.hidden?`<button class="btn small" data-m2show="${esc(x.id)}">戻す</button>`:`<button class="btn small danger" data-m2hide="${esc(x.id)}">非表示</button>`} <button class="btn small danger" data-m2reset="${esc(x.id)}">記録を0に</button></td></tr>`}).join('')+'</table>'+(rows.length?'':'<p class="st">いません</p>');
+    const act=(sel,msg,body,done)=>el.querySelectorAll(sel).forEach(b=>b.onclick=async()=>{if(msg&&!confirm(msg))return;try{await rkAdmin(body(b));toast(done);m2Load()}catch(e){toast(String(e.message||e))}});
+    act('[data-m2hide]','この人を塔2のランキングから非表示にしますか？',b=>({mt2:'hide',id:b.dataset.m2hide,hidden:true}),'非表示にしました');
+    act('[data-m2show]',null,b=>({mt2:'hide',id:b.dataset.m2show,hidden:false}),'元に戻しました');
+    act('[data-m2reset]','この人の無限の塔の記録を0Fにしますか？（元に戻せません）',b=>({mt2:'reset',id:b.dataset.m2reset}),'記録を0にしました')}
+  catch(e){el.textContent='読みこめませんでした：'+(e.message||e)+'（サーバーの更新が終わるまで数分待ってください）'}}
+$('#m2-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#m2').classList.remove('hide');m2Load()};
+$('#m2-close').onclick=()=>$('#m2').classList.add('hide');$('#m2-load').onclick=m2Load;$('#m2-hid').onchange=m2Load;
 </script>
 </body>
 </html>
