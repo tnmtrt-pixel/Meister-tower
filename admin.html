@@ -60,6 +60,26 @@ td.n{font-weight:900;color:var(--gold-hi);width:2em}
 form.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
 .hide{display:none!important}
+/* タブ（2.x：塔2を先頭に） */
+.nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.grp{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:12px;background:rgba(10,20,48,.6)}
+.grp.g2{border-color:var(--gold)}
+.gl{font-size:11px;color:var(--muted);width:100%}
+.tab{border:1px solid var(--line);background:#0E1D40;color:var(--ink);border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer;font-size:14px}
+.tab.on{background:linear-gradient(#FFE08A,#D9AE45);color:#2A1B00;border-color:#fff}
+.bdg{display:inline-block;min-width:20px;padding:0 6px;border-radius:99px;background:var(--low);color:#fff;font-size:12px;line-height:20px;text-align:center;margin-left:4px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.sum .k{background:rgba(19,36,74,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.sum .k b{display:block;font-size:26px;color:var(--gold-hi);line-height:1.1}.sum .k span{font-size:12px;color:var(--muted)}
+.sum .k.warn b{color:var(--low)}
+.t2g{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start}
+@media (max-width:1000px){.t2g{grid-template-columns:1fr}}
+.t2g .card{margin:0}
+.card .big{font-size:22px}
+details.hp{margin:4px 0 6px}details.hp summary{cursor:pointer;color:var(--muted);font-size:13px}
+.tabclose{display:none!important}
+#m2-list td{font-size:13px;vertical-align:middle;padding:6px 3px}
+@media (max-width:600px){#m2-list td:last-child .btn{display:block;margin:2px 0 2px auto}#m2-list small{display:block;line-height:1.4}.sum .k b{font-size:22px}}
 /* ランキング管理（スマホでも見やすく） */
 #rk-list td{font-size:13px;vertical-align:middle;padding:6px 3px}#rk-list img{width:34px;height:34px;border-radius:6px;border:1px solid var(--gold);object-fit:cover;background:#fff;display:block}
 #rk-list td:nth-child(3){word-break:break-all}#rk-list td:last-child{white-space:nowrap;text-align:right}#rk-list td:last-child .btn{display:block;margin:2px 0 2px auto}
@@ -69,17 +89,24 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
 <div class="wrap">
   <header>
     <h1>🛠 マイスターの塔 管理画面</h1>
-    <button class="btn small" id="cup-old">大会（旧）</button>
-    <select id="sel" class="hide"></select>
-    <button class="btn small hide" id="new">＋ 新しい大会</button>
-    <button class="btn small" id="rk-open">ランキング管理</button>
-    <button class="btn small" id="ra-open">📣 集合タイム</button>
-    <button class="btn small" id="rd-open">レイドの体力</button>
-    <button class="btn small" id="bg-open">🐞 塔2 バグ報告</button>
-    <button class="btn small" id="m2-open">🗼 塔2 ランキング</button>
     <span class="grow"></span>
     <button class="btn small" id="logout">ログアウト</button>
   </header>
+  <nav id="nav" class="nav hide">
+    <div class="grp g2"><span class="gl">マイスターの塔2</span>
+      <button class="tab" data-tab="t2">🗼 塔2 <span class="bdg hide" id="t2-bdg"></span></button></div>
+    <div class="grp"><span class="gl">マイスターの塔（サイコロ版）</span>
+      <button class="tab" data-tab="rk">ランキング</button><button class="tab" data-tab="ra">📣 集合タイム</button><button class="tab" data-tab="rd">レイドの体力</button><button class="tab" data-tab="cup">大会（旧）</button></div>
+  </nav>
+  <div id="cupbar" class="hide" style="display:flex;gap:8px;margin-bottom:10px">
+    <button class="btn small hide" id="cup-old">大会（旧）</button>
+    <select id="sel" class="hide"></select>
+    <button class="btn small hide" id="new">＋ 新しい大会</button>
+  </div>
+  <div id="t2" class="hide">
+    <div class="sum" id="t2-sum"></div>
+    <div class="t2g"><div id="t2a"></div><div id="t2b"></div></div>
+  </div>
   <div id="login" class="card hide">
     <div class="big">運営用パスワード</div>
     <p class="st">Cloudflare に登録した ADMIN_KEY を入れてください。</p>
@@ -90,20 +117,20 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
     <div class="big">ランキング管理</div>
     <p class="st">「非表示」：すべてのランキングから見えなくなります（データは残るので「戻す」で元に戻せます）。「記録を0に」：無限の塔・探索の記録を0にします（元に戻せません）。</p>
     <p><select id="rk-type"><option value="infw">無限の塔 ウィークリー</option><option value="lad">ランクバトル（今シーズン）</option><option value="raidw">レイド 今週の合計ダメージ</option><option value="exw">探索 ウィークリー</option><option value="inf">無限の塔 トータル（旧）</option><option value="ex">探索 通算（旧）</option></select>
-      <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small" id="rk-close">閉じる</button></p>
+      <button class="btn small" id="rk-load">読みこむ</button> <button class="btn small tabclose" id="rk-close">閉じる</button></p>
     <div id="rk-list"></div>
     <div id="rk-hid"></div>
   </div>
   <div id="m2" class="card hide">
-    <div class="big">塔2 無限の塔ランキング管理</div>
-    <p class="st">マイスターの塔2（ver2.1.0〜）の「無限の塔 攻略階数」。上位200人（非表示の人もふくむ）。<br>「非表示」：ランキングに出なくなります（「戻す」で元に戻せます）。「記録を0に」：その人の記録を0Fにします（元に戻せません。その人のゲームの最高記録も、次に通信したとき0になります）。<br>名前が「（名前未送信）」の人は、ver2.1.2より前のゲームで送った人です。次に記録を送ると名前が出ます。</p>
-    <p><button class="btn small" id="m2-load">読みこむ</button> <button class="btn small" id="m2-close">閉じる</button> <label><input type="checkbox" id="m2-hid"> 非表示の人だけ</label></p>
+    <div class="big">🏆 無限の塔ランキング</div>
+    <details class="hp"><summary>ボタンの説明</summary><p class="st">マイスターの塔2（ver2.1.0〜）の「無限の塔 攻略階数」。上位200人（非表示の人もふくむ）。<br>「非表示」：ランキングに出なくなります（「戻す」で元に戻せます）。「記録を0に」：その人の記録を0Fにします（元に戻せません。その人のゲームの最高記録も、次に通信したとき0になります）。<br>名前が「（名前未送信）」の人は、ver2.1.2より前のゲームで送った人です。次に記録を送ると名前が出ます。</p></details>
+    <p><button class="btn small" id="m2-load">読みこむ</button> <button class="btn small tabclose" id="m2-close">閉じる</button> <label><input type="checkbox" id="m2-hid"> 非表示の人だけ</label></p>
     <div id="m2-list"></div>
   </div>
   <div id="bg" class="card hide">
-    <div class="big">マイスターの塔2　バグ報告</div>
-    <p class="st">塔2のメニュー「バグを報告」から届いたもの（新しい順200件）。直したら「対応済み」に。<label><input type="checkbox" id="bg-all"> 対応済みも表示</label></p>
-    <p><button class="btn small" id="bg-load">読みこむ</button> <button class="btn small" id="bg-close">閉じる</button></p>
+    <div class="big">🐞 バグ報告</div>
+    <p class="st">ゲームのメニュー「バグを報告」から届いたもの（新しい順200件）。直したら「対応済み」に。　<label><input type="checkbox" id="bg-all"> 対応済みも表示</label></p>
+    <p><button class="btn small" id="bg-load">読みこむ</button> <button class="btn small tabclose" id="bg-close">閉じる</button></p>
     <div id="bg-list"></div>
   </div>
   <div id="rd" class="card hide">
@@ -134,7 +161,7 @@ form.grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:
       <label>長さ（分）<input name="min" type="number" value="30" min="5" max="240"></label>
       <label>ひとこと（なくてもOK）<input name="label" maxlength="40" placeholder="例：昼休みに集合！"></label>
     </form>
-    <p><button class="btn primary" id="ra-add">追加する</button> <button class="btn small" id="ra-close">閉じる</button></p>
+    <p><button class="btn primary" id="ra-add">追加する</button> <button class="btn small tabclose" id="ra-close">閉じる</button></p>
     <div id="ra-list"></div>
   </div>
   <div id="create" class="card hide">
@@ -176,7 +203,7 @@ const plHTML=(p,cls='')=>p?`<div class="pl ${cls}">${img(p.icon)}<div><span clas
 const ERR={'need 2':'受付した人が2人以上必要です','final done':'決勝は終わっています。「大会を終了する」を押してください','final undecided':'決勝の結果がまだです','status':'今の状態ではできません'};
 const errMsg=e=>{const m=String(e.message||e);if(m.startsWith('undecided:'))return`まだ結果が出ていない卓があります：${m.slice(10)}番`;return ERR[m]||m};
 
-function showLogin(){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#create').classList.add('hide');clearInterval(poll)}
+function showLogin(){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#create').classList.add('hide');clearInterval(poll);$('#nav').classList.add('hide');['t2','rk','ra','rd','cupbar'].forEach(i=>$('#'+i).classList.add('hide'))}
 $('#go').onclick=async()=>{KEY=$('#key').value.trim();$('#lerr').textContent='確認しています…';try{sessionStorage.setItem('mt-admin',KEY)}catch(e){}await boot()};
 async function why(r){/* ログインできない理由を表示する */
   if(r==='locked'){$('#lerr').textContent='パスワードを3回まちがえたので、24時間ロックしています。すぐに入りたいときは、Cloudflare の ADMIN_KEY を新しい合言葉に変えてデプロイしてください（ロックが解けます）。';return}
@@ -200,7 +227,7 @@ async function rkLoad(){const el=$('#rk-list');el.textContent='読みこんで�
     $('#rk-hid').innerHTML=hid.length?'<div class="big" style="margin-top:14px;font-size:16px">非表示にしている人</div>'+hid.map(u=>{let w=[];try{w=JSON.parse(u.w)}catch(e){}return`<p>${esc(rkName(w))}（${esc(u.id.slice(-4))}） <button class="btn small" data-show="${esc(u.id)}">戻す</button></p>`}).join(''):'';
     $('#rk-hid').querySelectorAll('[data-show]').forEach(b=>b.onclick=async()=>{try{await rkAdmin({id:b.dataset.show,hide:false});toast('元に戻しました');rkLoad()}catch(e){toast(String(e.message||e))}})
   }catch(e){el.textContent='読みこめませんでした：'+(e.message||e)}}
-$('#rk-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rk').classList.remove('hide');rkLoad()};
+if($('#rk-open'))$('#rk-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rk').classList.remove('hide');rkLoad()};
 $('#rk-close').onclick=()=>$('#rk').classList.add('hide');
 $('#rk-load').onclick=rkLoad;$('#rk-type').onchange=rkLoad;
 /* 集合タイム：/api/admin {rally:'add'|'del'|'list'} */
@@ -210,11 +237,11 @@ function raShow(list,daily){const now=Date.now(),el=$('#ra-list');if(daily){cons
   el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{if(!confirm('この集合タイムを消しますか？'))return;try{raShow((await rkAdmin({rally:'del',id:b.dataset.rdel})).list)}catch(e){toast(String(e.message||e))}})}
 async function raLoad(){try{const j=await rkAdmin({rally:'list'});raShow(j.list,j.daily)}catch(e){$('#ra-list').textContent='読みこめませんでした：'+(e.message||e)}}
 /* レイドの体力（今日）：/api/admin {raid:'hp', add} */
-async function rdApply(add){try{const j=await rkAdmin({raid:'hp',add});$('#rd-now').textContent=`今日の体力：${j.hp.toLocaleString()} / ${j.max.toLocaleString()}（挑戦 ${j.tries}回${j.killed?'・倒されました':''}）`;toast('変えました')}catch(e){toast(String(e.message||e))}}
-$('#rd-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rd').classList.toggle('hide');if(!$('#rd').classList.contains('hide'))rdApply(0)};
+async function rdApply(add){try{const j=await rkAdmin({raid:'hp',add});$('#rd-now').textContent=`今日の体力：${j.hp.toLocaleString()} / ${j.max.toLocaleString()}（挑戦 ${j.tries}回${j.killed?'・倒されました':''}）`;if(add)toast('変えました')}catch(e){toast(String(e.message||e))}}
+if($('#rd-open'))$('#rd-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#rd').classList.toggle('hide');if(!$('#rd').classList.contains('hide'))rdApply(0)};
 document.querySelectorAll('[data-rdadd]').forEach(b=>b.onclick=()=>rdApply(+b.dataset.rdadd));
 $('#rd-apply').onclick=()=>{const v=Math.round(+$('#rd-add').value||0);if(!v){toast('数を入れてください');return}rdApply(v)};
-$('#ra-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}const f=$('#raf');if(!f.start.value){const d=new Date(Date.now()+86400e3);d.setHours(12,30,0,0);f.start.value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}$('#ra').classList.remove('hide');raLoad()};
+function raOpen(){if(!KEY){toast('先にパスワードで入ってください');return}const f=$('#raf');if(!f.start.value){const d=new Date(Date.now()+86400e3);d.setHours(12,30,0,0);f.start.value=new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}$('#ra').classList.remove('hide');raLoad()}
 $('#rad-save').onclick=async()=>{const f=$('#rad'),hours=f.hours.value.split(/[,、\s]+/).filter(Boolean).map(Number).filter(x=>x>=0&&x<=23);
   if(!confirm(`毎日 ${hours.join('時・')}時 から ${+f.min.value||30}分 にしますか？${hours.length?'':'（空なので毎日の集合タイムはなくなります）'}`))return;
   try{const j=await rkAdmin({rally:'daily',hours,min:+f.min.value||30,label:f.label.value});raShow(j.list,j.daily);toast('保存しました')}catch(e){toast(String(e.message||e))}};
@@ -228,7 +255,7 @@ async function boot(){try{const j=await adm('list');$('#login').classList.add('h
     $('#sel').innerHTML=list.map(x=>`<option value="${x.id}" ${x.id===TID?'selected':''}>${esc(x.name.ja)}／${esc(x.sub.ja)}（${({open:'エントリー受付中',checkin:'当日受付中',play:'進行中',done:'終了'})[x.status]}）</option>`).join('')||'<option>大会がありません</option>';
     $('#lerr').textContent='';$('#app').classList.add('hide');$('#create').classList.add('hide');
     /* Ver 2.19.2 大会はなくなったので、入ったらランキング管理を開く。大会の画面は「大会（旧）」から */
-    $('#rk').classList.remove('hide');rkLoad();
+    $('#nav').classList.remove('hide');tab(TAB||'t2');
     $('#cup-old').onclick=async()=>{const on=$('#sel').classList.toggle('hide');$('#new').classList.toggle('hide',on);if(on){$('#app').classList.add('hide');clearInterval(poll);return}if(!list.length){$('#create').classList.remove('hide');return}$('#app').classList.remove('hide');await refresh();clearInterval(poll);poll=setInterval(refresh,2000)}}catch(e){showLogin();why(String(e.message||e))}}
 async function refresh(){if(!TID)return;try{await adm("state")}catch(e){return}render()}
 const act=(op,extra,confirmMsg)=>async()=>{if(confirmMsg&&!confirm(confirmMsg))return;try{await adm(op,extra);render();if(op==='delete'){TID='';boot()}}catch(e){toast(errMsg(e))}};
@@ -288,7 +315,7 @@ if(KEY)boot();else showLogin();
 /* ===== マイスターの塔2 バグ報告 ===== */
 const BG_KIND={stop:'動かない',wrong:'おかしな動き',view:'表示',idea:'その他・要望'};
 async function bgLoad(){const el=$('#bg-list');el.textContent='読みこみ中…';
-  try{const j=await rkAdmin({mt2:'bugs'});const all=$('#bg-all').checked,rows=(j.bugs||[]).filter(b=>all||!b.done);
+  try{const j=await rkAdmin({mt2:'bugs'});T2.open=j.open|0;t2Sum();const all=$('#bg-all').checked,rows=(j.bugs||[]).filter(b=>all||!b.done);
     el.innerHTML=`<p class="st">未対応 ${j.open} 件</p>`+(rows.map(b=>{let inf={};try{inf=JSON.parse(b.info)}catch(e){}
       return `<div class="card" style="margin:8px 0;padding:10px;${b.done?'opacity:.55':''}"><div><b>#${b.n}</b>　${new Date(b.t).toLocaleString('ja-JP')}　【${esc(BG_KIND[b.kind]||b.kind)}】　${esc(b.name||'名前なし')}　ver ${esc(inf.v||'?')}</div>
         <div style="white-space:pre-wrap;margin:6px 0;font-size:15px">${esc(b.text)}</div>
@@ -296,12 +323,13 @@ async function bgLoad(){const el=$('#bg-list');el.textContent='読みこみ中�
         <button class="btn small" data-bgn="${b.n}" data-bgd="${b.done?0:1}">${b.done?'未対応にもどす':'対応済みにする'}</button></div>`}).join('')||'<p class="st">ありません</p>');
     el.querySelectorAll('[data-bgn]').forEach(x=>x.onclick=async()=>{try{await rkAdmin({mt2:'done',n:+x.dataset.bgn,done:x.dataset.bgd==='1'});bgLoad()}catch(e){toast(String(e.message||e))}})}
   catch(e){el.textContent='読みこめませんでした：'+(e.message||e)+'（サーバーの更新が終わるまで数分待ってください）'}}
-$('#bg-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#bg').classList.remove('hide');bgLoad()};
+if($('#bg-open'))$('#bg-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#bg').classList.remove('hide');bgLoad()};
 $('#bg-close').onclick=()=>$('#bg').classList.add('hide');$('#bg-load').onclick=bgLoad;$('#bg-all').onchange=bgLoad;
 
 /* ===== マイスターの塔2 無限の塔ランキング ===== */
 async function m2Load(){const el=$('#m2-list');el.textContent='読みこみ中…';
   try{const j=await rkAdmin({mt2:'rank'}),only=$('#m2-hid').checked;let n=0;
+    {const L=j.list||[],v=L.filter(x=>!x.hidden);Object.assign(T2,{total:j.total|0,rec:v.length,top:v.length?v[0].inf:0,hid:L.length-v.length});t2Sum()}
     const rows=(j.list||[]).map(x=>({...x,n:x.hidden?0:++n})).filter(x=>!only||x.hidden);
     el.innerHTML=`<p class="st">記録のある人 ${(j.list||[]).length} 人（登録 ${j.total|0} 人）</p><table style="width:100%;border-collapse:collapse">`+rows.map(x=>{const[nm,tt]=String(x.nm||'').split('／');
       return `<tr style="border-top:1px solid var(--line);${x.hidden?'opacity:.55':''}"><td style="white-space:nowrap">${x.hidden?'非表示':x.n+'位'}</td><td><span class="tt">${esc(tt||'')}</span> <b>${esc(nm||'（名前未送信）')}</b><br><small>ID下4けた ${esc(String(x.id).slice(-4).toUpperCase())}　ver ${esc(x.v||'?')}　${x.infT?new Date(x.infT).toLocaleString('ja-JP'):''}</small></td><td style="white-space:nowrap"><b>${x.inf}F</b></td><td style="white-space:nowrap;text-align:right">${x.hidden?`<button class="btn small" data-m2show="${esc(x.id)}">戻す</button>`:`<button class="btn small danger" data-m2hide="${esc(x.id)}">非表示</button>`} <button class="btn small danger" data-m2reset="${esc(x.id)}">記録を0に</button></td></tr>`}).join('')+'</table>'+(rows.length?'':'<p class="st">いません</p>');
@@ -310,8 +338,26 @@ async function m2Load(){const el=$('#m2-list');el.textContent='読みこみ中�
     act('[data-m2show]',null,b=>({mt2:'hide',id:b.dataset.m2show,hidden:false}),'元に戻しました');
     act('[data-m2reset]','この人の無限の塔の記録を0Fにしますか？（元に戻せません）',b=>({mt2:'reset',id:b.dataset.m2reset}),'記録を0にしました')}
   catch(e){el.textContent='読みこめませんでした：'+(e.message||e)+'（サーバーの更新が終わるまで数分待ってください）'}}
-$('#m2-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#m2').classList.remove('hide');m2Load()};
+if($('#m2-open'))$('#m2-open').onclick=()=>{if(!KEY){toast('先にパスワードで入ってください');return}$('#m2').classList.remove('hide');m2Load()};
 $('#m2-close').onclick=()=>$('#m2').classList.add('hide');$('#m2-load').onclick=m2Load;$('#m2-hid').onchange=m2Load;
+
+/* ===== タブ：塔2（バグ報告とランキングを並べる）が先頭。サイコロ版はうしろ ===== */
+let TAB='';
+function tab(t){if(!KEY){toast('先にパスワードで入ってください');return}TAB=t;document.querySelectorAll('#nav .tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  ['t2','rk','ra','rd','cupbar','create'].forEach(i=>$('#'+i).classList.add('hide'));
+  if(t!=='cup'&&!$('#sel').classList.contains('hide'))$('#cup-old').onclick&&$('#cup-old').onclick();
+  if(t!=='cup'){$('#app').classList.add('hide');clearInterval(poll)}
+  if(t==='t2'){$('#t2a').appendChild($('#bg'));$('#t2b').appendChild($('#m2'));$('#bg').classList.remove('hide');$('#m2').classList.remove('hide');$('#t2').classList.remove('hide');bgLoad();m2Load()}
+  if(t==='rk'){$('#rk').classList.remove('hide');rkLoad()}
+  if(t==='ra')raOpen();
+  if(t==='rd'){$('#rd').classList.remove('hide');rdApply(0)}
+  if(t==='cup'){$('#cupbar').classList.remove('hide');if($('#sel').classList.contains('hide'))$('#cup-old').onclick&&$('#cup-old').onclick()}}
+document.querySelectorAll('#nav .tab').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+/* 塔2のまとめ（上の数字）とタブの赤い数字 */
+const T2={};
+function t2Sum(){const k=(v,l,w)=>`<div class="k ${w?'warn':''}"><b>${v}</b><span>${l}</span></div>`;
+  $('#t2-sum').innerHTML=k(T2.open==null?'…':T2.open,'未対応のバグ報告',T2.open>0)+k(T2.total==null?'…':T2.total,'ランキング登録')+k(T2.rec==null?'…':T2.rec,'無限の塔の記録がある人')+k(T2.top==null?'…':T2.top+'F','無限の塔 1位')+k(T2.hid==null?'…':T2.hid,'非表示にしている人');
+  const bd=$('#t2-bdg');bd.textContent=T2.open||'';bd.classList.toggle('hide',!T2.open)}
 </script>
 </body>
 </html>
